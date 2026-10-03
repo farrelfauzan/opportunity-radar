@@ -35,8 +35,8 @@ Numbering matches the sprint plan in Notion (D1–D16). Open rows still wait for
 | # | Decision | Options | Status / recommendation |
 |---|----------|---------|----------------|
 | 1 | AI provider for summaries, scoring and reports | Claude API / 9router / no AI | **Decided 2026-10-04: 9router**, through an OpenAI-compatible client (base URL, key, model from server env). Base URL, key, model names and budget cap still to be provided |
-| 2 | Storage | S3 only / S3 + a database (e.g. DynamoDB) / other | **Decided 2026-10-04: "follows S3"**. Open: S3 only or S3 plus a database (question Q1) |
-| 3 | Hosting | Local or own server / Vercel / AWS Lambda | **Decided 2026-10-04: AWS Lambda**, infrastructure as CDK in the repo (pending approval of OR-48). Open: how Next.js runs on Lambda (question Q2), region. Lambda uses datacentre IPs: reachability is retested in OR-5 |
+| 2 | Storage | Options in the Engineer's infrastructure proposal (CDK ticket OR-48) | **Decided 2026-10-04: "follows S3"**; if a database is used, the Tech Lead prefers EC2 with docker compose, cost-efficient. Open: which option (Engineer's proposal, sent to the Tech Lead) |
+| 3 | Hosting | Local or own server / Vercel / AWS | **Decided 2026-10-04: AWS (Lambda)**, infrastructure as code in the repo. Open: the concrete option and region (Engineer's proposal, OR-48). Datacentre IPs may be blocked by some sources: retested in OR-5 |
 | 4 | Alert delivery | In-app only / + Telegram / + email | Open. In-app first, Telegram second |
 | 5 | Login | Single password / none (local only) | Open. Single password: Lambda makes the app reachable from the internet |
 | 6 | Ticket board | Files in docs/tickets / a Notion board like Performa Vision | **Decided 2026-10-03: Notion**, same structure as Performa Vision |
@@ -60,3 +60,4 @@ Numbering matches the sprint plan in Notion (D1–D16). Open rows still wait for
 - 2026-10-03 — Tech Lead: add investment and business calculators for provisional projections. New screen 6.
 - 2026-10-03 — Tech Lead: design settled, implementation starts; tickets live in Notion (decision 6). Backlog OR-1…OR-47 drafted. Gaps found and ticketed: Indonesian copy exists only for Radar and no screen has empty/loading/error/stale designs (OR-12); "Open venture view" has no screen spec (OR-35). Wording on Asset/Investments flagged as advice-like for the Tech Lead (sprint plan D10, ticket OR-10).
 - 2026-10-04 — Tech Lead: AI provider 9router (OpenAI-compatible), hosting AWS Lambda, storage follows S3, default language English, dependencies and Sprint 1 commitment approved. Decisions table renumbered to match the sprint plan (D1–D14 shown).
+- 2026-10-04 — Tech Lead: the Engineer drafts the infrastructure proposal and the CDK ticket (OR-48); database preference EC2 + docker compose, cost-efficient. Storage and hosting rows updated; OR-5/6/7/20 scope waits for his pick.
