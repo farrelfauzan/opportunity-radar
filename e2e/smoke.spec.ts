@@ -1,7 +1,8 @@
 import { expect, test } from "./fixtures";
 
 test("the start page loads without errors", async ({ page }) => {
-  const response = await page.goto("/");
+  // networkidle, so errors logged during hydration are caught too.
+  const response = await page.goto("/", { waitUntil: "networkidle" });
   expect(response?.status()).toBe(200);
   await expect(page.locator("body")).toBeVisible();
 });

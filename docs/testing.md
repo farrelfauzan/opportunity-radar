@@ -19,7 +19,8 @@ pnpm exec playwright install chromium
 - Files: `src/**/*.test.ts` next to the code, or `tests/unit/**/*.test.ts`.
 - They run in Node, with the `@/` alias pointing at `src/`.
 - **The network is blocked** (`tests/setup.ts`): any `fetch`, `http` or `https` call fails with
-  "Network access is blocked in unit tests". Tests use recorded responses instead.
+  "Network access is blocked in unit tests". Tests use recorded responses instead. This includes
+  `localhost`: a test that needs a local mock server would need an opt-out added to the setup first.
 - Limit: unit tests cover plain modules (parsers, formatters, rules, calculators). `async` Server
   Components are not supported by Vitest; they are covered by the browser test.
 

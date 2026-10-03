@@ -9,7 +9,7 @@ export const test = base.extend<{ pageProblems: string[] }>({
   pageProblems: [
     async ({ page, baseURL }, use) => {
       const problems: string[] = [];
-      const own = (url: string) => url.startsWith(baseURL!);
+      const own = (url: string) => new URL(url).origin === new URL(baseURL!).origin;
 
       page.on("console", (message) => {
         if (message.type() === "error") problems.push(`console.error: ${message.text()}`);
