@@ -9,7 +9,7 @@ Personal web app: business-opportunity radar first (Indonesia + worldwide, from 
 - Data sources and their limits: `docs/research/R-1-data-sources.md`.
 - Team roles and protocol: `.claude/agents/`, `.claude/team/PROTOCOL.md` (start with `.claude/team/start-team.sh`).
 - Stack: Next.js App Router + TypeScript + pnpm, shadcn/ui (`src/components/ui`), Recharts via the shadcn `chart` component. No separate backend: third-party fetching only in server code, keys only in server env vars.
-- Checks: `pnpm lint` and `pnpm build`.
+- Checks: `pnpm lint`, `pnpm typecheck`, `pnpm test` (unit only), `pnpm test:e2e` (browser smoke test; one-time setup: `pnpm exec playwright install chromium`) and `pnpm build`. Details: `docs/testing.md`.
 
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
