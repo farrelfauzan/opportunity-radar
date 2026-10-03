@@ -30,17 +30,24 @@ Single user (the owner). Bilingual: English and Bahasa Indonesia.
 ## Look
 **Dark mode** (the only theme): a dark purple theme: page is a clear gradient (violet #5B34A6 glow top-left, magenta #7A2E8E glow right, over #2E1C57 → #1D1236), cards are glass: 8% white fill, 18px backdrop blur, 16% white border, soft shadow (purple glows repeat lower on the page so the glass reads everywhere), borders #4B3E75, text #FAF8FF / #C1B9DA, one teal accent (#2DD4BF), orange (#FB923C) for sell/down. Geist + Geist Mono. Buy/sell always carry a word (and a shape on charts), never colour alone. Top navigation that wraps on phones.
 
-## Decisions waiting for the Tech Lead
-| # | Decision | Options | Recommendation |
+## Decisions
+Numbering matches the sprint plan in Notion (D1–D16). Open rows still wait for the Tech Lead.
+| # | Decision | Options | Status / recommendation |
 |---|----------|---------|----------------|
-| 1 | AI provider for summaries, scoring and reports | Claude API (needs a key, roughly $4–15/month by model) / no AI, rules only | Claude API: small model for headline triage, mid model for reports |
-| 2 | Storage | SQLite file (self-hosted) / hosted Postgres (needed on Vercel) | Follows decision 3 |
-| 3 | Hosting | Local or own server / Vercel | Decide early: Yahoo and some RSS feeds may block datacentre IPs |
-| 4 | Alert delivery | In-app only / + Telegram / + email | In-app first, Telegram second |
-| 5 | Login | Single password / none (local only) | Single password if it is ever reachable from the internet |
+| 1 | AI provider for summaries, scoring and reports | Claude API / 9router / no AI | **Decided 2026-10-04: 9router**, through an OpenAI-compatible client (base URL, key, model from server env). Base URL, key, model names and budget cap still to be provided |
+| 2 | Storage | S3 only / S3 + a database (e.g. DynamoDB) / other | **Decided 2026-10-04: "follows S3"**. Open: S3 only or S3 plus a database (question Q1) |
+| 3 | Hosting | Local or own server / Vercel / AWS Lambda | **Decided 2026-10-04: AWS Lambda**, infrastructure as CDK in the repo (pending approval of OR-48). Open: how Next.js runs on Lambda (question Q2), region. Lambda uses datacentre IPs: reachability is retested in OR-5 |
+| 4 | Alert delivery | In-app only / + Telegram / + email | Open. In-app first, Telegram second |
+| 5 | Login | Single password / none (local only) | Open. Single password: Lambda makes the app reachable from the internet |
 | 6 | Ticket board | Files in docs/tickets / a Notion board like Performa Vision | **Decided 2026-10-03: Notion**, same structure as Performa Vision |
-| 8 | Where venture progress comes from | Read each project's board (Notion / GitHub) on the server / typed in by hand | Board read for Performa Vision (Notion exists); Meta Klinik needs its board named |
-| 7 | Antam / Pegadaian retail gold price | Spot price converted to IDR per gram / manual entry | Spot converted; no usable API exists |
+| 7 | Antam / Pegadaian retail gold price | Spot price converted to IDR per gram / manual entry | Open. Spot converted; no usable API exists |
+| 8 | Where venture progress comes from | Read each project's board (Notion / GitHub) on the server / typed in by hand | Open. Board read for Performa Vision (Notion exists); Meta Klinik needs its board named |
+| 9 | Data-source terms (Yahoo chart endpoint, gold-api.com) | Accept for personal use / use paid sources | Open. Accept for a single-user app; read gold-api.com terms first |
+| 10 | Signal wording (advice vs information) | See ticket OR-10 | Open. Remove "Suggested approach…", reword instruction-like risk texts, news check as context only |
+| 11 | Overall opportunity score | Equal-weight mean / weighted | Open. Equal-weight mean of the five factors |
+| 12 | Default language | English / Indonesian | **Decided 2026-10-04: English** |
+| 13 | New dependencies | Test runner, browser tests, DB driver/ORM, RSS parser, LLM SDK | **Approved 2026-10-04**; anything else, or with licence/cost impact, goes back to the Tech Lead |
+| 14 | Sprint 1 commitment | — | **Approved 2026-10-04**: about 28 Engineer points, later sprints sized from actuals |
 
 ## Changelog
 - 2026-10-03 — first draft: five screens plus the Indonesian dashboard.
@@ -52,3 +59,4 @@ Single user (the owner). Bilingual: English and Bahasa Indonesia.
 - 2026-10-03 — Tech Lead: Radar tracks own ventures (Performa Vision, Meta Klinik): progress and Indonesia/worldwide opportunity.
 - 2026-10-03 — Tech Lead: add investment and business calculators for provisional projections. New screen 6.
 - 2026-10-03 — Tech Lead: design settled, implementation starts; tickets live in Notion (decision 6). Backlog OR-1…OR-47 drafted. Gaps found and ticketed: Indonesian copy exists only for Radar and no screen has empty/loading/error/stale designs (OR-12); "Open venture view" has no screen spec (OR-35). Wording on Asset/Investments flagged as advice-like for the Tech Lead (sprint plan D10, ticket OR-10).
+- 2026-10-04 — Tech Lead: AI provider 9router (OpenAI-compatible), hosting AWS Lambda, storage follows S3, default language English, dependencies and Sprint 1 commitment approved. Decisions table renumbered to match the sprint plan (D1–D14 shown).
