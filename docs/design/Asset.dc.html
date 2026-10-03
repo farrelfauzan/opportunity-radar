@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Asset signal report</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0}
+a{color:#2DD4BF}a:hover{color:#5EEAD4}
+</style>
+</helmet>
+<div style="min-height: 100vh; color-scheme: dark; background: radial-gradient(1100px 700px at 8% 0%, #5B34A6 0%, rgba(91, 52, 166, 0) 65%), radial-gradient(900px 700px at 100% 25%, #7A2E8E 0%, rgba(122, 46, 142, 0) 60%), radial-gradient(1000px 800px at 15% 90%, #3F2C9A 0%, rgba(63, 44, 154, 0) 60%), radial-gradient(900px 700px at 95% 75%, #6A2A86 0%, rgba(106, 42, 134, 0) 60%), linear-gradient(180deg, #2E1C57 0%, #1D1236 100%); color: #FAF8FF; font-family: 'Geist', system-ui, sans-serif; font-size: 14px; line-height: 1.5">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; padding: 8px 32px; background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(255, 255, 255, 0.14)">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: #FAF8FF; text-decoration: none; padding: 10px 0">
+<svg viewBox="0 0 24 24" style="width: 22px; height: 22px; fill: none; stroke: #2DD4BF; stroke-width: 2; stroke-linecap: round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4"></circle><path d="M12 12 L19 5"></path></svg>
+Opportunity Radar</a>
+<nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto">
+<a href="Main.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Radar</a>
+<a href="Opportunities.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Opportunities</a>
+<a href="News.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">News</a>
+<a href="Invest.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #FAF8FF; font-weight: 600; background: #4B3E75">Investments</a>
+<a href="Calculator.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Calculators</a>
+</nav>
+<span style="font-size: 12px; color: #C1B9DA; border: 1px dashed #C1B9DA; border-radius: 999px; padding: 2px 10px">Sample data</span>
+<div role="group" aria-label="Language" style="display: flex; border: 1px solid #4B3E75; border-radius: 6px; overflow: hidden">
+<a href="Main.dc.html" aria-current="true" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #362B5A; background: #FAF8FF">EN</a>
+<a href="Main-ID.dc.html" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #C1B9DA">ID</a>
+</div>
+<a href="Invest.dc.html#alerts" aria-label="Alerts, 3 new" style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: #FAF8FF">
+<svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>
+<span style="position: absolute; top: 6px; right: 4px; min-width: 16px; height: 16px; border-radius: 999px; background: #FB923C; color: #362B5A; font-size: 11px; font-weight: 600; text-align: center; line-height: 16px">3</span>
+</a>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 24px clamp(16px, 3vw, 32px) 48px; display: flex; flex-direction: column; gap: 24px">
+<a href="Invest.dc.html" style="padding: 4px 0; align-self: flex-start">← Investments</a>
+<div style="display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: flex-end; justify-content: space-between">
+<div>
+<div style="font-size: 12px; color: #C1B9DA">Precious metal · spot price converted to IDR per gram</div>
+<h1 style="margin: 2px 0 0; font-size: 26px; font-weight: 700; letter-spacing: -0.01em">Gold</h1>
+<div style="display: flex; align-items: baseline; gap: 12px; margin-top: 4px"><span style="font-family: 'Geist Mono', monospace; font-size: 28px; font-weight: 500">Rp 1,935,000</span><span style="font-family: 'Geist Mono', monospace; font-weight: 500; color: #2DD4BF">▲ 1.1% today</span></div>
+</div>
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="display: flex; gap: 3px" aria-hidden="true"><span style="width: 18px; height: 8px; border-radius: 2px; background: #2DD4BF"></span><span style="width: 18px; height: 8px; border-radius: 2px; background: #2DD4BF"></span><span style="width: 18px; height: 8px; border-radius: 2px; background: #4B3E75"></span><span style="width: 18px; height: 8px; border-radius: 2px; background: #4B3E75"></span><span style="width: 18px; height: 8px; border-radius: 2px; background: #4B3E75"></span></span>
+<span style="font-weight: 600">Risk 2/5 · Low–medium</span>
+</div>
+</div>
+
+<section aria-label="Price chart" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+<div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: #E2DDF0">
+<span><span style="display: inline-block; width: 16px; height: 3px; background: #FAF8FF; vertical-align: middle; margin-right: 6px"></span>Price</span>
+<span><span style="display: inline-block; width: 16px; height: 0; border-top: 2px dashed #60A5FA; vertical-align: middle; margin-right: 6px"></span>50-day average</span>
+<span><span style="display: inline-block; width: 16px; height: 0; border-top: 2px solid #C1B9DA; vertical-align: middle; margin-right: 6px"></span>200-day average</span>
+<span><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #2DD4BF; vertical-align: middle; margin-right: 6px"></span>Buy signal</span>
+<span><span style="display: inline-block; width: 10px; height: 10px; background: #FB923C; vertical-align: middle; margin-right: 6px"></span>Sell signal</span>
+</div>
+<div role="group" aria-label="Range" style="display: flex; gap: 2px">
+<button type="button" style="min-width: 44px; min-height: 44px; border: 0; border-radius: 6px; background: transparent; color: #C1B9DA; font: inherit">1M</button>
+<button type="button" style="min-width: 44px; min-height: 44px; border: 0; border-radius: 6px; background: transparent; color: #C1B9DA; font: inherit">3M</button>
+<button type="button" aria-pressed="true" style="min-width: 44px; min-height: 44px; border: 0; border-radius: 6px; background: #FAF8FF; color: #362B5A; font: inherit; font-weight: 600">1Y</button>
+<button type="button" style="min-width: 44px; min-height: 44px; border: 0; border-radius: 6px; background: transparent; color: #C1B9DA; font: inherit">5Y</button>
+</div>
+</div>
+<svg viewBox="0 0 800 280" preserveAspectRatio="none" style="width: 100%; height: 280px; display: block" role="img" aria-label="Gold price over one year with 50-day and 200-day averages; a buy signal appears where price crosses above the 200-day average">
+<line x1="0" y1="70" x2="800" y2="70" style="stroke: #4B3E75"></line><line x1="0" y1="140" x2="800" y2="140" style="stroke: #4B3E75"></line><line x1="0" y1="210" x2="800" y2="210" style="stroke: #4B3E75"></line>
+<polyline points="{{c.ma200}}" style="fill: none; stroke: #C1B9DA; stroke-width: 2; vector-effect: non-scaling-stroke"></polyline>
+<polyline points="{{c.ma50}}" style="fill: none; stroke: #60A5FA; stroke-width: 2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke"></polyline>
+<polyline points="{{c.price}}" style="fill: none; stroke: #FAF8FF; stroke-width: 2; vector-effect: non-scaling-stroke"></polyline>
+<rect x="{{c.sellX}}" y="{{c.sellY}}" width="10" height="10" style="fill: #FB923C"></rect>
+<circle cx="{{c.buyX}}" cy="{{c.buyY}}" r="6" style="fill: #2DD4BF; stroke: #362B5A; stroke-width: 2"></circle>
+</svg>
+<div style="display: flex; justify-content: space-between; font-size: 12px; color: #C1B9DA"><span>Oct 2025</span><span>Jan 2026</span><span>Apr 2026</span><span>Jul 2026</span><span>Oct 2026</span></div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px">
+<section aria-labelledby="lt" style="flex: 1 1 320px; min-width: 0; background: #1D4B48; border: 1px solid #2DD4BF; border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; align-items: center; justify-content: space-between"><h2 id="lt" style="margin: 0; font-size: 14px; font-weight: 600">Long term (1 year+)</h2><span style="font-size: 12px; color: #5EEAD4">changed today 07:02</span></div>
+<div style="font-size: 28px; font-weight: 700; color: #5EEAD4">BUY</div>
+<div style="color: #FAF8FF">4 of 5 checks agree. Suggested approach: buy in 3 parts over 6 weeks rather than all at once.</div>
+</section>
+<section aria-labelledby="stm" style="flex: 1 1 320px; min-width: 0; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; align-items: center; justify-content: space-between"><h2 id="stm" style="margin: 0; font-size: 14px; font-weight: 600">Short term (days–weeks)</h2><span style="font-size: 12px; color: #C1B9DA">unchanged 6 days</span></div>
+<div style="font-size: 28px; font-weight: 700; color: #E2DDF0">HOLD</div>
+<div style="color: #E2DDF0">Price is stretched after a fast rise; the dealer spread makes a short trade unattractive.</div>
+</section>
+</div>
+
+<article style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
+<h2 style="margin: 0; font-size: 18px; font-weight: 700">Report: why the long-term signal says Buy</h2>
+<span style="font-size: 12px; color: #C1B9DA">Generated 3 Oct 2026, 07:02 WIB · rules v1 + AI news check</span>
+</div>
+<p style="margin: 0; font-size: 15px">Gold in rupiah closed above its 200-day average for the first time in four months while the 50-day average turned up. A weaker rupiah and central-bank buying in the news support the move. The main thing against it is a rising real interest rate in the US.</p>
+
+<div style="overflow-x: auto">
+<table style="width: 100%; min-width: 560px; border-collapse: collapse">
+<thead><tr style="text-align: left; font-size: 12px; color: #C1B9DA"><th scope="col" style="padding: 8px 8px 8px 0; font-weight: 500">Check</th><th scope="col" style="padding: 8px; font-weight: 500">What we see</th><th scope="col" style="padding: 8px 0 8px 8px; font-weight: 500; text-align: right">Verdict</th></tr></thead>
+<tbody>
+<sc-for list="{{checks}}" as="k" hint-placeholder-count="5">
+<tr style="border-top: 1px solid #4B3E75"><td style="padding: 12px 8px 12px 0; font-weight: 600; white-space: nowrap">{{k.name}}</td><td style="padding: 12px 8px; color: #E2DDF0">{{k.text}}</td><td style="padding: 12px 0 12px 8px; text-align: right"><span style="display: inline-block; white-space: nowrap; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; color: {{k.fg}}; background: {{k.bg}}">{{k.verdict}}</span></td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px">
+<section aria-labelledby="rsk" style="flex: 1 1 280px; min-width: 0">
+<h3 id="rsk" style="margin: 0 0 8px; font-size: 14px; font-weight: 600">Risks of this position</h3>
+<ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: #E2DDF0">
+<li>Gold pays no income; you only gain if the price rises.</li>
+<li>Largest fall in the past 5 years: 18% over 7 months.</li>
+<li>Physical gold has a 3–5% gap between buy and sell price.</li>
+<li>If the rupiah strengthens, the rupiah price can fall even when gold in USD does not.</li>
+</ul>
+</section>
+<section aria-labelledby="inv" style="flex: 1 1 280px; min-width: 0">
+<h3 id="inv" style="margin: 0 0 8px; font-size: 14px; font-weight: 600">What would change this to Sell</h3>
+<ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: #E2DDF0">
+<li>Two weekly closes back below the 200-day average (about Rp 1,840,000).</li>
+<li>The 50-day average crossing below the 200-day average.</li>
+<li>News check turning negative for two weeks in a row.</li>
+</ul>
+<div style="margin-top: 8px; font-size: 12px; color: #C1B9DA">You get an alert the moment any of these happens.</div>
+</section>
+</div>
+
+<section aria-labelledby="hist">
+<h3 id="hist" style="margin: 0 0 4px; font-size: 14px; font-weight: 600">Signal history</h3>
+<sc-for list="{{history}}" as="h" hint-placeholder-count="3">
+<div style="display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; padding: 10px 0; border-top: 1px solid #4B3E75">
+<span style="flex: 0 0 96px; font-size: 13px; color: #C1B9DA">{{h.date}}</span>
+<span style="flex: 0 0 52px; text-align: center; padding: 2px 0; border-radius: 999px; font-size: 12px; font-weight: 700; color: {{h.fg}}; background: {{h.bg}}">{{h.label}}</span>
+<span style="flex: 1 1 240px; min-width: 0; color: #E2DDF0">{{h.text}}</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 13px">{{h.result}}</span>
+</div>
+</sc-for>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding-top: 16px; border-top: 1px solid #4B3E75">
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 6px; border: 0; background: #2DD4BF; color: #362B5A; font: inherit; font-weight: 600">Alert me when this changes</button>
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 6px; border: 1px solid #65578F; background: #362B5A; color: #FAF8FF; font: inherit; font-weight: 500">Download report (PDF)</button>
+<a href="Opportunities.dc.html" style="padding: 12px 0">Related business opportunities</a>
+</div>
+</article>
+<p style="margin: 0; font-size: 12px; color: #C1B9DA">Signals are produced by fixed, published rules on price data plus a news check. They are information for your own decision, not financial advice, and past behaviour does not guarantee future results.</p>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1900}}'>
+class Component extends DCLogic {
+renderVals() {
+const n = 120, raw = [];
+for (let i = 0; i < n + 60; i++) { const t = i - 60; raw.push(100 - 9 * Math.sin(t / 26) + 0.0016 * t * t + 2.2 * Math.sin(i * 1.7) + 1.4 * Math.sin(i * 0.63)); }
+const ma = function (k) { return raw.map(function (_, i) { let s = 0, c = 0; for (let j = Math.max(0, i - k + 1); j <= i; j++) { s += raw[j]; c++; } return s / c; }); };
+const m50 = ma(14), m200 = ma(56), p = raw.slice(60), a = m50.slice(60), b = m200.slice(60);
+const all = p.concat(a, b), mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
+const X = function (i) { return i * 800 / (n - 1); }, Y = function (v) { return 266 - (v - mn) / (mx - mn) * 252; };
+const line = function (s) { return s.map(function (v, i) { return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' '); };
+let buy = n - 4, sell = 20;
+for (let i = n - 1; i > 0; i--) { if (p[i] > b[i] && p[i - 1] <= b[i - 1]) { buy = i; break; } }
+for (let i = 1; i < buy; i++) { if (p[i] < b[i] && p[i - 1] >= b[i - 1]) { sell = i; break; } }
+const good = { fg: '#5EEAD4', bg: '#1D4B48' }, bad = { fg: '#FDBA74', bg: '#5A3320' }, mid = { fg: '#E2DDF0', bg: '#4B3E75' };
+const S = { BUY: Object.assign({ label: 'BUY' }, good), SELL: Object.assign({ label: 'SELL' }, bad) };
+return {
+c: { price: line(p), ma50: line(a), ma200: line(b), buyX: X(buy).toFixed(1), buyY: Y(p[buy]).toFixed(1), sellX: (X(sell) - 5).toFixed(1), sellY: (Y(p[sell]) - 5).toFixed(1) },
+checks: [
+Object.assign({ name: 'Trend', text: 'Price above the 200-day average; the 50-day average is rising.', verdict: 'Supports buy' }, good),
+Object.assign({ name: 'Momentum', text: 'RSI at 61: positive, not yet overheated (above 70).', verdict: 'Supports buy' }, good),
+Object.assign({ name: 'Currency', text: 'Rupiah weakened 1.8% this month, lifting the rupiah price of gold.', verdict: 'Supports buy' }, good),
+Object.assign({ name: 'News check', text: '9 of 14 relevant articles this week are supportive (central-bank buying, geopolitical tension).', verdict: 'Supports buy' }, good),
+Object.assign({ name: 'Interest rates', text: 'US real yields are rising, which usually weighs on gold.', verdict: 'Against' }, bad)
+],
+history: [
+Object.assign({ date: '3 Oct 2026', text: 'Closed above the 200-day average', result: 'open' }, S.BUY),
+Object.assign({ date: '28 May 2026', text: 'Two weekly closes below the 200-day average', result: 'avoided −6.2%' }, S.SELL),
+Object.assign({ date: '14 Nov 2025', text: '50-day average crossed above the 200-day', result: '+11.4%' }, S.BUY)
+]
+};
+}
+}
+</script>
+</body>
+</html>

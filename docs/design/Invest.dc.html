@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Investments</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0}
+a{color:#2DD4BF}a:hover{color:#5EEAD4}
+</style>
+</helmet>
+<div style="min-height: 100vh; color-scheme: dark; background: radial-gradient(1100px 700px at 8% 0%, #5B34A6 0%, rgba(91, 52, 166, 0) 65%), radial-gradient(900px 700px at 100% 25%, #7A2E8E 0%, rgba(122, 46, 142, 0) 60%), radial-gradient(1000px 800px at 15% 90%, #3F2C9A 0%, rgba(63, 44, 154, 0) 60%), radial-gradient(900px 700px at 95% 75%, #6A2A86 0%, rgba(106, 42, 134, 0) 60%), linear-gradient(180deg, #2E1C57 0%, #1D1236 100%); color: #FAF8FF; font-family: 'Geist', system-ui, sans-serif; font-size: 14px; line-height: 1.5">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; padding: 8px 32px; background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(255, 255, 255, 0.14)">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: #FAF8FF; text-decoration: none; padding: 10px 0">
+<svg viewBox="0 0 24 24" style="width: 22px; height: 22px; fill: none; stroke: #2DD4BF; stroke-width: 2; stroke-linecap: round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4"></circle><path d="M12 12 L19 5"></path></svg>
+Opportunity Radar</a>
+<nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto">
+<a href="Main.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Radar</a>
+<a href="Opportunities.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Opportunities</a>
+<a href="News.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">News</a>
+<a href="Invest.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #FAF8FF; font-weight: 600; background: #4B3E75">Investments</a>
+<a href="Calculator.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Calculators</a>
+</nav>
+<span style="font-size: 12px; color: #C1B9DA; border: 1px dashed #C1B9DA; border-radius: 999px; padding: 2px 10px">Sample data</span>
+<div role="group" aria-label="Language" style="display: flex; border: 1px solid #4B3E75; border-radius: 6px; overflow: hidden">
+<a href="Main.dc.html" aria-current="true" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #362B5A; background: #FAF8FF">EN</a>
+<a href="Main-ID.dc.html" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #C1B9DA">ID</a>
+</div>
+<a href="Invest.dc.html#alerts" aria-label="Alerts, 3 new" style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: #FAF8FF">
+<svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>
+<span style="position: absolute; top: 6px; right: 4px; min-width: 16px; height: 16px; border-radius: 999px; background: #FB923C; color: #362B5A; font-size: 11px; font-weight: 600; text-align: center; line-height: 16px">3</span>
+</a>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 24px clamp(16px, 3vw, 32px) 48px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px">
+<div><h1 style="margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.01em">Investments</h1>
+<div style="color: #C1B9DA">Know the risk of each asset type first, then follow the signals.</div></div>
+<div role="group" aria-label="Horizon" style="display: flex; border: 1px solid #65578F; border-radius: 6px; overflow: hidden">
+<sc-for list="{{terms}}" as="t" hint-placeholder-count="2">
+<button type="button" onClick="{{t.pick}}" aria-pressed="{{t.on}}" style="min-height: 44px; padding: 0 16px; border: 0; background: {{t.bg}}; color: {{t.fg}}; font: inherit; font-weight: 600; cursor: pointer">{{t.name}}</button>
+</sc-for>
+</div>
+</div>
+
+<section aria-labelledby="cls" style="display: flex; flex-direction: column; gap: 12px">
+<h2 id="cls" style="margin: 0; font-size: 16px; font-weight: 600">Asset types and their risk</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px">
+<sc-for list="{{classes}}" as="c" hint-placeholder-count="6">
+<article style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px"><h3 style="margin: 0; font-size: 15px; font-weight: 600">{{c.name}}</h3><span style="font-size: 12px; color: #C1B9DA">{{c.eg}}</span></div>
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="display: flex; gap: 3px" aria-hidden="true"><sc-for list="{{c.bars}}" as="b" hint-placeholder-count="5"><span style="width: 18px; height: 8px; border-radius: 2px; background: {{b.c}}"></span></sc-for></span>
+<span style="font-weight: 600">Risk {{c.risk}}/5 · {{c.riskLabel}}</span>
+</div>
+<dl style="margin: 0; display: grid; grid-template-columns: 96px 1fr; gap: 4px 8px; font-size: 13px">
+<dt style="color: #C1B9DA">Typical drop</dt><dd style="margin: 0">{{c.drop}}</dd>
+<dt style="color: #C1B9DA">{{termLabel}}</dt><dd style="margin: 0">{{c.fit}}</dd>
+<dt style="color: #C1B9DA">Main risks</dt><dd style="margin: 0">{{c.risks}}</dd>
+</dl>
+</article>
+</sc-for>
+</div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<section aria-labelledby="wl" style="flex: 999 1 600px; min-width: 0; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+<h2 id="wl" style="margin: 0; font-size: 16px; font-weight: 600">Watchlist — {{termName}} signals</h2>
+<button type="button" style="min-height: 44px; padding: 0 14px; border-radius: 6px; border: 1px solid #65578F; background: #362B5A; color: #FAF8FF; font: inherit; font-weight: 500">Add asset</button>
+</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; min-width: 620px; border-collapse: collapse; margin-top: 8px">
+<thead><tr style="text-align: left; font-size: 12px; color: #C1B9DA">
+<th scope="col" style="padding: 8px 8px 8px 0; font-weight: 500">Asset</th><th scope="col" style="padding: 8px; font-weight: 500; text-align: right">Price</th><th scope="col" style="padding: 8px; font-weight: 500; text-align: right">1 day</th><th scope="col" style="padding: 8px; font-weight: 500">30 days</th><th scope="col" style="padding: 8px; font-weight: 500">Signal</th><th scope="col" style="padding: 8px 0 8px 8px; font-weight: 500">Risk</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="7">
+<tr style="border-top: 1px solid #4B3E75">
+<td style="padding: 12px 8px 12px 0"><a href="Asset.dc.html" style="font-weight: 600; color: #FAF8FF">{{r.name}}</a><br><span style="font-size: 12px; color: #C1B9DA">{{r.kind}}</span></td>
+<td style="padding: 12px 8px; text-align: right; font-family: 'Geist Mono', monospace; font-size: 13px">{{r.price}}</td>
+<td style="padding: 12px 8px; text-align: right; font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 500; color: {{r.color}}">{{r.chg}}</td>
+<td style="padding: 12px 8px"><svg viewBox="0 0 96 28" style="width: 96px; height: 28px; display: block" aria-hidden="true"><polyline points="{{r.pts}}" style="fill: none; stroke: {{r.color}}; stroke-width: 1.5"></polyline></svg></td>
+<td style="padding: 12px 8px"><span style="display: inline-block; min-width: 44px; text-align: center; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; color: {{r.fg}}; background: {{r.bg}}">{{r.label}}</span></td>
+<td style="padding: 12px 0 12px 8px; font-size: 13px">{{r.risk}}/5</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="alerts" aria-labelledby="al" style="flex: 1 1 320px; min-width: 0; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column">
+<h2 id="al" style="margin: 0 0 4px; font-size: 16px; font-weight: 600">Alerts</h2>
+<sc-for list="{{alerts}}" as="a" hint-placeholder-count="4">
+<div style="padding: 12px 0; border-top: 1px solid #4B3E75; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 8px"><span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; color: {{a.fg}}; background: {{a.bg}}">{{a.label}}</span><span style="font-weight: 600">{{a.asset}}</span><span style="margin-left: auto; font-size: 12px; color: #C1B9DA">{{a.when}}</span></div>
+<div style="color: #E2DDF0">{{a.text}}</div>
+<a href="Asset.dc.html" style="font-size: 13px; padding: 4px 0">Read the full report</a>
+</div>
+</sc-for>
+<div style="padding-top: 12px; border-top: 1px solid #4B3E75; display: flex; flex-direction: column; gap: 4px">
+<div style="font-weight: 600">Send alerts to</div>
+<label style="display: flex; align-items: center; gap: 8px; min-height: 32px"><input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #2DD4BF"> In the app</label>
+<label style="display: flex; align-items: center; gap: 8px; min-height: 32px"><input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #2DD4BF"> Telegram</label>
+<label style="display: flex; align-items: center; gap: 8px; min-height: 32px"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #2DD4BF"> Email</label>
+</div>
+</section>
+</div>
+<p style="margin: 0; font-size: 12px; color: #C1B9DA">Signals are produced by fixed, published rules on price data plus a news check. They are information for your own decision, not financial advice, and past behaviour does not guarantee future results.</p>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1700}}'>
+class Component extends DCLogic {
+pts(a) {
+const mn = Math.min.apply(null, a), mx = Math.max.apply(null, a);
+return a.map(function (v, i) { return (i * 96 / (a.length - 1)).toFixed(1) + ',' + (25 - (v - mn) / (mx - mn) * 22).toFixed(1); }).join(' ');
+}
+renderVals() {
+const self = this, long = !(this.state && this.state.term === 'short');
+const up = '#2DD4BF', down = '#FB923C';
+const S = { BUY: { label: 'BUY', fg: '#5EEAD4', bg: '#1D4B48' }, SELL: { label: 'SELL', fg: '#FDBA74', bg: '#5A3320' }, HOLD: { label: 'HOLD', fg: '#E2DDF0', bg: '#4B3E75' } };
+const bars = function (n) { return [1, 2, 3, 4, 5].map(function (i) { return { c: i <= n ? (n >= 4 ? '#FDBA74' : n === 3 ? '#FBBF24' : '#2DD4BF') : '#4B3E75' }; }); };
+const C = function (name, eg, risk, riskLabel, drop, fitL, fitS, risks) { return { name: name, eg: eg, risk: risk, riskLabel: riskLabel, bars: bars(risk), drop: drop, fit: long ? fitL : fitS, risks: risks }; };
+const R = function (name, kind, price, chg, isUp, a, sl, ss, risk) { return Object.assign({ name: name, kind: kind, price: price, chg: (isUp ? '▲ ' : '▼ ') + chg, color: isUp ? up : down, pts: self.pts(a), risk: risk }, S[long ? sl : ss]); };
+return {
+termName: long ? 'long-term' : 'short-term', termLabel: long ? 'Long term' : 'Short term',
+terms: [['Short term (days–weeks)', !long, 'short'], ['Long term (1 year+)', long, 'long']].map(function (t) { return { name: t[0], on: t[1], bg: t[1] ? '#FAF8FF' : '#362B5A', fg: t[1] ? '#362B5A' : '#FAF8FF', pick: function () { self.setState({ term: t[2] }); } }; }),
+classes: [
+C('Cash & government bonds', 'Money market, SBN', 1, 'Low', 'A few percent', 'Stability and income; core of an emergency fund', 'Good place to wait between trades', 'Inflation, interest-rate changes'),
+C('Gold', 'XAU, Antam', 2, 'Low–medium', '10–20% over a year', 'Store of value, hedge against rupiah weakness', 'Slow mover; buy/sell spread eats short trades', 'No income, USD and interest rates, dealer spread'),
+C('Silver', 'XAG', 3, 'Medium', '20–35%', 'Smaller hedge position next to gold', 'Swings more than gold; needs strict exits', 'Industrial demand cycles, thin retail market'),
+C('Indonesian stocks', 'IDX: BBCA, TLKM', 4, 'High', '30–50% in a crisis', 'Growth and dividends if held 5 years+', 'Swing trades on liquid blue chips only', 'Company results, foreign fund flows, rupiah'),
+C('Global stocks', 'S&P 500, Nasdaq', 4, 'High', '30–50% in a crisis', 'Diversification outside Indonesia', 'Driven by earnings dates and US rates', 'USD/IDR rate, valuation, access and tax'),
+C('Crypto', 'BTC, ETH', 5, 'Very high', '50–80%', 'Small speculative share only', 'Fast moves, 24/7; position sizing matters most', 'Extreme volatility, regulation, exchange failure')
+],
+rows: [
+R('IHSG', 'Index · IDX', '7,412', '0.6%', true, [5, 6, 5, 7, 8, 7, 9, 10, 9, 11], 'HOLD', 'BUY', 4),
+R('BBCA', 'Stock · IDX', 'Rp 9,875', '0.3%', false, [9, 8, 8, 7, 8, 6, 7, 6, 6, 5], 'HOLD', 'HOLD', 4),
+R('S&P 500', 'Index · US', '6,820', '0.4%', true, [4, 5, 6, 6, 7, 8, 8, 9, 9, 10], 'BUY', 'HOLD', 4),
+R('Gold', 'IDR per gram', 'Rp 1,935,000', '1.1%', true, [3, 4, 4, 5, 5, 7, 6, 8, 9, 10], 'BUY', 'HOLD', 2),
+R('Silver', 'IDR per gram', 'Rp 22,400', '0.8%', true, [5, 4, 6, 5, 7, 6, 8, 7, 9, 9], 'HOLD', 'BUY', 3),
+R('Bitcoin', 'Crypto · USD', '$98,400', '2.3%', false, [10, 11, 9, 10, 8, 9, 7, 6, 7, 5], 'HOLD', 'SELL', 5),
+R('Ethereum', 'Crypto · USD', '$3,120', '3.1%', false, [9, 10, 9, 8, 8, 7, 7, 5, 6, 4], 'SELL', 'SELL', 5)
+],
+alerts: [
+Object.assign({ asset: 'Gold', when: 'Today 07:02', text: 'Long-term signal changed from Hold to Buy: price closed above its 200-day average with rising momentum.' }, S.BUY),
+Object.assign({ asset: 'Bitcoin', when: 'Yesterday', text: 'Short-term Sell: closed below the 50-day average; momentum negative for 5 days.' }, S.SELL),
+Object.assign({ asset: 'BBCA', when: '1 Oct', text: 'Approaching the long-term buy zone. No trigger yet; alert stays on watch.' }, S.HOLD)
+]
+};
+}
+}
+</script>
+</body>
+</html>

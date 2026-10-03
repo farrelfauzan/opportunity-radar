@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Dasbor Radar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0}
+a{color:#2DD4BF}a:hover{color:#5EEAD4}
+</style>
+</helmet>
+<div style="min-height: 100vh; color-scheme: dark; background: radial-gradient(1100px 700px at 8% 0%, #5B34A6 0%, rgba(91, 52, 166, 0) 65%), radial-gradient(900px 700px at 100% 25%, #7A2E8E 0%, rgba(122, 46, 142, 0) 60%), radial-gradient(1000px 800px at 15% 90%, #3F2C9A 0%, rgba(63, 44, 154, 0) 60%), radial-gradient(900px 700px at 95% 75%, #6A2A86 0%, rgba(106, 42, 134, 0) 60%), linear-gradient(180deg, #2E1C57 0%, #1D1236 100%); color: #FAF8FF; font-family: 'Geist', system-ui, sans-serif; font-size: 14px; line-height: 1.5">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; padding: 8px 32px; background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(255, 255, 255, 0.14)">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: #FAF8FF; text-decoration: none; padding: 10px 0">
+<svg viewBox="0 0 24 24" style="width: 22px; height: 22px; fill: none; stroke: #2DD4BF; stroke-width: 2; stroke-linecap: round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4"></circle><path d="M12 12 L19 5"></path></svg>
+Opportunity Radar</a>
+<nav aria-label="Utama" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto">
+<a href="Main.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #FAF8FF; font-weight: 600; background: #4B3E75">Radar</a>
+<a href="Opportunities.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Peluang</a>
+<a href="News.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Berita</a>
+<a href="Invest.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Investasi</a>
+<a href="Calculator.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Kalkulator</a>
+</nav>
+<span style="font-size: 12px; color: #C1B9DA; border: 1px dashed #C1B9DA; border-radius: 999px; padding: 2px 10px">Data contoh</span>
+<div role="group" aria-label="Bahasa" style="display: flex; border: 1px solid #4B3E75; border-radius: 6px; overflow: hidden">
+<a href="Main.dc.html" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #C1B9DA">EN</a>
+<a href="Main-ID.dc.html" aria-current="true" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #362B5A; background: #FAF8FF">ID</a>
+</div>
+<a href="Invest.dc.html#alerts" aria-label="Peringatan, 3 baru" style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: #FAF8FF">
+<svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>
+<span style="position: absolute; top: 6px; right: 4px; min-width: 16px; height: 16px; border-radius: 999px; background: #FB923C; color: #362B5A; font-size: 11px; font-weight: 600; text-align: center; line-height: 16px">3</span>
+</a>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 24px clamp(16px, 3vw, 32px) 48px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
+<h1 style="margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.01em">Radar hari ini</h1>
+<div style="color: #C1B9DA">Sabtu, 3 Oktober 2026 · diperbarui 07.00 WIB</div>
+</div>
+
+<section aria-labelledby="brief" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+<h2 id="brief" style="margin: 0; font-size: 16px; font-weight: 600">Ringkasan harian — apa yang berubah bagi peluang bisnis</h2>
+<span style="font-size: 12px; color: #C1B9DA">Ringkasan AI dari 112 artikel, 14 sumber</span>
+</div>
+<ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px">
+<li><strong>Kebijakan:</strong> insentif pajak baru untuk pusat data dalam negeri membuka ruang bagi pemasok pendingin, daya, dan kolokasi. <a href="Opportunities.dc.html">2 peluang terdampak</a></li>
+<li><strong>Teknologi &amp; AI:</strong> harga perangkat agen AI turun lagi minggu ini; jasa implementasi untuk perusahaan menengah lebih layak daripada membangun produk.</li>
+<li><strong>Pasar:</strong> rupiah melemah terhadap dolar; ide yang bergantung pada impor kehilangan margin, yang berorientasi ekspor diuntungkan.</li>
+</ol>
+</section>
+
+<section aria-labelledby="ven" style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
+<h2 id="ven" style="margin: 0; font-size: 16px; font-weight: 600">Usaha saya</h2>
+<span style="font-size: 12px; color: #C1B9DA">Progres dari papan tiap proyek · pandangan pasar dinilai ulang tiap hari dari berita</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px">
+<article style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+<div><h3 style="margin: 0; font-size: 17px; font-weight: 700">Performa Vision</h3>
+<div style="color: #E2DDF0">Analitik video AI untuk keselamatan kerja (CCTV, deteksi APD)</div></div>
+<div>
+<div style="display: flex; justify-content: space-between; gap: 8px; font-size: 13px"><span style="font-weight: 600">Progres menuju MVP</span><span style="font-family: 'Geist Mono', monospace">62%</span></div>
+<div style="height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.14); overflow: hidden; margin-top: 6px"><span style="display: block; height: 8px; width: 62%; background: #2DD4BF"></span></div>
+<div style="font-size: 12px; color: #C1B9DA; margin-top: 6px">Sprint 3 selesai · berikutnya Sprint 4 · 4 tiket di QA</div>
+</div>
+<div style="display: flex; gap: 12px">
+<div style="flex: 1 1 0; background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #C1B9DA">Peluang · Indonesia</div><div style="font-family: 'Geist Mono', monospace; font-size: 22px; font-weight: 500; color: #2DD4BF">76 <span style="font-size: 12px">▲ 5</span></div></div>
+<div style="flex: 1 1 0; background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #C1B9DA">Peluang · Dunia</div><div style="font-family: 'Geist Mono', monospace; font-size: 22px; font-weight: 500; color: #2DD4BF">68 <span style="font-size: 12px; color: #FB923C">▼ 2</span></div></div>
+</div>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; color: #E2DDF0">
+<li><span style="font-weight: 600; color: #5EEAD4">Pendorong</span> · Penegakan K3 yang makin ketat di manufaktur dan pertambangan.</li>
+<li><span style="font-weight: 600; color: #FDBA74">Penghambat</span> · Vendor kamera global menyertakan AI murah di perangkat.</li>
+</ul>
+<a href="Opportunities.dc.html" style="padding: 8px 0 0">Buka tampilan usaha · 7 berita terkait</a>
+</article>
+<article style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+<div><h3 style="margin: 0; font-size: 17px; font-weight: 700">Meta Klinik</h3>
+<div style="color: #E2DDF0">Sistem manajemen klinik (rekam medis, janji temu, penagihan)</div></div>
+<div>
+<div style="display: flex; justify-content: space-between; gap: 8px; font-size: 13px"><span style="font-weight: 600">Progres menuju rilis berikutnya</span><span style="font-family: 'Geist Mono', monospace">48%</span></div>
+<div style="height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.14); overflow: hidden; margin-top: 6px"><span style="display: block; height: 8px; width: 48%; background: #2DD4BF"></span></div>
+<div style="font-size: 12px; color: #C1B9DA; margin-top: 6px">[Milestone saat ini · tiket terbuka — dari papan proyek]</div>
+</div>
+<div style="display: flex; gap: 12px">
+<div style="flex: 1 1 0; background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #C1B9DA">Peluang · Indonesia</div><div style="font-family: 'Geist Mono', monospace; font-size: 22px; font-weight: 500; color: #2DD4BF">81 <span style="font-size: 12px">▲ 3</span></div></div>
+<div style="flex: 1 1 0; background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #C1B9DA">Peluang · Dunia</div><div style="font-family: 'Geist Mono', monospace; font-size: 22px; font-weight: 500; color: #2DD4BF">54 <span style="font-size: 12px; color: #C1B9DA">— 0</span></div></div>
+</div>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; color: #E2DDF0">
+<li><span style="font-weight: 600; color: #5EEAD4">Pendorong</span> · Klinik wajib menghubungkan rekam medis ke platform data kesehatan nasional.</li>
+<li><span style="font-weight: 600; color: #FDBA74">Penghambat</span> · Pasar perangkat lunak klinik padat; biaya kepatuhan privasi data naik.</li>
+</ul>
+<a href="Opportunities.dc.html" style="padding: 8px 0 0">Buka tampilan usaha · 5 berita terkait</a>
+</article>
+</div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px">
+<section aria-labelledby="topopp" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<h2 id="topopp" style="margin: 0; font-size: 16px; font-weight: 600">Peluang teratas</h2>
+<a href="Opportunities.dc.html" style="padding: 12px 0">Lihat semua (18)</a>
+</div>
+<sc-for list="{{opps}}" as="o" hint-placeholder-count="3">
+<article style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px; display: flex; gap: 16px; align-items: flex-start">
+<div style="flex: 0 0 56px; text-align: center">
+<div style="font-family: 'Geist Mono', monospace; font-size: 24px; font-weight: 500; color: #2DD4BF">{{o.score}}</div>
+<div style="font-size: 11px; color: #C1B9DA">skor</div>
+</div>
+<div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+<a href="Opportunities.dc.html" style="font-size: 16px; font-weight: 600; color: #FAF8FF; text-decoration: none">{{o.title}}</a>
+<div style="color: #E2DDF0">{{o.thesis}}</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; color: #E2DDF0">
+<span style="background: #4B3E75; border-radius: 4px; padding: 2px 8px">{{o.region}}</span>
+<span style="background: #4B3E75; border-radius: 4px; padding: 2px 8px">{{o.sector}}</span>
+<span style="background: #4B3E75; border-radius: 4px; padding: 2px 8px">Horizon {{o.horizon}}</span>
+<span style="padding: 2px 0; color: #C1B9DA">Berdasarkan {{o.evidence}} berita</span>
+</div>
+</div>
+</article>
+</sc-for>
+</section>
+
+<div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+<section aria-labelledby="sig" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 4px">
+<h2 id="sig" style="margin: 0 0 4px; font-size: 16px; font-weight: 600">Peringatan investasi</h2>
+<sc-for list="{{signals}}" as="s" hint-placeholder-count="3">
+<a href="Asset.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid #4B3E75; text-decoration: none; color: #FAF8FF">
+<span style="flex: 0 0 52px; text-align: center; padding: 2px 0; border-radius: 999px; font-size: 12px; font-weight: 700; color: {{s.fg}}; background: {{s.bg}}">{{s.label}}</span>
+<span style="flex: 1 1 auto; min-width: 0"><span style="font-weight: 600">{{s.asset}}</span><br><span style="font-size: 12px; color: #C1B9DA">{{s.why}}</span></span>
+<span style="font-size: 12px; color: #C1B9DA">{{s.term}}</span>
+</a>
+</sc-for>
+<div style="font-size: 12px; color: #C1B9DA; padding-top: 8px; border-top: 1px solid #4B3E75">Sinyal berbasis aturan, bukan nasihat keuangan.</div>
+</section>
+
+<section aria-labelledby="mkt" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column">
+<h2 id="mkt" style="margin: 0 0 4px; font-size: 16px; font-weight: 600">Ringkasan pasar</h2>
+<sc-for list="{{markets}}" as="m" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid #4B3E75">
+<span style="flex: 1 1 auto; min-width: 0"><span style="font-weight: 600">{{m.name}}</span><br><span style="font-family: 'Geist Mono', monospace; font-size: 13px">{{m.price}}</span></span>
+<svg viewBox="0 0 96 28" style="width: 96px; height: 28px" aria-hidden="true"><polyline points="{{m.pts}}" style="fill: none; stroke: {{m.color}}; stroke-width: 1.5"></polyline></svg>
+<span style="flex: 0 0 64px; text-align: right; font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 500; color: {{m.color}}">{{m.chg}}</span>
+</div>
+</sc-for>
+</section>
+</div>
+</div>
+
+<section aria-labelledby="news" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 24px 8px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<h2 id="news" style="margin: 0; font-size: 16px; font-weight: 600">Berita yang menggerakkan peluang</h2>
+<a href="News.dc.html" style="padding: 12px 0">Semua berita</a>
+</div>
+<sc-for list="{{news}}" as="n" hint-placeholder-count="5">
+<div style="display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 12px 0; border-top: 1px solid #4B3E75">
+<span style="flex: 0 0 120px; font-size: 12px; font-weight: 600; color: #E2DDF0; padding-top: 2px">{{n.cat}}</span>
+<div style="flex: 1 1 420px; min-width: 0">
+<div style="font-weight: 600; font-size: 15px">{{n.title}}</div>
+<div style="color: #E2DDF0">{{n.why}}</div>
+</div>
+<span style="font-size: 12px; color: #C1B9DA; padding-top: 2px">{{n.src}} · {{n.ago}}</span>
+</div>
+</sc-for>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":2220}}'>
+class Component extends DCLogic {
+pts(a) {
+const mn = Math.min.apply(null, a), mx = Math.max.apply(null, a);
+return a.map(function (v, i) { return (i * 96 / (a.length - 1)).toFixed(1) + ',' + (25 - (v - mn) / (mx - mn) * 22).toFixed(1); }).join(' ');
+}
+renderVals() {
+const up = '#2DD4BF', down = '#FB923C';
+const buy = { label: 'BELI', fg: '#5EEAD4', bg: '#1D4B48' }, sell = { label: 'JUAL', fg: '#FDBA74', bg: '#5A3320' }, hold = { label: 'TAHAN', fg: '#E2DDF0', bg: '#4B3E75' };
+return {
+opps: [
+{ score: 82, title: 'Jasa pendingin dan daya untuk pusat data baru', thesis: 'Insentif pajak dan beban kerja AI yang naik menciptakan permintaan yang belum dipenuhi pemasok lokal.', region: 'Indonesia', sector: 'Infrastruktur', horizon: '6–12 bulan', evidence: 9 },
+{ score: 78, title: 'Implementasi agen AI untuk perusahaan menengah', thesis: 'Perangkat makin murah; hambatannya kini keahlian integrasi, yang laku dijual sebagai jasa.', region: 'Global', sector: 'Teknologi & AI', horizon: '0–6 bulan', evidence: 14 },
+{ score: 71, title: 'Rantai dingin bersertifikat halal untuk produsen pangan kecil', thesis: 'Tenggat sertifikasi mendorong produsen kecil mengalihdayakan penyimpanan dan pengiriman yang patuh.', region: 'Indonesia', sector: 'Logistik', horizon: '6–12 bulan', evidence: 6 },
+{ score: 66, title: 'Pembiayaan panel surya atap untuk pabrik', thesis: 'Pabrik ingin tagihan listrik lebih rendah tanpa biaya awal; model mitra pembiayaan dan pemasangan cocok.', region: 'Indonesia', sector: 'Energi', horizon: '1–3 tahun', evidence: 4 },
+{ score: 63, title: 'Ekspor produk sampingan nikel olahan', thesis: 'Harga nikel yang pulih memperbaiki margin di ceruk pengolahan hilir.', region: 'Global', sector: 'Komoditas', horizon: '1–3 tahun', evidence: 5 }
+],
+signals: [
+Object.assign({ asset: 'Emas (Rp/gram)', why: 'Harga menembus rata-rata 200 hari', term: 'Jangka panjang' }, buy),
+Object.assign({ asset: 'Bitcoin', why: 'Ditutup di bawah rata-rata 50 hari, momentum lemah', term: 'Jangka pendek' }, sell),
+Object.assign({ asset: 'BBCA', why: 'Dekat zona beli, belum ada pemicu', term: 'Jangka panjang' }, hold)
+],
+markets: [
+{ name: 'IHSG', price: '7.412', chg: '▲ 0,6%', color: up, pts: this.pts([5, 6, 5, 7, 8, 7, 9, 10, 9, 11]) },
+{ name: 'USD/IDR', price: '16.240', chg: '▼ 0,2%', color: down, pts: this.pts([9, 9, 10, 8, 9, 7, 8, 7, 6, 6]) },
+{ name: 'Emas / gram', price: 'Rp 1.935.000', chg: '▲ 1,1%', color: up, pts: this.pts([3, 4, 4, 5, 5, 7, 6, 8, 9, 10]) },
+{ name: 'Bitcoin', price: 'US$98.400', chg: '▼ 2,3%', color: down, pts: this.pts([10, 11, 9, 10, 8, 9, 7, 6, 7, 5]) }
+],
+news: [
+{ cat: 'Politik & kebijakan', title: 'Pemerintah merinci insentif pajak untuk pusat data dalam negeri', why: 'Membuka permintaan pemasok pendingin, daya, dan konstruksi. Terkait 2 peluang.', src: 'CNBC Indonesia', ago: '2 jam lalu' },
+{ cat: 'Teknologi & AI', title: 'Penyedia AI besar kembali memangkas harga perangkat agen', why: 'Menurunkan biaya bagi perusahaan jasa AI; menaikkan persaingan produk AI.', src: 'TechCrunch', ago: '4 jam lalu' },
+{ cat: 'Pasar', title: 'Rupiah melemah saat dolar menguat', why: 'Merugikan model bisnis padat impor, menguntungkan eksportir dan penerima dolar.', src: 'Antara', ago: '5 jam lalu' },
+{ cat: 'Bisnis', title: 'Peritel besar akan membuka 200 gerai di luar Jawa', why: 'Menandakan permintaan konsumen di kota lapis kedua; peluang logistik dan pasokan lokal.', src: 'Katadata', ago: '7 jam lalu' },
+{ cat: 'Komoditas', title: 'Harga nikel pulih karena pemangkasan pasokan', why: 'Memperbaiki margin rantai pasok baterai dan penyedia jasanya.', src: 'The Guardian', ago: '9 jam lalu' }
+]
+};
+}
+}
+</script>
+</body>
+</html>

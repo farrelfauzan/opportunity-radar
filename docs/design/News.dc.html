@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>News feed</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0}
+a{color:#2DD4BF}a:hover{color:#5EEAD4}
+</style>
+</helmet>
+<div style="min-height: 100vh; color-scheme: dark; background: radial-gradient(1100px 700px at 8% 0%, #5B34A6 0%, rgba(91, 52, 166, 0) 65%), radial-gradient(900px 700px at 100% 25%, #7A2E8E 0%, rgba(122, 46, 142, 0) 60%), radial-gradient(1000px 800px at 15% 90%, #3F2C9A 0%, rgba(63, 44, 154, 0) 60%), radial-gradient(900px 700px at 95% 75%, #6A2A86 0%, rgba(106, 42, 134, 0) 60%), linear-gradient(180deg, #2E1C57 0%, #1D1236 100%); color: #FAF8FF; font-family: 'Geist', system-ui, sans-serif; font-size: 14px; line-height: 1.5">
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; padding: 8px 32px; background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(255, 255, 255, 0.14)">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: #FAF8FF; text-decoration: none; padding: 10px 0">
+<svg viewBox="0 0 24 24" style="width: 22px; height: 22px; fill: none; stroke: #2DD4BF; stroke-width: 2; stroke-linecap: round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4"></circle><path d="M12 12 L19 5"></path></svg>
+Opportunity Radar</a>
+<nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto">
+<a href="Main.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Radar</a>
+<a href="Opportunities.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Opportunities</a>
+<a href="News.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #FAF8FF; font-weight: 600; background: #4B3E75">News</a>
+<a href="Invest.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Investments</a>
+<a href="Calculator.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Calculators</a>
+</nav>
+<span style="font-size: 12px; color: #C1B9DA; border: 1px dashed #C1B9DA; border-radius: 999px; padding: 2px 10px">Sample data</span>
+<div role="group" aria-label="Language" style="display: flex; border: 1px solid #4B3E75; border-radius: 6px; overflow: hidden">
+<a href="Main.dc.html" aria-current="true" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #362B5A; background: #FAF8FF">EN</a>
+<a href="Main-ID.dc.html" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #C1B9DA">ID</a>
+</div>
+<a href="Invest.dc.html#alerts" aria-label="Alerts, 3 new" style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: #FAF8FF">
+<svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>
+<span style="position: absolute; top: 6px; right: 4px; min-width: 16px; height: 16px; border-radius: 999px; background: #FB923C; color: #362B5A; font-size: 11px; font-weight: 600; text-align: center; line-height: 16px">3</span>
+</a>
+</header>
+
+<main style="max-width: 1200px; margin: 0 auto; padding: 24px clamp(16px, 3vw, 32px) 48px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
+<h1 style="margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.01em">News</h1>
+<div style="color: #C1B9DA">112 articles today · 14 sources · refreshed every 30 minutes</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center">
+<div role="group" aria-label="Category" style="display: flex; flex-wrap: wrap; gap: 4px">
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="6">
+<button type="button" onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="min-height: 44px; padding: 0 14px; border-radius: 6px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.fg}}; font: inherit; font-weight: 500; cursor: pointer">{{c.name}}</button>
+</sc-for>
+</div>
+<label style="display: flex; align-items: center; gap: 8px; color: #E2DDF0">Region
+<select style="min-height: 44px; padding: 0 10px; border-radius: 6px; border: 1px solid #65578F; background: #362B5A; font: inherit"><option>Indonesia + Global</option><option>Indonesia</option><option>Global</option></select></label>
+<label style="display: flex; align-items: center; gap: 8px; color: #E2DDF0"><input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #2DD4BF"> Only news linked to an opportunity</label>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{news}}" as="n" hint-placeholder-count="6">
+<article style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; font-size: 12px; color: #C1B9DA">
+<span style="font-weight: 600; color: #E2DDF0">{{n.cat}}</span><span>{{n.src}} · {{n.ago}} · {{n.region}}</span>
+<span style="margin-left: auto; padding: 2px 8px; border-radius: 999px; font-weight: 600; color: {{n.fg}}; background: {{n.bg}}">{{n.impact}}</span>
+</div>
+<a href="https://example.com" style="font-size: 16px; font-weight: 600; color: #FAF8FF; text-decoration: none">{{n.title}}</a>
+<div style="display: flex; gap: 10px; background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px">
+<span style="flex: 0 0 auto; font-size: 12px; font-weight: 600; color: #2DD4BF; padding-top: 1px">Why it matters</span>
+<span style="color: #E2DDF0">{{n.why}}</span>
+</div>
+<sc-if value="{{n.link}}" hint-placeholder-val="{{true}}">
+<a href="Opportunities.dc.html" style="font-size: 13px; padding: 4px 0">Linked opportunity: {{n.link}}</a>
+</sc-if>
+</article>
+</sc-for>
+</div>
+
+<aside style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+<section aria-labelledby="th" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px">
+<h2 id="th" style="margin: 0; font-size: 16px; font-weight: 600">Trending themes, 7 days</h2>
+<sc-for list="{{themes}}" as="t" hint-placeholder-count="6">
+<div>
+<div style="display: flex; justify-content: space-between; gap: 8px"><span>{{t.name}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #E2DDF0">{{t.n}}</span></div>
+<div style="height: 6px; border-radius: 3px; background: #4B3E75; overflow: hidden; margin-top: 4px"><span style="display: block; height: 6px; width: {{t.pct}}; background: #2DD4BF"></span></div>
+</div>
+</sc-for>
+<div style="font-size: 12px; color: #C1B9DA">Number of articles mentioning each theme.</div>
+</section>
+<section aria-labelledby="src" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 8px">
+<h2 id="src" style="margin: 0; font-size: 16px; font-weight: 600">Sources</h2>
+<div style="color: #E2DDF0"><strong>Indonesia:</strong> CNBC Indonesia, Antara, Katadata, CNN Indonesia, IDX Channel</div>
+<div style="color: #E2DDF0"><strong>Global:</strong> BBC Business, The Guardian, CNBC, TechCrunch, Hacker News</div>
+<div style="font-size: 12px; color: #C1B9DA">Headlines and links only; the full article opens on the publisher's site. Final source list follows the research report.</div>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1560}}'>
+class Component extends DCLogic {
+renderVals() {
+const self = this, cat = (this.state && this.state.cat) || 'All';
+const opp = { impact: 'Opportunity', fg: '#5EEAD4', bg: '#1D4B48' }, risk = { impact: 'Risk', fg: '#FDBA74', bg: '#5A3320' }, neu = { impact: 'Context', fg: '#E2DDF0', bg: '#4B3E75' };
+const all = [
+Object.assign({ cat: 'Politics & policy', region: 'Indonesia', title: 'Government details tax incentives for domestic data centres', why: 'Lowers cost for operators, so construction speeds up. Suppliers of cooling, power and maintenance are the second-order winners.', src: 'CNBC Indonesia', ago: '2h ago', link: 'Cooling and power services for new data centres' }, opp),
+Object.assign({ cat: 'Tech & AI', region: 'Global', title: 'Major AI providers cut agent tooling prices again', why: 'Delivery cost for AI services drops; products built on thin wrappers face more competition.', src: 'TechCrunch', ago: '4h ago', link: 'AI agent implementation for mid-size firms' }, opp),
+Object.assign({ cat: 'Markets', region: 'Indonesia', title: 'Rupiah slips as the dollar strengthens', why: 'Import-heavy businesses lose margin; also raises the rupiah price of gold and US stocks.', src: 'Antara', ago: '5h ago', link: '' }, risk),
+Object.assign({ cat: 'Business', region: 'Indonesia', title: 'Large retailer to open 200 stores outside Java', why: 'Signals spending power in tier-2 cities and new demand for regional logistics.', src: 'Katadata', ago: '7h ago', link: 'Halal-certified cold chain for small food producers' }, opp),
+Object.assign({ cat: 'Commodities', region: 'Global', title: 'Nickel prices recover on supply cuts', why: 'Better margins across the battery supply chain; watch export policy.', src: 'The Guardian', ago: '9h ago', link: 'Export of processed nickel by-products' }, opp),
+Object.assign({ cat: 'Politics & policy', region: 'Global', title: 'New tariff round announced between major economies', why: 'Trade diversion can favour South-East Asian exporters, but timing is uncertain.', src: 'BBC Business', ago: '11h ago', link: '' }, neu)
+];
+const names = ['All', 'Business', 'Politics & policy', 'Tech & AI', 'Markets', 'Commodities'];
+return {
+cats: names.map(function (n) { const on = n === cat; return { name: n, on: on, bg: on ? '#FAF8FF' : '#362B5A', fg: on ? '#362B5A' : '#FAF8FF', border: on ? '#FAF8FF' : '#65578F', pick: function () { self.setState({ cat: n }); } }; }),
+news: all.filter(function (n) { return cat === 'All' || n.cat === cat; }),
+themes: [['Data centres', 31], ['AI agents', 27], ['Rupiah / USD', 22], ['Halal certification', 14], ['Nickel & batteries', 12], ['Tariffs', 9]].map(function (t) { return { name: t[0], n: t[1], pct: Math.round(t[1] / 31 * 100) + '%' }; })
+};
+}
+}
+</script>
+</body>
+</html>
