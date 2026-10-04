@@ -308,6 +308,20 @@ describe("review follow-ups (PR 42)", () => {
     expect(await stored()).toHaveLength(10);
   });
 
+  test("the database refuses an opportunity with theme other or an unknown theme (QA)", async () => {
+    const ids = await triagedArticles(2);
+    for (const theme of ["other", "moon_mining"]) {
+      await expect(
+        db().execute(sql`insert into opportunities (title_en, title_id, thesis_en, thesis_id, region, theme, sectors, horizon,
+          capital_level, capital_reason_en, capital_reason_id, buyer_en, buyer_id, model_en, model_id,
+          risks_en, risks_id, first_steps_en, first_steps_id, current_score)
+          values ('t','t','t','t','indonesia', ${theme}, '{ai_software}', '0-6m', 'low', 'r','r','b','b','m','m',
+          '{a,b}', '{a,b}', '{s}', '{s}', 50)`),
+      ).rejects.toThrow();
+    }
+    void ids;
+  });
+
   test("a rejected item's reason is cut to 200 characters", async () => {
     const ids = await triagedArticles(2);
     const { transport } = provider(() => ({ opportunities: [opportunity(ids.map(String), { theme: "t".repeat(200_000) })] }));

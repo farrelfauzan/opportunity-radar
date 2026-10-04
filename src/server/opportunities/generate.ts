@@ -138,6 +138,9 @@ export async function generateOpportunities(
   const inputIds = new Set(candidates.map(({ article }) => String(article.id)));
   const reasons: string[] = [];
   const open = await listOpenForMatching();
+  if (items.length > MAX_OPPORTUNITIES) {
+    console.warn(`opportunities: reply has ${items.length} items; only the first ${MAX_OPPORTUNITIES} are used`);
+  }
   for (const [index, raw] of items.slice(0, MAX_OPPORTUNITIES).entries()) {
     const checked = checkOpportunity(raw, inputIds);
     if (!checked.ok) {
