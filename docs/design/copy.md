@@ -281,8 +281,16 @@ Region shown on an item uses `news.region.id` / `news.region.global`. Category a
 | radar.market.title | Market snapshot | Ringkasan pasar |
 | radar.news.title | News that moves opportunities | Berita yang menggerakkan peluang |
 | radar.news.all | All news | Semua berita |
+| radar.news.linked.one | Linked to {n} opportunity | Terkait {n} peluang |
+| radar.news.linked.other | Linked to {n} opportunities | Terkait {n} peluang |
 
 Brief line labels ("Policy:", "Tech & AI:", "Markets:" in the canvas) are not free text: OR-22 tags each line with one of the News categories and the UI shows `news.cat.*` (Politics & policy, Tech & AI, Markets, Business, Commodities) followed by a colon.
+
+Radar states (OR-23 review):
+- Stale: per section, not page-wide. The brief card shows `state.stale.today`/`.earlier` with `state.stale.what.brief`; Top opportunities with `state.stale.what.opportunities`. Both can show at once.
+- Never run (no brief, no opportunities, no news ever stored): one card with `state.never.title` and `state.never.body`, `{time}` = 07:00 (the morning run), in place of the brief; the other sections show their own empty texts.
+- Top opportunities: "Based on N news items" (`radar.top.basedOn`) is hidden when N is 0; `radar.brief.affected` is plain text (no link).
+- News that moves opportunities: each row shows `news.item.meta` (source · time · region, as on News), the why-text with the AI mark (§3), and `radar.news.linked` when the item is linked to at least one open opportunity (hidden at 0; plain text).
 
 Section order (desktop and phone): brief → My ventures → Top opportunities → News that moves opportunities → Investment alerts → Market snapshot. Investments never come before opportunities.
 
