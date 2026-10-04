@@ -10,12 +10,14 @@ test("a wrong-case locale redirects to lowercase and keeps the query", async ({ 
     ["/EN", "/en"],
     ["/ID/news?q=a%20b&x=1", "/id/news"],
     ["/En/invest/gold", "/en/invest/gold"],
+    ["/%45N", "/en"], // percent-encoded letters: "%45" is "E"
+    ["/%45n/news", "/en/news"],
   ]) {
     const response = await request.get(from, { maxRedirects: 0 });
     expect(response.status(), from).toBe(308);
     const location = new URL(response.headers().location, "http://localhost");
     expect(location.pathname, from).toBe(path);
-    // The query may be written back with "+" for a space: compare what it means.
+    // The server may write a space as "+": the same query, compared by meaning.
     expect(Object.fromEntries(location.searchParams), from).toEqual(from.includes("?") ? { q: "a b", x: "1" } : {});
   }
 });
@@ -50,6 +52,8 @@ test("/en and /id still answer 200 after a restart that followed /EN and /ID req
     expect(await status("/EN")).toBe(308);
     expect(await status("/ID")).toBe(308);
     expect(await status("/EN/news")).toBe(308);
+    expect(await status("/%45N")).toBe(308);
+    expect(await status("/%45n/news")).toBe(308);
     expect(await status("/en")).toBe(200);
   } finally {
     await stop(first);

@@ -22,6 +22,19 @@ test("a locale in the wrong case is redirected to lowercase (308), keeping the q
   expect(new URL(run("/ID").headers.get("location")!).pathname).toBe("/id");
 });
 
+test("the query string goes along", () => {
+  const location = new URL(run("/EN/news?q=a%20b&x=1").headers.get("location")!);
+  expect(Object.fromEntries(location.searchParams)).toEqual({ q: "a b", x: "1" });
+});
+
+test("a percent-encoded locale is redirected too", () => {
+  for (const [url, to] of [["/%45N", "/en"], ["/%45n/news", "/en/news"], ["/%49D", "/id"]]) {
+    const response = run(url);
+    expect(response.status, url).toBe(308);
+    expect(new URL(response.headers.get("location")!).pathname, url).toBe(to);
+  }
+});
+
 test("lowercase locales and other paths pass through untouched", () => {
   for (const url of ["/en", "/id/news", "/FR", "/Fr/news"]) {
     const response = run(url);

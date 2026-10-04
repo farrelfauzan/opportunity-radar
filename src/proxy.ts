@@ -16,13 +16,12 @@ export function proxy(request: NextRequest) {
 
   const canonical = canonicalLocalePath(pathname);
   if (canonical) {
-    const url = request.nextUrl.clone();
-    url.pathname = canonical; // the query string stays
-    return NextResponse.redirect(url, 308);
+    // The query goes along. Next.js writes a space in it as "+" (the same query).
+    return NextResponse.redirect(new URL(canonical + request.nextUrl.search, request.url), 308);
   }
   return NextResponse.next();
 }
 
-// The start page and any path that starts with two letters (a possible locale).
-// Static files, /_next and /api never pass through here.
-export const config = { matcher: ["/", "/:locale([a-zA-Z]{2})", "/:locale([a-zA-Z]{2})/:path*"] };
+// Every page request: the first segment can be percent-encoded ("/%45N"), so it cannot be
+// matched by its letters. /api, /_next and anything with a file extension never pass through here.
+export const config = { matcher: ["/((?!api|_next|.*\\..*).*)"] };
