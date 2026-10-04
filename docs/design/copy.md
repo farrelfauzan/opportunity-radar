@@ -288,6 +288,8 @@ Region shown on an item uses `news.region.id` / `news.region.global`. Category a
 | radar.market.up | up {pct} | naik {pct} |
 | radar.market.down | down {pct} | turun {pct} |
 | radar.market.flat | unchanged | tidak berubah |
+| radar.market.noChange | change not available | perubahan tidak tersedia |
+| radar.market.trend | Last 10 closes: from {first} to {last} | 10 penutupan terakhir: dari {first} ke {last} |
 | radar.news.title | News that moves opportunities | Berita yang menggerakkan peluang |
 | radar.news.all | All news | Semua berita |
 | radar.news.linked.one | Linked to {n} opportunity | Terkait {n} peluang |
@@ -310,6 +312,9 @@ Market snapshot (OR-28):
 - Change: ▲ / ▼ / — and the unsigned percentage with one decimal per locale (▲ 1.2%, ▼ 0.8%, — 0.0% when it rounds to zero). Up in the teal accent, down in orange, unchanged in muted text; the arrow is the shape, colour is never alone. Accessible label: `radar.market.up` / `.down` / `.flat` (the arrow is hidden from screen readers).
 - As-of: visible muted text under the price (no hover, so it works on phones): `radar.market.asOf` when today, `radar.market.asOfEarlier` otherwise; USD/IDR is a daily reference rate with no time, so it uses `radar.market.asOfDate`.
 - Stale (past the §2.3 threshold, inside market hours only): the row shows the word `radar.market.stale` after its as-of text, and the section shows `state.stale.today` / `.earlier` with `state.stale.what.prices` once above the rows when any row is stale. Outside market hours the row shows `state.marketClosed` in place of the as-of text, and is not stale.
+- No 1-day change (no previous close, or the previous close is sample data while the price is real): a visible — with `radar.market.noChange` as the accessible label; no percentage.
+- Sparkline: it carries the 10-day trend, which the row does not show elsewhere, so it has a visually hidden summary `radar.market.trend` (first and last close, formatted per locale; no direction word, the numbers say it).
+- The section stale line uses the time of the last successful price run (as everywhere in §2: "last updated" is when the app last fetched), while each row's as-of text is the quote's own time; the two can differ by the market's lag, which is intended.
 
 ## 6. Opportunities (OR-17, OR-18, OR-41, OR-40)
 
