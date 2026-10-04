@@ -357,7 +357,7 @@ The disclaimer drops "plus a news check" from the canvas: in rules v1 the news c
 |---|---|---|
 | asset.back | ← Investments | ← Investasi |
 | asset.kind.metal | Precious metal · spot price converted to IDR per gram | Logam mulia · harga spot dikonversi ke IDR per gram |
-| asset.kind.metalFutures | Precious metal · history before {date}: COMEX futures | Logam mulia · riwayat sebelum {date}: kontrak berjangka COMEX |
+| asset.kind.metalFutures | Precious metal · price: spot in IDR per gram · signal computed on COMEX futures closes | Logam mulia · harga: spot dalam IDR per gram · sinyal dihitung dari harga penutupan kontrak berjangka COMEX |
 | asset.kind.idx | Stock · IDX | Saham · BEI |
 | asset.kind.index | Index · {exchange} | Indeks · {exchange} |
 | asset.kind.crypto | Crypto · USD | Kripto · USD |
