@@ -20,6 +20,7 @@ Single user (the owner). Bilingual: English and Bahasa Indonesia.
 | 4 | Investments | `/[locale]/invest` | Risk of each asset type (1–5, typical drop, main risks, fit for short vs long term), watchlist with signals, alerts. |
 | 5 | Asset report | `/[locale]/invest/[asset]` | Price chart with averages and signal markers, short- and long-term signal, the report: why buy/sell, risks, what would reverse the signal, signal history. |
 | 6 | Calculators | `/[locale]/calculators` | Provisional projections from the user's own assumptions. Investment: start amount, monthly top-up, years, return ± uncertainty, inflation → pessimistic/base/optimistic value and value in today's money. Business: capital, fixed cost, revenue, growth, margin → break-even month, payback month, lowest cash point, net cash. Runs in the browser; no data source. |
+| 7 | Venture view | `/[locale]/ventures/[slug]` | For one of the owner's ventures: build progress from its project board, and the Indonesia / worldwide market view from the news (scores, factor breakdown, tailwinds and headwinds with evidence, related news). Spec: [design/venture-view.md](design/venture-view.md). |
 
 ## How it works (no separate backend)
 - A scheduled server job fetches RSS and price data, stores it, and page views only ever read the store. API keys stay in server env vars.
@@ -62,3 +63,4 @@ Numbering matches the sprint plan in Notion (D1–D16). Rows marked "Designer, d
 - 2026-10-04 — Tech Lead: AI provider 9router (OpenAI-compatible), hosting AWS Lambda, storage follows S3, default language English, dependencies and Sprint 1 commitment approved. Decisions table renumbered to match the sprint plan (D1–D14 shown).
 - 2026-10-04 — Tech Lead: the Engineer drafts the infrastructure proposal and the CDK ticket (OR-48); database preference EC2 + docker compose, cost-efficient. Storage and hosting rows updated; OR-5/6/7/20 scope waits for his pick.
 - 2026-10-04 — OR-12: all UI copy in EN and ID plus screen states and stale thresholds in `docs/design/copy.md`. Muted text #C1B9DA → #D4CEE6 (3.79:1 → 4.66:1 on the card at the violet glow, OR-1). Advice-like canvas wording replaced ("Suggested approach…", instruction-like risk texts, "avoided −6.2%"), per D10 decided by the Designer on the Tech Lead's delegation.
+- 2026-10-04 — OR-35: screen 7, Venture view (`/[locale]/ventures/[slug]`), spec in `docs/design/venture-view.md`; one tailwind/headwind pair per venture, as on the Radar card.
