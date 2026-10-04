@@ -1,4 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
+import { e2eDatabaseUrl } from "../scripts/e2e-env";
 import { expect, test } from "./fixtures";
 
 // OR-55: on a case-insensitive file system (macOS) a request for /EN used to overwrite the
@@ -27,6 +28,8 @@ test("/en and /id still answer 200 after a restart that followed /EN and /ID req
   const port = Number(process.env.E2E_PORT ?? 3210) + 3; // the web server uses E2E_PORT
   const start = async (): Promise<ChildProcess> => {
     const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", String(port)], {
+      // The run's own database: without it the server would fall back to DATABASE_URL of .env.local, the development one.
+      env: { ...process.env, DATABASE_URL: e2eDatabaseUrl() },
       stdio: "ignore",
     });
     for (let i = 0; i < 100; i++) {
