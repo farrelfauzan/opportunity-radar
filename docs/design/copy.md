@@ -485,7 +485,7 @@ The watchlist's kind line uses `asset.kind.idx`, `asset.kind.index`, `asset.kind
 |---|---|---|
 | signal.stale | No signal: prices are out of date | Tanpa sinyal: harga belum diperbarui |
 | signal.invalid | No signal: the price data has errors | Tanpa sinyal: data harga bermasalah |
-| signal.sample | No signal: sample data, not real prices | Tanpa sinyal: data contoh, bukan harga nyata |
+| signal.sample | No signal: sample data | Tanpa sinyal: data contoh |
 
 `signal.none` (§7) is for `INSUFFICIENT`, `signal.stale` for `STALE`, `signal.invalid` for `INVALID_DATA`, `signal.sample` for any series whose source is `synthetic` (§8.2); cash & bonds use `signal.noSignal`.
 
@@ -574,9 +574,12 @@ Until live price sources are switched on (OR-53, OR-54, waiting for the Tech Lea
 | sample.label | Sample data, not real prices | Data contoh, bukan harga nyata |
 | sample.badge | Sample | Contoh |
 | sample.explain | These prices are made up to test the app. Real prices are used once the live data source is switched on. | Harga ini dibuat untuk menguji aplikasi. Harga nyata dipakai setelah sumber data langsung diaktifkan. |
+| sample.signalNote | Signal computed on sample data, not on real prices. | Sinyal dihitung dari data contoh, bukan dari harga nyata. |
 | sample.alertsNone | No alerts while prices are sample data | Tidak ada peringatan selama harga masih data contoh |
 
-**No verdict on sample data** (Orchestrator's decision 2026-10-04, on the Reviewer's question): a BUY, HOLD or SELL computed on made-up prices is never shown. The rule engine still computes it (for its tests) and stores it flagged `synthetic`; every screen shows the no-verdict state `signal.sample` instead, no alert is raised, and the chart shows no markers.
+**No verdict on sample data** (Tech Lead, delegated, via the Orchestrator, 2026-10-04; option C): in normal use a BUY, HOLD or SELL computed on made-up prices is never shown. The rule engine still computes it and stores it flagged `synthetic`; screens show the no-verdict state `signal.sample` instead, no alert is raised, and the chart shows no markers.
+
+**Development and QA only:** the server env switch `SHOW_SAMPLE_SIGNALS=1` (off by default, never set in production) shows the verdicts computed on sample data, with the sample labels: `sample.label` as below, both signal cards and the report starting with `sample.signalNote`, and markers drawn. Even with the switch on, no alert is raised from synthetic data.
 
 Where it goes (any series whose source is `synthetic`):
 - Investments watchlist (OR-30): `sample.badge` as a word next to the price of each synthetic row, and `signal.sample` in its signal column; when any row is synthetic, one `sample.label` line above the table with `sample.explain` as its description.
