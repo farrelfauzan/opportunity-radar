@@ -14,6 +14,7 @@ export {
   OPPORTUNITY_STATUSES,
   THEMES,
   IMPACTS,
+  ASSET_KINDS,
   FACTOR_KEYS,
 } from "./schema.ts";
 export type {
@@ -29,6 +30,7 @@ export type {
   LlmCallStatus,
   Theme,
   Impact,
+  AssetKind,
 } from "./schema.ts";
 export * from "./articles.ts";
 export * from "./sources.ts";
@@ -39,3 +41,4 @@ export type { Trend } from "./trend.ts";
 export * from "./ventures.ts";
 export * from "./llm-usage.ts";
 export * from "./triage.ts";
+export * from "./prices.ts";
