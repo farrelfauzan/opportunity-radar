@@ -299,13 +299,13 @@ Radar states (OR-23 review):
 - Top opportunities: "Based on N news items" (`radar.top.basedOn`) is hidden when N is 0; `radar.brief.affected` is plain text (no link).
 - News that moves opportunities: each row shows `news.item.meta` (source · time · region, as on News), the why-text with the AI mark (§3), and `radar.news.linked` when the item is linked to at least one open opportunity (hidden at 0; plain text).
 
+Section order (desktop and phone): brief → My ventures → Top opportunities → News that moves opportunities → Investment alerts → Market snapshot. Investments never come before opportunities.
+
 Market snapshot (OR-28):
 - Rows: IHSG, USD/IDR, Gold / gram, Bitcoin (`asset.name.*`), each with price, 1-day change, a 10-point sparkline, and `sample.badge` on synthetic rows (§8.2).
 - Change: ▲ / ▼ / — and the unsigned percentage with one decimal per locale (▲ 1.2%, ▼ 0.8%, — 0.0% when it rounds to zero). Up in the teal accent, down in orange, unchanged in muted text; the arrow is the shape, colour is never alone. Accessible label: `radar.market.up` / `.down` / `.flat` (the arrow is hidden from screen readers).
 - As-of: visible muted text under the price (no hover, so it works on phones): `radar.market.asOf` when today, `radar.market.asOfEarlier` otherwise; USD/IDR is a daily reference rate with no time, so it uses `radar.market.asOfDate`.
 - Stale (past the §2.3 threshold, inside market hours only): the row shows the word `radar.market.stale` after its as-of text, and the section shows `state.stale.today` / `.earlier` with `state.stale.what.prices` once above the rows when any row is stale. Outside market hours the row shows `state.marketClosed` in place of the as-of text, and is not stale.
-
-Section order (desktop and phone): brief → My ventures → Top opportunities → News that moves opportunities → Investment alerts → Market snapshot. Investments never come before opportunities.
 
 ## 6. Opportunities (OR-17, OR-18, OR-41, OR-40)
 
