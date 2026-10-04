@@ -189,6 +189,10 @@ describe("OR-64: normalisation, clause breaks, forecast forms, the authority exc
     "Investors must buy gold, OJK data show.",
     "Investor harus membeli emas, data OJK menunjukkan.",
     "Investors must buy gold, according to the ministry.",
+    // QA, OR-64: the Indonesian reporting verb before the authority word, and ujar / tutur.
+    "Investor harus membeli emas, kata kementerian.",
+    "Investor harus membeli emas, ujar otoritas.",
+    "Investor harus membeli emas, OJK tuturnya.",
     "Investors must sell now, the regulator warned.",
     // "recommend" in any inflection, also inside names (accepted).
     "Recommended Daily Allowance rises.",

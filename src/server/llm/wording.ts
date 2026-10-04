@@ -107,9 +107,10 @@ const CLAUSE_WORD_RE = new RegExp(wholeWords(CLAUSE_WORDS), "iu");
 // A fixed list (no part-of-speech tagging), within three words after the authority word (Designer and
 // Orchestrator, OR-64): "…, OJK data show" and "…, data OJK menunjukkan" are attributions.
 const REPORTING_VERBS =
-  "says?|said|states?|stated|announces?|announced|shows?|showed|shown|reports?|reported|notes?|noted|warns?|warned|claims?|claimed|estimates?|estimated|added|told|expects|predicted|kata|mengatakan|menyatakan|mengumumkan|menunjukkan|melaporkan|mencatat|menyebut|menyebutkan|memperingatkan|menilai";
+  "says?|said|states?|stated|announces?|announced|shows?|showed|shown|reports?|reported|notes?|noted|warns?|warned|claims?|claimed|estimates?|estimated|added|told|expects|predicted|kata|mengatakan|menyatakan|mengumumkan|menunjukkan|melaporkan|mencatat|menyebut|menyebutkan|memperingatkan|menilai|ujar|ujarnya|tutur|tuturnya|katanya";
 const REPORTING_AFTER = new RegExp(`^(?: [\\p{L}']+){0,2}? (?:${REPORTING_VERBS})(?![\\p{L}])`, "iu");
-const REPORTING_BEFORE = /(?:according to|menurut)\s+(?:[\p{L}']+\s+){0,2}$/iu;
+// … and before it: "according to the ministry", "menurut OJK", "kata kementerian", "ujar menteri".
+const REPORTING_BEFORE = /(?:according to|menurut|kata|ujar|tutur|said|says)\s+(?:[\p{L}']+\s+){0,2}$/iu;
 // Not a sentence end: a period between digits ("12.5%", "Rp 1.000.000"), inside "U.S.", or after these.
 const ABBREVIATION = /(?:^|[^\p{L}])(?:no|u\.s|e\.g|i\.e|mr|mrs|dr|vs|inc|ltd|tbk)$/iu;
 // Bounded work on long texts: the policy noun is looked for just before a forecast, a sentence near a hit.
