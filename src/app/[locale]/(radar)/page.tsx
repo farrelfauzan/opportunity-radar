@@ -334,7 +334,7 @@ function NewsItem({ article, now, locale, m }: { article: LinkedNews; now: Date;
           >
             <span>
               {article.headline}
-              <span className="sr-only">. {m.news.item.openExternal}</span>
+              <span className="sr-only"> ({m.news.item.openExternal})</span>
             </span>
           </a>
         ) : (
