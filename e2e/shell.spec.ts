@@ -37,7 +37,10 @@ for (const locale of ["en", "id"] as const) {
     for (const [path, title, currentIndex] of routes(locale)) {
       await page.goto(`/${locale}${path}`);
       await expect(page.getByRole("heading", { level: 1 }), path).toHaveText(title);
-      await expect(page.locator("main"), path).toContainText(copy[locale].empty);
+      // The calculators screen has content; the others still show the empty frame.
+      if (path !== "/calculators") {
+        await expect(page.locator("main"), path).toContainText(copy[locale].empty);
+      }
       await expect(page, path).toHaveTitle(`${title} · Opportunity Radar`);
 
       const current = header(page).locator('[aria-current="page"]');

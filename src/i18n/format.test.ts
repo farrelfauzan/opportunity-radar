@@ -6,6 +6,7 @@ import {
   formatPercent,
   formatRelativeTime,
   formatRupiah,
+  formatRupiahCompact,
   formatUsd,
 } from "./format";
 
@@ -26,6 +27,18 @@ describe("formatRupiah", () => {
     expect(formatRupiah(value, "id")).toBe(inId);
     expect(formatRupiah(value, "en")).toBe(inEn);
   });
+});
+
+test("formatRupiahCompact", () => {
+  expect(formatRupiahCompact(425_665_138, "en", en.calc.unit)).toBe(`Rp${NBSP}425.7 million`);
+  expect(formatRupiahCompact(425_665_138, "id", id.calc.unit)).toBe(`Rp${NBSP}425,7 juta`);
+  expect(formatRupiahCompact(1_204_000_000, "en", en.calc.unit)).toBe(`Rp${NBSP}1.20 billion`);
+  expect(formatRupiahCompact(1_204_000_000, "id", id.calc.unit)).toBe(`Rp${NBSP}1,20 miliar`);
+  expect(formatRupiahCompact(2e12, "en", en.calc.unit)).toBe(`Rp${NBSP}2.00 trillion`);
+  expect(formatRupiahCompact(2e12, "id", id.calc.unit)).toBe(`Rp${NBSP}2,00 triliun`);
+  expect(formatRupiahCompact(-3_500_000, "en", en.calc.unit)).toBe(`${MINUS}Rp${NBSP}3.5 million`);
+  expect(formatRupiahCompact(999_999, "id", id.calc.unit)).toBe(`Rp${NBSP}999.999`);
+  expect(formatRupiahCompact(0, "en", en.calc.unit)).toBe(`Rp${NBSP}0`);
 });
 
 test("formatUsd", () => {
@@ -83,6 +96,7 @@ describe("formatRelativeTime", () => {
 test("missing values show an em dash", () => {
   for (const value of [null, undefined, NaN]) {
     expect(formatRupiah(value, "en")).toBe(DASH);
+    expect(formatRupiahCompact(value, "en", en.calc.unit)).toBe(DASH);
     expect(formatUsd(value, "id")).toBe(DASH);
     expect(formatPercent(value, "en")).toBe(DASH);
   }
