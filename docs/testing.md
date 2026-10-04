@@ -87,3 +87,11 @@ and never put a key or token in one.
 under `pnpm dev`. In a production build they return 404 unless the server is started with
 `ENABLE_TEST_ROUTES=1`; `pnpm test:e2e` sets that for its own server only. Never set it on a
 deployed server.
+
+### Upper-case locale (OR-55)
+
+`e2e/locale-case.spec.ts` redirects `/EN`, `/Id/news`, `/%45N` (percent-encoded) and `/EN/` to the
+lowercase path. Its restart test (a second server on `E2E_PORT + 3` gets those requests, is restarted,
+and `/en`, `/id` must still answer 200) only proves something on a **case-insensitive file system**
+such as macOS's default, where the cache file for `/EN` is the same file as the one for `/en`. On
+Linux it passes trivially; the redirect tests do not depend on the file system.
