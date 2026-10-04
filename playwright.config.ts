@@ -10,6 +10,9 @@ export default defineConfig({
   testDir: "./e2e",
   globalSetup: "./e2e/global-setup.ts",
   reporter: "list",
+  // Many sessions share this machine and its load average can pass 20: a test that starts a
+  // second server (the "store unreachable" ones) then takes over 30 s, Playwright's default.
+  timeout: 60_000,
   // One worker: tests that change the shared test database (stale banner, new article)
   // must not run beside others, and the two viewport projects run one after the other.
   workers: 1,

@@ -3,7 +3,14 @@
 import { existsSync } from "node:fs";
 
 /** The port the browser tests serve the app on (E2E_PORT, default 3210). */
-export const e2ePort = () => Number(process.env.E2E_PORT ?? 3210);
+export const e2ePort = (): number => {
+  const port = Number(process.env.E2E_PORT ?? 3210);
+  // The port also names a database, so it must be a plain port number (nothing else gets into an SQL name).
+  if (!Number.isInteger(port) || port < 1 || port > 65_000) {
+    throw new Error(`E2E_PORT must be a whole number from 1 to 65000, got "${process.env.E2E_PORT}".`);
+  }
+  return port;
+};
 
 /**
  * The database the browser tests' server uses: the test database's server and
