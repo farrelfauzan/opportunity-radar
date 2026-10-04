@@ -1,0 +1,5 @@
+{"scorer":"Researcher (agent session, B)","round":3,"scored_at":"2026-10-04T01:28:02Z","seen_other_scores":false,
+ "themes_commit":"fb777a7",
+ "note":"Written and committed before any message about the themes or scores was sent to the Designer; no scorer-A round-3 scores existed or were seen. Competition scored with the line: government programmes, NGO services and free public tools count as substitutes when they serve the same buyer at no cost.",
+ "factors_order":["demand","timing","competition_low_is_high","capital_efficiency","regulatory_low_risk_is_high"],
+ "theme-g":[50,55,40,50,45],"theme-h":[70,65,25,55,50],"theme-i":[50,60,30,70,45]}
