@@ -28,8 +28,11 @@ const factors = (values: Record<string, number>) => ({
 const GOOD = factors({ demand: 88, timing: 90, competition: 70, capital: 62, regulatory: 84 });
 
 let counter = 0;
-/** An opportunity first scored on `lastDay` (overall 60), citing 2 articles at `citedAt`. */
-async function opportunity(lastDay: string, citedAt = new Date(), headline = "Headline"): Promise<number> {
+/**
+ * An opportunity first scored on `lastDay` (overall 60), citing 2 articles at `citedAt`,
+ * created a minute before them (`createdAt` overrides that).
+ */
+async function opportunity(lastDay: string, citedAt = new Date(), headline = "Headline", createdAt = new Date(citedAt.getTime() - 60_000)): Promise<number> {
   const source = await upsertSource({ slug: "s", name: "S", feedUrl: "https://example.com/f.xml", region: "indonesia", category: "business" });
   const ids: number[] = [];
   for (let i = 0; i < 2; i++) {
@@ -41,6 +44,7 @@ async function opportunity(lastDay: string, citedAt = new Date(), headline = "He
   }
   const id = (await insertOpportunity(fields, score(lastDay, 60), ids)).id;
   await db().execute(sql`update opportunity_articles set cited_at = ${citedAt.toISOString()} where opportunity_id = ${id}`);
+  await db().execute(sql`update opportunities set created_at = ${createdAt.toISOString()} where id = ${id}`);
   return id;
 }
 
@@ -139,6 +143,17 @@ describe("review follow-ups", () => {
   test("cited articles only from switched-off sources: not due (no call, no score without evidence)", async () => {
     const id = await opportunity(yesterday);
     await db().execute(sql`update sources set active = false`);
+    const { transport, requests } = provider(GOOD);
+
+    await scoreOpportunities({ transport });
+
+    expect(requests).toHaveLength(0);
+    expect(await scoresOf(id)).toEqual([{ day: yesterday, overall: 60 }]);
+  });
+
+  test("created yesterday with its citations and scored then: not re-scored today (nothing new since creation)", async () => {
+    const created = new Date(Date.parse(`${yesterday}T08:00:00+07:00`));
+    const id = await opportunity(yesterday, created, "Headline", created);
     const { transport, requests } = provider(GOOD);
 
     await scoreOpportunities({ transport });
