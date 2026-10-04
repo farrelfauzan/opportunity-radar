@@ -16,6 +16,8 @@ export default defineConfig({
   webServer: {
     command: `pnpm exec next build && pnpm exec next start -p ${port}`,
     url: baseURL,
+    // Turns on /[locale]/dev/error, which is a 404 in a normal production run.
+    env: { ENABLE_TEST_ROUTES: "1" },
     reuseExistingServer: false,
     timeout: 180_000,
   },

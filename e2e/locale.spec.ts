@@ -20,13 +20,11 @@ test.describe("the start page redirects to a language", () => {
 test("/en and /id render in their language", async ({ page }) => {
   await page.goto("/en", { waitUntil: "networkidle" });
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Today's radar");
-  await expect(page.getByTestId("sample-number")).toHaveText("Rp 1,935,000");
+  await expect(page.getByRole("link", { name: "Opportunities" })).toBeVisible();
 
   await page.goto("/id", { waitUntil: "networkidle" });
   await expect(page.locator("html")).toHaveAttribute("lang", "id");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Radar hari ini");
-  await expect(page.getByTestId("sample-number")).toHaveText("Rp 1.935.000");
+  await expect(page.getByRole("link", { name: "Peluang" })).toBeVisible();
 });
 
 test("an unsupported language is a plain 404 without the app shell", async ({ request }) => {

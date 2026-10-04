@@ -2,10 +2,23 @@
   "meta": {
     "description": "Business opportunities and investment signals from the news."
   },
-  "home": {
-    "heading": "Today's radar",
-    "intro": "Business opportunities and investment signals from the news.",
-    "note": "The screens arrive with the next tickets."
+  "screens": {
+    "radar": "Radar",
+    "opportunities": "Opportunities",
+    "news": "News",
+    "invest": "Investments",
+    "asset": "Asset report",
+    "calculators": "Calculators"
+  },
+  "shell": {
+    "mainNav": "Main",
+    "language": "Language",
+    "empty": "Nothing here yet"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This page does not exist.",
+    "back": "Back to Radar"
   },
   "time": {
     "justNow": "just now",
