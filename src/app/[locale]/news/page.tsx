@@ -11,6 +11,7 @@ import { fill, type Messages } from "@/i18n/t";
 import { inLocale } from "@/lib/opportunities/view";
 import { newsHref, PAGE_SIZE, parseNewsQuery, type NewsQuery } from "@/lib/news/query";
 import {
+  categoryLabel,
   themeBarPercent,
   INGEST_JOB,
   isNeverIngested,
@@ -30,7 +31,6 @@ import {
   trendingThemes,
   REGIONS,
   type ArticleWithSource,
-  type Category,
   type Impact,
   type NewsEnrichment,
 } from "@/server/data";
@@ -45,13 +45,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("page.documentTitle", { page: t("page.title.news") }) };
 }
 
-const categoryLabel = {
-  business: "business",
-  politics: "politics",
-  "tech-ai": "tech",
-  markets: "markets",
-  commodities: "commodities",
-} as const satisfies Record<Category, keyof Messages["news"]["cat"]>;
 
 const chip =
   "inline-flex min-h-11 items-center rounded-md border border-input bg-black/18 px-3.5 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-[current=true]:border-foreground aria-[current=true]:bg-foreground aria-[current=true]:text-background";
