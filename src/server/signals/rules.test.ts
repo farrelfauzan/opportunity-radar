@@ -254,3 +254,23 @@ describe("staleness in the market's own time zone (rules-v1 §4, PR 87)", () => 
     expect(stateFor("crypto", false, "2026-10-06T06:00:00")).toBe("BUY"); // 5 Oct UTC: 3 days
   });
 });
+
+describe("RSI of exactly 70 through evaluate (Reviewer, PR 80)", () => {
+  test("15 closes with gains of 7 and losses of 3 units, then flat: RSI 70 is not stretched", () => {
+    // The first 14 changes: 7 gains of +7 and 7 losses of −3 (sum of gains 49, of losses 21: RSI 70);
+    // flat after that keeps both averages' ratio, so RSI stays exactly 70 in exact arithmetic.
+    // From 18.33 in steps of +0.21 / −0.09 (7 and 3 units of 0.03, 2-decimal closes) the float RSI
+    // ends at 70.00000000000007: only the tolerant comparison keeps it "not stretched".
+    const changes = [0.21, -0.09, 0.21, -0.09, 0.21, -0.09, 0.21, -0.09, 0.21, -0.09, 0.21, -0.09, 0.21, -0.09];
+    const closes = [18.33];
+    for (const c of changes) closes.push(Math.round((closes.at(-1)! + c) * 100) / 100);
+    while (closes.length < 49) closes.push(closes.at(-1)!);
+    closes.push(closes.at(-1)! + 0); // last close equals the previous: RSI unchanged at 70
+    const rows = closes.map((close, i) => ({ day: new Date(Date.UTC(2026, 0, 1) + i * 86400000).toISOString().slice(0, 10), close }));
+    const result = evaluate(rows, { asOf: rows.at(-1)!.day, assetClass: "crypto" });
+    expect(result.indicators!.rsi).toBeCloseTo(70, 9);
+    expect(result.indicators!.rsi).toBeGreaterThan(70); // the float noise this test is about
+    expect(result.short.checks[0].key).not.toBe("signal.check.rsiHigh");
+    expect(result.short.state).not.toBe("HOLD"); // close is above the 50-day average, RSI is in range
+  });
+});

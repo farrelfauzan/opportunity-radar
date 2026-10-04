@@ -148,7 +148,8 @@ const position = (a: number, b: number) => (cmp(a, b) > 0 ? "above" : cmp(a, b) 
  */
 function momentumCheck(rsi: number): Check {
   const key =
-    rsi > 70 ? "signal.check.rsiHigh" : rsi < 30 ? "signal.check.rsiLow" : rsi > 50 ? "signal.check.rsiAbove50" : rsi < 50 ? "signal.check.rsiBelow50" : "signal.check.rsiInRange";
+    // The same tolerant comparisons as the verdict, so the words never disagree with it.
+    cmp(rsi, 70) > 0 ? "signal.check.rsiHigh" : cmp(rsi, 30) < 0 ? "signal.check.rsiLow" : cmp(rsi, 50) > 0 ? "signal.check.rsiAbove50" : cmp(rsi, 50) < 0 ? "signal.check.rsiBelow50" : "signal.check.rsiInRange";
   return { check: "momentum", key, values: { rsi }, verdict: stretched(rsi) ? "neutral" : side(rsi, 50), counted: false };
 }
 
