@@ -5,7 +5,7 @@ import { sql } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { liveUsageThisMonth, recordLlmUsage, wibMonthStart } from "@/server/data";
 import { db } from "@/server/data/client";
-import { BudgetExhaustedError, callLlm, InvalidOutputError, LlmConfigError, LlmRequestError } from "@/server/llm/client";
+import { BudgetExhaustedError, callLlm, InvalidOutputError, LlmConfigError, LlmInputError, LlmRequestError } from "@/server/llm/client";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const KEY = "sk-test-canary-1234567890";
@@ -178,6 +178,74 @@ describe("monthly cap", () => {
   test("the WIB month starts at 00:00 WIB on the 1st", () => {
     expect(wibMonthStart(new Date("2026-09-30T17:00:00Z")).toISOString()).toBe("2026-09-30T17:00:00.000Z");
     expect(wibMonthStart(new Date("2026-09-30T16:59:59Z")).toISOString()).toBe("2026-08-31T17:00:00.000Z");
+  });
+});
+
+describe("review follow-ups (OR-13 → OR-14)", () => {
+  test("5 parallel calls against a tiny token cap do not all go through", async () => {
+    setEnv({ ...LIVE, LLM_MONTHLY_TOKEN_CAP: "100" });
+    const { transport, requests } = provider({ content: '{"ok":true}', usage: { prompt_tokens: 2, completion_tokens: 40 } });
+    const call = () =>
+      callLlm({ job: "par", role: "triage", messages: [{ role: "user", content: "Say ok" }], parse: isOk, maxTokens: 40, fetch: transport });
+
+    const results = await Promise.allSettled([call(), call(), call(), call(), call()]);
+
+    // Each call reserves 2 input + 40 output tokens: two fit under 100, the rest are refused.
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(2);
+    expect(results.filter((r) => r.status === "rejected" && r.reason instanceof BudgetExhaustedError)).toHaveLength(3);
+    expect(requests).toHaveLength(2);
+  });
+
+  test("reservations are released: after the parallel calls finish, a later call is judged on recorded usage", async () => {
+    setEnv({ ...LIVE, LLM_MONTHLY_TOKEN_CAP: "1000" });
+    const { transport } = provider({ content: '{"ok":true}', usage: { prompt_tokens: 2, completion_tokens: 5 } });
+    const call = () =>
+      callLlm({ job: "rel", role: "triage", messages: [{ role: "user", content: "Say ok" }], parse: isOk, maxTokens: 400, fetch: transport });
+    await Promise.all([call(), call()]);
+    await expect(call()).resolves.toEqual({ ok: true }); // 14 used + 402 reserved < 1000
+  });
+
+  test.each(["http://router.example.com/v1", "http://8.8.8.8/v1"])("plain http to a public host (%s) is refused", async (url) => {
+    setEnv({ ...LIVE, LLM_BASE_URL: url });
+    const { transport, requests } = provider({ content: '{"ok":true}' });
+    await expect(ask(transport)).rejects.toThrow("LLM_BASE_URL must use https");
+    expect(requests).toHaveLength(0);
+  });
+
+  test.each(["http://localhost:11434/v1", "http://127.0.0.1:8080/v1", "http://192.168.1.20/v1", "https://router.example.com/v1"])(
+    "%s is allowed",
+    async (url) => {
+      setEnv({ ...LIVE, LLM_BASE_URL: url });
+      await expect(ask(provider({ content: '{"ok":true}' }).transport)).resolves.toEqual({ ok: true });
+    },
+  );
+
+  test("a 200 reply that is not JSON is a request error", async () => {
+    setEnv(LIVE);
+    const transport = (async () => new Response("<html>gateway</html>", { status: 200 })) as unknown as typeof fetch;
+    await expect(ask(transport)).rejects.toThrow(new LlmRequestError("LLM provider sent a reply that is not JSON"));
+  });
+
+  test("an oversize reply is refused", async () => {
+    setEnv(LIVE);
+    const transport = (async () => new Response("x".repeat(2 * 1024 * 1024 + 1), { status: 200 })) as unknown as typeof fetch;
+    await expect(ask(transport)).rejects.toThrow("LLM reply too large");
+  });
+
+  test("an input over 200,000 characters is refused before anything is sent or recorded", async () => {
+    setEnv(LIVE);
+    const { transport, requests } = provider({ content: '{"ok":true}' });
+    const huge = callLlm({ job: "big", role: "triage", messages: [{ role: "user", content: "x".repeat(200_001) }], parse: isOk, fetch: transport });
+    await expect(huge).rejects.toBeInstanceOf(LlmInputError);
+    expect(requests).toHaveLength(0);
+    expect(await usageRows()).toEqual([]);
+  });
+
+  test("a USD budget needs prices for the role, so no live call has an unknown cost", async () => {
+    setEnv({ ...LIVE, LLM_MONTHLY_BUDGET_USD: "10" }); // token cap also set, prices missing
+    const { transport, requests } = provider({ content: '{"ok":true}' });
+    await expect(ask(transport)).rejects.toThrow("LLM_MONTHLY_BUDGET_USD needs LLM_PRICE_TRIAGE_IN and LLM_PRICE_TRIAGE_OUT.");
+    expect(requests).toHaveLength(0);
   });
 });
 
