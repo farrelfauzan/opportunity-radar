@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:media="http://search.yahoo.com/mrss/">
+	<channel>
+		<lastBuildDate>Sun, 04 Oct 2026 08:32:24 +0700</lastBuildDate>
+		<title>CNN Indonesia | Berita Terkini Ekonomi</title>
+		<description>CNNIndonesia.com menyajikan berita ekonomi meliputi bisnis, keuangan, energi, hingga ekonomi makro terbaru dan terkini</description>
+		<atom:link href="https://www.cnnindonesia.com/ekonomi" rel="self" type="application/rss+xml"/>
+		<link>https://www.cnnindonesia.com/ekonomi</link>
+		<image>
+			<title>CNN Indonesia | Berita Terkini Ekonomi</title>
+			<link>https://www.cnnindonesia.com/ekonomi</link>
+			<url>https://cdn.cnnindonesia.com/cnnid/images/logo_cnn_fav.png</url>
+		</image>
+		<item>
+			<guid>https://www.cnnindonesia.com/ekonomi/20261003211011-92-1411327/alasan-pemerintah-masukkan-ojol-ke-transportasi-umum-di-aturan-baru</guid>
+			<pubDate>Sun, 04 Oct 2026 05:30:53 +0700</pubDate>
+			<title><![CDATA[Alasan Pemerintah Masukkan Ojol ke Transportasi Umum di Aturan Baru]]></title>
+			<description><![CDATA[ <img src="https://akcdn.detik.net.id/visual/2026/01/26/demo-ojol-di-patung-kuda-1769417954774_169.jpeg?w=360&amp;q=90"/> Kemenhub menjelaskan alasan ojek online dikategorikan transportasi umum dalam RUU LLAJ. Regulasi ini bertujuan untuk meningkatkan keselamatan pengguna.]]></description>
+			<enclosure length="25000" type="image/jpeg" url="https://akcdn.detik.net.id/visual/2026/01/26/demo-ojol-di-patung-kuda-1769417954774_169.jpeg?w=360&amp;q=90"/>
+			<content:encoded><![CDATA[Kemenhub menjelaskan alasan ojek online dikategorikan transportasi umum dalam RUU LLAJ. Regulasi ini bertujuan untuk meningkatkan keselamatan pengguna.]]></content:encoded>
+			<link>https://www.cnnindonesia.com/ekonomi/20261003211011-92-1411327/alasan-pemerintah-masukkan-ojol-ke-transportasi-umum-di-aturan-baru</link>
+		</item>
+		<item>
+			<guid>https://www.cnnindonesia.com/ekonomi/20261003195836-92-1411314/kemenhub-bakal-larang-truk-odol-beli-tiket-kapal-penyeberangan</guid>
+			<pubDate>Sun, 04 Oct 2026 04:30:13 +0700</pubDate>
+			<title><![CDATA[Kemenhub Bakal Larang Truk ODOL Beli Tiket Kapal Penyeberangan]]></title>
+			<description><![CDATA[ <img src="https://akcdn.detik.net.id/visual/2026/02/16/menhub-dudy-pembatasan-operasional-angkutan-barang-penting-untuk-keselamatan-dan-kelancaran-arus-lalu-lintas-selama-angkutan-l-1771214762542_169.jpeg?w=360&amp;q=90"/> Kemenhub larang truk ODOL beli tiket kapal penyeberangan lewat aplikasi Ferizy. Kebijakan ini bertujuan mencegah kendaraan kelebihan muatan masuk pelabuhan.]]></description>
+			<enclosure length="25000" type="image/jpeg" url="https://akcdn.detik.net.id/visual/2026/02/16/menhub-dudy-pembatasan-operasional-angkutan-barang-penting-untuk-keselamatan-dan-kelancaran-arus-lalu-lintas-selama-angkutan-l-1771214762542_169.jpeg?w=360&amp;q=90"/>
+			<content:encoded><![CDATA[Kemenhub larang truk ODOL beli tiket kapal penyeberangan lewat aplikasi Ferizy. Kebijakan ini bertujuan mencegah kendaraan kelebihan muatan masuk pelabuhan.]]></content:encoded>
+			<link>https://www.cnnindonesia.com/ekonomi/20261003195836-92-1411314/kemenhub-bakal-larang-truk-odol-beli-tiket-kapal-penyeberangan</link>
+		</item>
+		<item>
+			<guid>https://www.cnnindonesia.com/ekonomi/20261003215349-92-1411332/kkp-bekukan-izin-km-maulana-23-usai-viral-dugaan-penganiayaan-abk</guid>
+			<pubDate>Sat, 03 Oct 2026 22:31:06 +0700</pubDate>
+			<title><![CDATA[KKP Bekukan Izin KM Maulana 23 usai Viral Dugaan Penganiayaan ABK]]></title>
+			<description><![CDATA[ <img src="https://akcdn.detik.net.id/visual/2022/06/15/raker-menteri-kkp-dengan-komisi-iv-2_169.jpeg?w=360&amp;q=90"/> KKP menangguhkan operasional KM Maulana 23 akibat dugaan kekerasan terhadap awak kapal. KKP berkomitmen pada keselamatan dan hak awak kapal.]]></description>
+			<enclosure length="25000" type="image/jpeg" url="https://akcdn.detik.net.id/visual/2022/06/15/raker-menteri-kkp-dengan-komisi-iv-2_169.jpeg?w=360&amp;q=90"/>
+			<content:encoded><![CDATA[KKP menangguhkan operasional KM Maulana 23 akibat dugaan kekerasan terhadap awak kapal. KKP berkomitmen pada keselamatan dan hak awak kapal.]]></content:encoded>
+			<link>https://www.cnnindonesia.com/ekonomi/20261003215349-92-1411332/kkp-bekukan-izin-km-maulana-23-usai-viral-dugaan-penganiayaan-abk</link>
+		</item>
+	</channel>
+</rss>

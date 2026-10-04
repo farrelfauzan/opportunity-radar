@@ -1,0 +1,109 @@
+{
+  "meta": {
+    "description": "Peluang bisnis dan sinyal investasi dari berita."
+  },
+  "app": {
+    "name": "Opportunity Radar"
+  },
+  "nav": {
+    "main": "Utama",
+    "radar": "Radar",
+    "opportunities": "Peluang",
+    "news": "Berita",
+    "invest": "Investasi",
+    "calculators": "Kalkulator",
+    "language": "Bahasa"
+  },
+  "page": {
+    "title": {
+      "radar": "Radar",
+      "opportunities": "Peluang",
+      "news": "Berita",
+      "invest": "Investasi",
+      "asset": "Laporan aset",
+      "calculators": "Kalkulator"
+    },
+    "documentTitle": "{page} · Opportunity Radar",
+    "emptyFrame": "Belum ada data"
+  },
+  "notFound": {
+    "title": "Halaman tidak ditemukan",
+    "body": "Halaman ini tidak ada.",
+    "back": "Kembali ke Radar"
+  },
+  "time": {
+    "justNow": "baru saja",
+    "minutesAgo": "{n} mnt lalu",
+    "hoursAgo": "{n} jam lalu",
+    "daysAgo": "{n} hari lalu"
+  },
+  "calc": {
+    "title": "Kalkulator",
+    "intro": "Proyeksi sementara dari asumsi Anda sendiri. Ubah angka mana pun; hasil diperbarui saat Anda mengetik.",
+    "inv": {
+      "title": "Proyeksi investasi",
+      "presetGroup": "Asumsi jenis aset",
+      "preset": {
+        "cash": "Kas & obligasi",
+        "gold": "Emas",
+        "stocks": "Saham",
+        "crypto": "Kripto"
+      },
+      "start": "Jumlah awal (Rp)",
+      "monthly": "Tambahan tiap bulan (Rp)",
+      "years": "Tahun",
+      "return": "Imbal hasil per tahun (%)",
+      "spread": "Ketidakpastian (± poin %)",
+      "inflation": "Inflasi (%)",
+      "presetNote": "Tombol jenis aset mengisi contoh asumsi, bukan perkiraan. Aset berisiko lebih tinggi mendapat rentang ketidakpastian lebih lebar.",
+      "valueAfter": {
+        "one": "Nilai setelah {years} tahun",
+        "other": "Nilai setelah {years} tahun"
+      },
+      "paid": "Total setoran Anda",
+      "real": "Dalam nilai uang hari ini",
+      "axisNow": "Sekarang",
+      "axisYear": "Tahun {years}",
+      "optimistic": "Optimis",
+      "base": "Dasar",
+      "pessimistic": "Pesimis",
+      "paidLine": "Setoran",
+      "chartLabel": "Proyeksi nilai dari waktu ke waktu untuk imbal hasil pesimis, dasar, dan optimis, dibandingkan dengan total setoran"
+    },
+    "biz": {
+      "title": "Proyeksi bisnis",
+      "capital": "Modal awal (Rp)",
+      "fixed": "Biaya tetap per bulan (Rp)",
+      "revenue": "Pendapatan bulan pertama (Rp)",
+      "growth": "Pertumbuhan pendapatan per bulan (%)",
+      "margin": "Margin kotor (%)",
+      "months": "Jumlah bulan proyeksi",
+      "breakeven": "Impas bulanan",
+      "payback": "Modal kembali",
+      "lowest": "Kas yang dibutuhkan di titik terendah",
+      "end": {
+        "one": "Kas bersih setelah {months} bulan",
+        "other": "Kas bersih setelah {months} bulan"
+      },
+      "month": "Bulan ke-{n}",
+      "notWithin": {
+        "one": "Tidak dalam {months} bulan",
+        "other": "Tidak dalam {months} bulan"
+      },
+      "axisStart": "Bulan ke-0",
+      "paybackLine": "Garis putus-putus = modal kembali penuh",
+      "chartLabel": "Kas kumulatif dari waktu ke waktu; modal usaha sudah kembali saat garis memotong garis nol putus-putus"
+    },
+    "unit": {
+      "million": "juta",
+      "billion": "miliar",
+      "trillion": "triliun"
+    },
+    "disclaimer": "Proyeksi ini hanya hitungan dari asumsi yang Anda masukkan. Ini bukan perkiraan atau nasihat keuangan; imbal hasil dan pendapatan nyata bervariasi dan bisa negatif.",
+    "err": {
+      "required": "Masukkan angka",
+      "range": "Masukkan nilai dari {min} sampai {max}",
+      "keptPrevious": "Menampilkan hasil valid terakhir"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "same": "Sama",
+  "onlyInId": "Hanya dalam bahasa Indonesia",
+  "nav": {
+    "news": "Berita",
+    "deep": {}
+  },
+  "news": {
+    "count": "artikel"
+  }
+}

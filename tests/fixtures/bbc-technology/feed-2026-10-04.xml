@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+    <channel>
+        <title><![CDATA[BBC News]]></title>
+        <description><![CDATA[BBC News - Technology]]></description>
+        <link>https://www.bbc.co.uk/news/technology</link>
+        <image>
+            <url>https://news.bbcimg.co.uk/nol/shared/img/bbc_news_120x60.gif</url>
+            <title>BBC News</title>
+            <link>https://www.bbc.co.uk/news/technology</link>
+        </image>
+        <generator>RSS for Node</generator>
+        <lastBuildDate>Sun, 04 Oct 2026 01:32:40 GMT</lastBuildDate>
+        <atom:link href="https://feeds.bbci.co.uk/news/technology/rss.xml" rel="self" type="application/rss+xml"/>
+        <copyright><![CDATA[Copyright: (C) British Broadcasting Corporation, see https://www.bbc.co.uk/usingthebbc/terms-of-use/#15metadataandrssfeeds for terms and conditions of reuse.]]></copyright>
+        <language><![CDATA[en-gb]]></language>
+        <ttl>15</ttl>
+        <item>
+            <title><![CDATA[OpenAI fires workers for 'mishandling sensitive information']]></title>
+            <description><![CDATA[The former employees were investigated for sharing data with an outside AI evaluation group.]]></description>
+            <link>https://www.bbc.co.uk/news/articles/c6y9z9r4ejzwo?at_medium=RSS&amp;at_campaign=rss</link>
+            <guid isPermaLink="false">https://www.bbc.co.uk/news/articles/c6y9z9r4ejzwo#0</guid>
+            <pubDate>Fri, 02 Oct 2026 08:20:32 GMT</pubDate>
+            <media:thumbnail width="240" height="134" url="https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/136d/live/561b92b0-bdf9-11f1-a76b-bdcdab65a1b7.jpg"/>
+        </item>
+        <item>
+            <title><![CDATA[Crypto thieves attack man in home and threaten to kill pregnant wife's baby in 'horrific' robbery]]></title>
+            <description><![CDATA[The man was beaten with hammers until he transferred hundreds of thousands of pounds of cryptocurrency.]]></description>
+            <link>https://www.bbc.co.uk/news/articles/c6eq84eygz0qo?at_medium=RSS&amp;at_campaign=rss</link>
+            <guid isPermaLink="false">https://www.bbc.co.uk/news/articles/c6eq84eygz0qo#0</guid>
+            <pubDate>Thu, 01 Oct 2026 23:45:06 GMT</pubDate>
+            <media:thumbnail width="240" height="135" url="https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/dc74/live/877de1e0-bdaa-11f1-babe-4199b0e7ccea.png"/>
+        </item>
+        <item>
+            <title><![CDATA[Trump's AI rebrand causes 'unprecedented' demand for Slovenian website names]]></title>
+            <description><![CDATA[The president wants AI to be called super intelligence - or SI - the same initials used by Slovenian domains.]]></description>
+            <link>https://www.bbc.co.uk/news/articles/cqx2z23xj555o?at_medium=RSS&amp;at_campaign=rss</link>
+            <guid isPermaLink="false">https://www.bbc.co.uk/news/articles/cqx2z23xj555o#0</guid>
+            <pubDate>Thu, 01 Oct 2026 11:37:46 GMT</pubDate>
+            <media:thumbnail width="240" height="135" url="https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/4ff7/live/977f2bf0-bd85-11f1-ab03-fd866f8788d0.jpg"/>
+        </item>
+    </channel>
+</rss>

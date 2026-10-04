@@ -1,0 +1,4 @@
+ALTER TABLE "articles" DROP CONSTRAINT "articles_headline_check";--> statement-breakpoint
+ALTER TABLE "articles" ADD CONSTRAINT "articles_category_check" CHECK ("articles"."category" in ('business', 'politics', 'tech-ai', 'markets', 'commodities'));--> statement-breakpoint
+ALTER TABLE "articles" ADD CONSTRAINT "articles_headline_check" CHECK ("articles"."headline" <> '' and char_length("articles"."headline") <= 300);--> statement-breakpoint
+ALTER TABLE "sources" ADD CONSTRAINT "sources_category_check" CHECK ("sources"."category" in ('business', 'politics', 'tech-ai', 'markets', 'commodities'));

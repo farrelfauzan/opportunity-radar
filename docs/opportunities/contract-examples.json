@@ -1,0 +1,1160 @@
+{
+ "inputArticleIds": [
+  "101",
+  "102",
+  "103",
+  "104",
+  "105"
+ ],
+ "valid": [
+  {
+   "name": "valid_minimal",
+   "output": {
+    "title": {
+     "en": "Scam-check tools for small online sellers",
+     "id": "Alat cek penipuan untuk penjual daring kecil"
+    },
+    "thesis": {
+     "en": "Rising scam losses and a regulator push create demand for simple verification before transfers.",
+     "id": "Kerugian penipuan yang naik dan dorongan regulator menciptakan permintaan verifikasi sederhana sebelum transfer."
+    },
+    "region": "indonesia",
+    "theme": "cybersecurity",
+    "sectors": [
+     "fintech_finance",
+     "ai_software"
+    ],
+    "horizon": "0-6m",
+    "capital": {
+     "level": "low",
+     "reason": {
+      "en": "Software and a few partner integrations.",
+      "id": "Perangkat lunak dan beberapa integrasi mitra."
+     }
+    },
+    "buyer": {
+     "en": "Online sellers and small businesses",
+     "id": "Penjual daring dan usaha kecil"
+    },
+    "model": {
+     "en": "Subscription per seller",
+     "id": "Langganan per penjual"
+    },
+    "risks": [
+     {
+      "en": "The regulator ships a free app.",
+      "id": "Regulator merilis aplikasi gratis."
+     },
+     {
+      "en": "Banks bundle the same check.",
+      "id": "Bank menyertakan pemeriksaan yang sama."
+     }
+    ],
+    "firstSteps": [
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     }
+    ],
+    "factors": {
+     "demand": {
+      "score": 75,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "timing": {
+      "score": 65,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "competition": {
+      "score": 40,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "capital": {
+      "score": 70,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "regulatory": {
+      "score": 45,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     }
+    },
+    "citations": [
+     "101",
+     "102"
+    ]
+   }
+  }
+ ],
+ "invalid": [
+  {
+   "name": "citation_not_in_input",
+   "rule": "code: every cited id must be in the input set (input ids: 101–105)",
+   "output": {
+    "title": {
+     "en": "Scam-check tools for small online sellers",
+     "id": "Alat cek penipuan untuk penjual daring kecil"
+    },
+    "thesis": {
+     "en": "Rising scam losses and a regulator push create demand for simple verification before transfers.",
+     "id": "Kerugian penipuan yang naik dan dorongan regulator menciptakan permintaan verifikasi sederhana sebelum transfer."
+    },
+    "region": "indonesia",
+    "theme": "cybersecurity",
+    "sectors": [
+     "fintech_finance",
+     "ai_software"
+    ],
+    "horizon": "0-6m",
+    "capital": {
+     "level": "low",
+     "reason": {
+      "en": "Software and a few partner integrations.",
+      "id": "Perangkat lunak dan beberapa integrasi mitra."
+     }
+    },
+    "buyer": {
+     "en": "Online sellers and small businesses",
+     "id": "Penjual daring dan usaha kecil"
+    },
+    "model": {
+     "en": "Subscription per seller",
+     "id": "Langganan per penjual"
+    },
+    "risks": [
+     {
+      "en": "The regulator ships a free app.",
+      "id": "Regulator merilis aplikasi gratis."
+     },
+     {
+      "en": "Banks bundle the same check.",
+      "id": "Bank menyertakan pemeriksaan yang sama."
+     }
+    ],
+    "firstSteps": [
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     }
+    ],
+    "factors": {
+     "demand": {
+      "score": 75,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "timing": {
+      "score": 65,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "competition": {
+      "score": 40,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "capital": {
+      "score": 70,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "regulatory": {
+      "score": 45,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     }
+    },
+    "citations": [
+     "101",
+     "999"
+    ]
+   }
+  },
+  {
+   "name": "one_distinct_citation",
+   "rule": "code: at least 2 distinct cited ids",
+   "output": {
+    "title": {
+     "en": "Scam-check tools for small online sellers",
+     "id": "Alat cek penipuan untuk penjual daring kecil"
+    },
+    "thesis": {
+     "en": "Rising scam losses and a regulator push create demand for simple verification before transfers.",
+     "id": "Kerugian penipuan yang naik dan dorongan regulator menciptakan permintaan verifikasi sederhana sebelum transfer."
+    },
+    "region": "indonesia",
+    "theme": "cybersecurity",
+    "sectors": [
+     "fintech_finance",
+     "ai_software"
+    ],
+    "horizon": "0-6m",
+    "capital": {
+     "level": "low",
+     "reason": {
+      "en": "Software and a few partner integrations.",
+      "id": "Perangkat lunak dan beberapa integrasi mitra."
+     }
+    },
+    "buyer": {
+     "en": "Online sellers and small businesses",
+     "id": "Penjual daring dan usaha kecil"
+    },
+    "model": {
+     "en": "Subscription per seller",
+     "id": "Langganan per penjual"
+    },
+    "risks": [
+     {
+      "en": "The regulator ships a free app.",
+      "id": "Regulator merilis aplikasi gratis."
+     },
+     {
+      "en": "Banks bundle the same check.",
+      "id": "Bank menyertakan pemeriksaan yang sama."
+     }
+    ],
+    "firstSteps": [
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     }
+    ],
+    "factors": {
+     "demand": {
+      "score": 75,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "timing": {
+      "score": 65,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "competition": {
+      "score": 40,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "capital": {
+      "score": 70,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "regulatory": {
+      "score": 45,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     }
+    },
+    "citations": [
+     "101",
+     "101"
+    ]
+   }
+  },
+  {
+   "name": "score_out_of_range",
+   "rule": "schema: score integer 0–100",
+   "output": {
+    "title": {
+     "en": "Scam-check tools for small online sellers",
+     "id": "Alat cek penipuan untuk penjual daring kecil"
+    },
+    "thesis": {
+     "en": "Rising scam losses and a regulator push create demand for simple verification before transfers.",
+     "id": "Kerugian penipuan yang naik dan dorongan regulator menciptakan permintaan verifikasi sederhana sebelum transfer."
+    },
+    "region": "indonesia",
+    "theme": "cybersecurity",
+    "sectors": [
+     "fintech_finance",
+     "ai_software"
+    ],
+    "horizon": "0-6m",
+    "capital": {
+     "level": "low",
+     "reason": {
+      "en": "Software and a few partner integrations.",
+      "id": "Perangkat lunak dan beberapa integrasi mitra."
+     }
+    },
+    "buyer": {
+     "en": "Online sellers and small businesses",
+     "id": "Penjual daring dan usaha kecil"
+    },
+    "model": {
+     "en": "Subscription per seller",
+     "id": "Langganan per penjual"
+    },
+    "risks": [
+     {
+      "en": "The regulator ships a free app.",
+      "id": "Regulator merilis aplikasi gratis."
+     },
+     {
+      "en": "Banks bundle the same check.",
+      "id": "Bank menyertakan pemeriksaan yang sama."
+     }
+    ],
+    "firstSteps": [
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     }
+    ],
+    "factors": {
+     "demand": {
+      "score": 120,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "timing": {
+      "score": 65,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "competition": {
+      "score": 40,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "capital": {
+      "score": 70,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "regulatory": {
+      "score": 45,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     }
+    },
+    "citations": [
+     "101",
+     "102"
+    ]
+   }
+  },
+  {
+   "name": "score_not_integer",
+   "rule": "schema: score integer",
+   "output": {
+    "title": {
+     "en": "Scam-check tools for small online sellers",
+     "id": "Alat cek penipuan untuk penjual daring kecil"
+    },
+    "thesis": {
+     "en": "Rising scam losses and a regulator push create demand for simple verification before transfers.",
+     "id": "Kerugian penipuan yang naik dan dorongan regulator menciptakan permintaan verifikasi sederhana sebelum transfer."
+    },
+    "region": "indonesia",
+    "theme": "cybersecurity",
+    "sectors": [
+     "fintech_finance",
+     "ai_software"
+    ],
+    "horizon": "0-6m",
+    "capital": {
+     "level": "low",
+     "reason": {
+      "en": "Software and a few partner integrations.",
+      "id": "Perangkat lunak dan beberapa integrasi mitra."
+     }
+    },
+    "buyer": {
+     "en": "Online sellers and small businesses",
+     "id": "Penjual daring dan usaha kecil"
+    },
+    "model": {
+     "en": "Subscription per seller",
+     "id": "Langganan per penjual"
+    },
+    "risks": [
+     {
+      "en": "The regulator ships a free app.",
+      "id": "Regulator merilis aplikasi gratis."
+     },
+     {
+      "en": "Banks bundle the same check.",
+      "id": "Bank menyertakan pemeriksaan yang sama."
+     }
+    ],
+    "firstSteps": [
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     }
+    ],
+    "factors": {
+     "demand": {
+      "score": 75,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "timing": {
+      "score": 64.5,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "competition": {
+      "score": 40,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "capital": {
+      "score": 70,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "regulatory": {
+      "score": 45,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     }
+    },
+    "citations": [
+     "101",
+     "102"
+    ]
+   }
+  },
+  {
+   "name": "missing_indonesian",
+   "rule": "code: every text non-empty in en and id",
+   "output": {
+    "title": {
+     "en": "Scam-check tools for small online sellers",
+     "id": ""
+    },
+    "thesis": {
+     "en": "Rising scam losses and a regulator push create demand for simple verification before transfers.",
+     "id": "Kerugian penipuan yang naik dan dorongan regulator menciptakan permintaan verifikasi sederhana sebelum transfer."
+    },
+    "region": "indonesia",
+    "theme": "cybersecurity",
+    "sectors": [
+     "fintech_finance",
+     "ai_software"
+    ],
+    "horizon": "0-6m",
+    "capital": {
+     "level": "low",
+     "reason": {
+      "en": "Software and a few partner integrations.",
+      "id": "Perangkat lunak dan beberapa integrasi mitra."
+     }
+    },
+    "buyer": {
+     "en": "Online sellers and small businesses",
+     "id": "Penjual daring dan usaha kecil"
+    },
+    "model": {
+     "en": "Subscription per seller",
+     "id": "Langganan per penjual"
+    },
+    "risks": [
+     {
+      "en": "The regulator ships a free app.",
+      "id": "Regulator merilis aplikasi gratis."
+     },
+     {
+      "en": "Banks bundle the same check.",
+      "id": "Bank menyertakan pemeriksaan yang sama."
+     }
+    ],
+    "firstSteps": [
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     }
+    ],
+    "factors": {
+     "demand": {
+      "score": 75,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "timing": {
+      "score": 65,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "competition": {
+      "score": 40,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "capital": {
+      "score": 70,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "regulatory": {
+      "score": 45,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     }
+    },
+    "citations": [
+     "101",
+     "102"
+    ]
+   }
+  },
+  {
+   "name": "unknown_sector",
+   "rule": "code: sector must be in the fixed list",
+   "output": {
+    "title": {
+     "en": "Scam-check tools for small online sellers",
+     "id": "Alat cek penipuan untuk penjual daring kecil"
+    },
+    "thesis": {
+     "en": "Rising scam losses and a regulator push create demand for simple verification before transfers.",
+     "id": "Kerugian penipuan yang naik dan dorongan regulator menciptakan permintaan verifikasi sederhana sebelum transfer."
+    },
+    "region": "indonesia",
+    "theme": "cybersecurity",
+    "sectors": [
+     "space_mining"
+    ],
+    "horizon": "0-6m",
+    "capital": {
+     "level": "low",
+     "reason": {
+      "en": "Software and a few partner integrations.",
+      "id": "Perangkat lunak dan beberapa integrasi mitra."
+     }
+    },
+    "buyer": {
+     "en": "Online sellers and small businesses",
+     "id": "Penjual daring dan usaha kecil"
+    },
+    "model": {
+     "en": "Subscription per seller",
+     "id": "Langganan per penjual"
+    },
+    "risks": [
+     {
+      "en": "The regulator ships a free app.",
+      "id": "Regulator merilis aplikasi gratis."
+     },
+     {
+      "en": "Banks bundle the same check.",
+      "id": "Bank menyertakan pemeriksaan yang sama."
+     }
+    ],
+    "firstSteps": [
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     }
+    ],
+    "factors": {
+     "demand": {
+      "score": 75,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "timing": {
+      "score": 65,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "competition": {
+      "score": 40,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "capital": {
+      "score": 70,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "regulatory": {
+      "score": 45,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     }
+    },
+    "citations": [
+     "101",
+     "102"
+    ]
+   }
+  },
+  {
+   "name": "theme_other",
+   "rule": "code: theme other is rejected at opportunity level",
+   "output": {
+    "title": {
+     "en": "Scam-check tools for small online sellers",
+     "id": "Alat cek penipuan untuk penjual daring kecil"
+    },
+    "thesis": {
+     "en": "Rising scam losses and a regulator push create demand for simple verification before transfers.",
+     "id": "Kerugian penipuan yang naik dan dorongan regulator menciptakan permintaan verifikasi sederhana sebelum transfer."
+    },
+    "region": "indonesia",
+    "theme": "other",
+    "sectors": [
+     "fintech_finance",
+     "ai_software"
+    ],
+    "horizon": "0-6m",
+    "capital": {
+     "level": "low",
+     "reason": {
+      "en": "Software and a few partner integrations.",
+      "id": "Perangkat lunak dan beberapa integrasi mitra."
+     }
+    },
+    "buyer": {
+     "en": "Online sellers and small businesses",
+     "id": "Penjual daring dan usaha kecil"
+    },
+    "model": {
+     "en": "Subscription per seller",
+     "id": "Langganan per penjual"
+    },
+    "risks": [
+     {
+      "en": "The regulator ships a free app.",
+      "id": "Regulator merilis aplikasi gratis."
+     },
+     {
+      "en": "Banks bundle the same check.",
+      "id": "Bank menyertakan pemeriksaan yang sama."
+     }
+    ],
+    "firstSteps": [
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     }
+    ],
+    "factors": {
+     "demand": {
+      "score": 75,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "timing": {
+      "score": 65,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "competition": {
+      "score": 40,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "capital": {
+      "score": 70,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "regulatory": {
+      "score": 45,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     }
+    },
+    "citations": [
+     "101",
+     "102"
+    ]
+   }
+  },
+  {
+   "name": "title_too_long",
+   "rule": "schema: title ≤ 90 chars",
+   "output": {
+    "title": {
+     "en": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+     "id": "Alat cek penipuan untuk penjual daring kecil"
+    },
+    "thesis": {
+     "en": "Rising scam losses and a regulator push create demand for simple verification before transfers.",
+     "id": "Kerugian penipuan yang naik dan dorongan regulator menciptakan permintaan verifikasi sederhana sebelum transfer."
+    },
+    "region": "indonesia",
+    "theme": "cybersecurity",
+    "sectors": [
+     "fintech_finance",
+     "ai_software"
+    ],
+    "horizon": "0-6m",
+    "capital": {
+     "level": "low",
+     "reason": {
+      "en": "Software and a few partner integrations.",
+      "id": "Perangkat lunak dan beberapa integrasi mitra."
+     }
+    },
+    "buyer": {
+     "en": "Online sellers and small businesses",
+     "id": "Penjual daring dan usaha kecil"
+    },
+    "model": {
+     "en": "Subscription per seller",
+     "id": "Langganan per penjual"
+    },
+    "risks": [
+     {
+      "en": "The regulator ships a free app.",
+      "id": "Regulator merilis aplikasi gratis."
+     },
+     {
+      "en": "Banks bundle the same check.",
+      "id": "Bank menyertakan pemeriksaan yang sama."
+     }
+    ],
+    "firstSteps": [
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     }
+    ],
+    "factors": {
+     "demand": {
+      "score": 75,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "timing": {
+      "score": 65,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "competition": {
+      "score": 40,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "capital": {
+      "score": 70,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "regulatory": {
+      "score": 45,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     }
+    },
+    "citations": [
+     "101",
+     "102"
+    ]
+   }
+  },
+  {
+   "name": "too_few_risks",
+   "rule": "schema: 2–5 risks",
+   "output": {
+    "title": {
+     "en": "Scam-check tools for small online sellers",
+     "id": "Alat cek penipuan untuk penjual daring kecil"
+    },
+    "thesis": {
+     "en": "Rising scam losses and a regulator push create demand for simple verification before transfers.",
+     "id": "Kerugian penipuan yang naik dan dorongan regulator menciptakan permintaan verifikasi sederhana sebelum transfer."
+    },
+    "region": "indonesia",
+    "theme": "cybersecurity",
+    "sectors": [
+     "fintech_finance",
+     "ai_software"
+    ],
+    "horizon": "0-6m",
+    "capital": {
+     "level": "low",
+     "reason": {
+      "en": "Software and a few partner integrations.",
+      "id": "Perangkat lunak dan beberapa integrasi mitra."
+     }
+    },
+    "buyer": {
+     "en": "Online sellers and small businesses",
+     "id": "Penjual daring dan usaha kecil"
+    },
+    "model": {
+     "en": "Subscription per seller",
+     "id": "Langganan per penjual"
+    },
+    "risks": [
+     {
+      "en": "The regulator ships a free app.",
+      "id": "Regulator merilis aplikasi gratis."
+     }
+    ],
+    "firstSteps": [
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     }
+    ],
+    "factors": {
+     "demand": {
+      "score": 75,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "timing": {
+      "score": 65,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "competition": {
+      "score": 40,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "capital": {
+      "score": 70,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "regulatory": {
+      "score": 45,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     }
+    },
+    "citations": [
+     "101",
+     "102"
+    ]
+   }
+  },
+  {
+   "name": "too_many_first_steps",
+   "rule": "schema: 1–5 first steps",
+   "output": {
+    "title": {
+     "en": "Scam-check tools for small online sellers",
+     "id": "Alat cek penipuan untuk penjual daring kecil"
+    },
+    "thesis": {
+     "en": "Rising scam losses and a regulator push create demand for simple verification before transfers.",
+     "id": "Kerugian penipuan yang naik dan dorongan regulator menciptakan permintaan verifikasi sederhana sebelum transfer."
+    },
+    "region": "indonesia",
+    "theme": "cybersecurity",
+    "sectors": [
+     "fintech_finance",
+     "ai_software"
+    ],
+    "horizon": "0-6m",
+    "capital": {
+     "level": "low",
+     "reason": {
+      "en": "Software and a few partner integrations.",
+      "id": "Perangkat lunak dan beberapa integrasi mitra."
+     }
+    },
+    "buyer": {
+     "en": "Online sellers and small businesses",
+     "id": "Penjual daring dan usaha kecil"
+    },
+    "model": {
+     "en": "Subscription per seller",
+     "id": "Langganan per penjual"
+    },
+    "risks": [
+     {
+      "en": "The regulator ships a free app.",
+      "id": "Regulator merilis aplikasi gratis."
+     },
+     {
+      "en": "Banks bundle the same check.",
+      "id": "Bank menyertakan pemeriksaan yang sama."
+     }
+    ],
+    "firstSteps": [
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     },
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     },
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     },
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     },
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     },
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     }
+    ],
+    "factors": {
+     "demand": {
+      "score": 75,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "timing": {
+      "score": 65,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "competition": {
+      "score": 40,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "capital": {
+      "score": 70,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "regulatory": {
+      "score": 45,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     }
+    },
+    "citations": [
+     "101",
+     "102"
+    ]
+   }
+  },
+  {
+   "name": "bad_horizon",
+   "rule": "schema: horizon enum",
+   "output": {
+    "title": {
+     "en": "Scam-check tools for small online sellers",
+     "id": "Alat cek penipuan untuk penjual daring kecil"
+    },
+    "thesis": {
+     "en": "Rising scam losses and a regulator push create demand for simple verification before transfers.",
+     "id": "Kerugian penipuan yang naik dan dorongan regulator menciptakan permintaan verifikasi sederhana sebelum transfer."
+    },
+    "region": "indonesia",
+    "theme": "cybersecurity",
+    "sectors": [
+     "fintech_finance",
+     "ai_software"
+    ],
+    "horizon": "5y",
+    "capital": {
+     "level": "low",
+     "reason": {
+      "en": "Software and a few partner integrations.",
+      "id": "Perangkat lunak dan beberapa integrasi mitra."
+     }
+    },
+    "buyer": {
+     "en": "Online sellers and small businesses",
+     "id": "Penjual daring dan usaha kecil"
+    },
+    "model": {
+     "en": "Subscription per seller",
+     "id": "Langganan per penjual"
+    },
+    "risks": [
+     {
+      "en": "The regulator ships a free app.",
+      "id": "Regulator merilis aplikasi gratis."
+     },
+     {
+      "en": "Banks bundle the same check.",
+      "id": "Bank menyertakan pemeriksaan yang sama."
+     }
+    ],
+    "firstSteps": [
+     {
+      "en": "Interview ten sellers about losses.",
+      "id": "Wawancarai sepuluh penjual tentang kerugian."
+     }
+    ],
+    "factors": {
+     "demand": {
+      "score": 75,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "timing": {
+      "score": 65,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "competition": {
+      "score": 40,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "capital": {
+      "score": 70,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     },
+     "regulatory": {
+      "score": 45,
+      "reason": {
+       "en": "Cited: article 101.",
+       "id": "Dikutip: artikel 101."
+      }
+     }
+    },
+    "citations": [
+     "101",
+     "102"
+    ]
+   }
+  }
+ ],
+ "rawResponses": [
+  {
+   "name": "fenced_json_ok",
+   "raw": "```json\n{\"ok\":true}\n```",
+   "expect": "accept after stripping one fence"
+  },
+  {
+   "name": "double_fence_rejected",
+   "raw": "```json\n```json\n{\"ok\":true}\n```\n```",
+   "expect": "reject (only one fence is stripped), retry once"
+  },
+  {
+   "name": "prose_around_json_rejected",
+   "raw": "Here you go: {\"ok\":true}",
+   "expect": "reject, retry once"
+  }
+ ]
+}

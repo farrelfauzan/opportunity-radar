@@ -1,3 +1,4 @@
+<!-- Reference only: sample data, not app code. UI text: docs/design/copy.md wins. Signal wording: docs/signals/rules-v1.md wins. -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -20,16 +21,16 @@ a{color:#2DD4BF}a:hover{color:#5EEAD4}
 <svg viewBox="0 0 24 24" style="width: 22px; height: 22px; fill: none; stroke: #2DD4BF; stroke-width: 2; stroke-linecap: round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4"></circle><path d="M12 12 L19 5"></path></svg>
 Opportunity Radar</a>
 <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto">
-<a href="Main.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Radar</a>
-<a href="Opportunities.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Opportunities</a>
-<a href="News.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">News</a>
+<a href="Main.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #D4CEE6; font-weight: 500">Radar</a>
+<a href="Opportunities.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #D4CEE6; font-weight: 500">Opportunities</a>
+<a href="News.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #D4CEE6; font-weight: 500">News</a>
 <a href="Invest.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #FAF8FF; font-weight: 600; background: #4B3E75">Investments</a>
-<a href="Calculator.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Calculators</a>
+<a href="Calculator.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #D4CEE6; font-weight: 500">Calculators</a>
 </nav>
-<span style="font-size: 12px; color: #C1B9DA; border: 1px dashed #C1B9DA; border-radius: 999px; padding: 2px 10px">Sample data</span>
+<span style="font-size: 12px; color: #D4CEE6; border: 1px dashed #C1B9DA; border-radius: 999px; padding: 2px 10px">Sample data</span>
 <div role="group" aria-label="Language" style="display: flex; border: 1px solid #4B3E75; border-radius: 6px; overflow: hidden">
 <a href="Main.dc.html" aria-current="true" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #362B5A; background: #FAF8FF">EN</a>
-<a href="Main-ID.dc.html" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #C1B9DA">ID</a>
+<a href="Main-ID.dc.html" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #D4CEE6">ID</a>
 </div>
 <a href="Invest.dc.html#alerts" aria-label="Alerts, 3 new" style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: #FAF8FF">
 <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>
@@ -40,7 +41,7 @@ Opportunity Radar</a>
 <main style="max-width: 1200px; margin: 0 auto; padding: 24px clamp(16px, 3vw, 32px) 48px; display: flex; flex-direction: column; gap: 24px">
 <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px">
 <div><h1 style="margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.01em">Investments</h1>
-<div style="color: #C1B9DA">Know the risk of each asset type first, then follow the signals.</div></div>
+<div style="color: #D4CEE6">Compare the risk of each asset type, then see what the rules say.</div></div>
 <div role="group" aria-label="Horizon" style="display: flex; border: 1px solid #65578F; border-radius: 6px; overflow: hidden">
 <sc-for list="{{terms}}" as="t" hint-placeholder-count="2">
 <button type="button" onClick="{{t.pick}}" aria-pressed="{{t.on}}" style="min-height: 44px; padding: 0 16px; border: 0; background: {{t.bg}}; color: {{t.fg}}; font: inherit; font-weight: 600; cursor: pointer">{{t.name}}</button>
@@ -53,15 +54,15 @@ Opportunity Radar</a>
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px">
 <sc-for list="{{classes}}" as="c" hint-placeholder-count="6">
 <article style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px">
-<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px"><h3 style="margin: 0; font-size: 15px; font-weight: 600">{{c.name}}</h3><span style="font-size: 12px; color: #C1B9DA">{{c.eg}}</span></div>
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px"><h3 style="margin: 0; font-size: 15px; font-weight: 600">{{c.name}}</h3><span style="font-size: 12px; color: #D4CEE6">{{c.eg}}</span></div>
 <div style="display: flex; align-items: center; gap: 8px">
 <span style="display: flex; gap: 3px" aria-hidden="true"><sc-for list="{{c.bars}}" as="b" hint-placeholder-count="5"><span style="width: 18px; height: 8px; border-radius: 2px; background: {{b.c}}"></span></sc-for></span>
 <span style="font-weight: 600">Risk {{c.risk}}/5 · {{c.riskLabel}}</span>
 </div>
 <dl style="margin: 0; display: grid; grid-template-columns: 96px 1fr; gap: 4px 8px; font-size: 13px">
-<dt style="color: #C1B9DA">Typical drop</dt><dd style="margin: 0">{{c.drop}}</dd>
-<dt style="color: #C1B9DA">{{termLabel}}</dt><dd style="margin: 0">{{c.fit}}</dd>
-<dt style="color: #C1B9DA">Main risks</dt><dd style="margin: 0">{{c.risks}}</dd>
+<dt style="color: #D4CEE6">Typical drop</dt><dd style="margin: 0">{{c.drop}}</dd>
+<dt style="color: #D4CEE6">{{termLabel}}</dt><dd style="margin: 0">{{c.fit}}</dd>
+<dt style="color: #D4CEE6">Main risks</dt><dd style="margin: 0">{{c.risks}}</dd>
 </dl>
 </article>
 </sc-for>
@@ -76,13 +77,13 @@ Opportunity Radar</a>
 </div>
 <div style="overflow-x: auto">
 <table style="width: 100%; min-width: 620px; border-collapse: collapse; margin-top: 8px">
-<thead><tr style="text-align: left; font-size: 12px; color: #C1B9DA">
+<thead><tr style="text-align: left; font-size: 12px; color: #D4CEE6">
 <th scope="col" style="padding: 8px 8px 8px 0; font-weight: 500">Asset</th><th scope="col" style="padding: 8px; font-weight: 500; text-align: right">Price</th><th scope="col" style="padding: 8px; font-weight: 500; text-align: right">1 day</th><th scope="col" style="padding: 8px; font-weight: 500">30 days</th><th scope="col" style="padding: 8px; font-weight: 500">Signal</th><th scope="col" style="padding: 8px 0 8px 8px; font-weight: 500">Risk</th>
 </tr></thead>
 <tbody>
 <sc-for list="{{rows}}" as="r" hint-placeholder-count="7">
 <tr style="border-top: 1px solid #4B3E75">
-<td style="padding: 12px 8px 12px 0"><a href="Asset.dc.html" style="font-weight: 600; color: #FAF8FF">{{r.name}}</a><br><span style="font-size: 12px; color: #C1B9DA">{{r.kind}}</span></td>
+<td style="padding: 12px 8px 12px 0"><a href="Asset.dc.html" style="font-weight: 600; color: #FAF8FF">{{r.name}}</a><br><span style="font-size: 12px; color: #D4CEE6">{{r.kind}}</span></td>
 <td style="padding: 12px 8px; text-align: right; font-family: 'Geist Mono', monospace; font-size: 13px">{{r.price}}</td>
 <td style="padding: 12px 8px; text-align: right; font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 500; color: {{r.color}}">{{r.chg}}</td>
 <td style="padding: 12px 8px"><svg viewBox="0 0 96 28" style="width: 96px; height: 28px; display: block" aria-hidden="true"><polyline points="{{r.pts}}" style="fill: none; stroke: {{r.color}}; stroke-width: 1.5"></polyline></svg></td>
@@ -99,7 +100,7 @@ Opportunity Radar</a>
 <h2 id="al" style="margin: 0 0 4px; font-size: 16px; font-weight: 600">Alerts</h2>
 <sc-for list="{{alerts}}" as="a" hint-placeholder-count="4">
 <div style="padding: 12px 0; border-top: 1px solid #4B3E75; display: flex; flex-direction: column; gap: 4px">
-<div style="display: flex; align-items: center; gap: 8px"><span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; color: {{a.fg}}; background: {{a.bg}}">{{a.label}}</span><span style="font-weight: 600">{{a.asset}}</span><span style="margin-left: auto; font-size: 12px; color: #C1B9DA">{{a.when}}</span></div>
+<div style="display: flex; align-items: center; gap: 8px"><span style="padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; color: {{a.fg}}; background: {{a.bg}}">{{a.label}}</span><span style="font-weight: 600">{{a.asset}}</span><span style="margin-left: auto; font-size: 12px; color: #D4CEE6">{{a.when}}</span></div>
 <div style="color: #E2DDF0">{{a.text}}</div>
 <a href="Asset.dc.html" style="font-size: 13px; padding: 4px 0">Read the full report</a>
 </div>
@@ -112,7 +113,7 @@ Opportunity Radar</a>
 </div>
 </section>
 </div>
-<p style="margin: 0; font-size: 12px; color: #C1B9DA">Signals are produced by fixed, published rules on price data plus a news check. They are information for your own decision, not financial advice, and past behaviour does not guarantee future results.</p>
+<p style="margin: 0; font-size: 12px; color: #D4CEE6">Signals are produced by fixed, published rules on price data. They are information for your own decision, not financial advice, and past behaviour does not guarantee future results.</p>
 </main>
 </div>
 </x-dc>
@@ -133,12 +134,12 @@ return {
 termName: long ? 'long-term' : 'short-term', termLabel: long ? 'Long term' : 'Short term',
 terms: [['Short term (days–weeks)', !long, 'short'], ['Long term (1 year+)', long, 'long']].map(function (t) { return { name: t[0], on: t[1], bg: t[1] ? '#FAF8FF' : '#362B5A', fg: t[1] ? '#362B5A' : '#FAF8FF', pick: function () { self.setState({ term: t[2] }); } }; }),
 classes: [
-C('Cash & government bonds', 'Money market, SBN', 1, 'Low', 'A few percent', 'Stability and income; core of an emergency fund', 'Good place to wait between trades', 'Inflation, interest-rate changes'),
-C('Gold', 'XAU, Antam', 2, 'Low–medium', '10–20% over a year', 'Store of value, hedge against rupiah weakness', 'Slow mover; buy/sell spread eats short trades', 'No income, USD and interest rates, dealer spread'),
-C('Silver', 'XAG', 3, 'Medium', '20–35%', 'Smaller hedge position next to gold', 'Swings more than gold; needs strict exits', 'Industrial demand cycles, thin retail market'),
-C('Indonesian stocks', 'IDX: BBCA, TLKM', 4, 'High', '30–50% in a crisis', 'Growth and dividends if held 5 years+', 'Swing trades on liquid blue chips only', 'Company results, foreign fund flows, rupiah'),
+C('Cash & government bonds', 'Money market, SBN', 1, 'Low', 'A few percent', 'Stability and income; often used for emergency savings', 'Low-volatility place for cash between trades', 'Inflation, interest-rate changes'),
+C('Gold', 'XAU, Antam', 2, 'Low–medium', '10–20% over a year', 'Store of value; tends to hold up when the rupiah weakens', 'Slow mover; the buy/sell spread takes much of a short move', 'No income, USD and interest rates, dealer spread'),
+C('Silver', 'XAG', 3, 'Medium', '20–35%', 'Often held as a smaller hedge next to gold', 'Swings more than gold; short moves can be large in both directions', 'Industrial demand cycles, thin retail market'),
+C('Indonesian stocks', 'IDX: BBCA, TLKM', 4, 'High', '30–50% in a crisis', 'Growth and dividends over 5 years or more', 'Short-term moves are mostly in liquid blue chips', 'Company results, foreign fund flows, rupiah'),
 C('Global stocks', 'S&P 500, Nasdaq', 4, 'High', '30–50% in a crisis', 'Diversification outside Indonesia', 'Driven by earnings dates and US rates', 'USD/IDR rate, valuation, access and tax'),
-C('Crypto', 'BTC, ETH', 5, 'Very high', '50–80%', 'Small speculative share only', 'Fast moves, 24/7; position sizing matters most', 'Extreme volatility, regulation, exchange failure')
+C('Crypto', 'BTC, ETH', 5, 'Very high', '50–80%', 'Highly speculative; many holders keep it to a small part of their savings', 'Fast moves, 24/7; losses can be large and quick', 'Extreme volatility, regulation, exchange failure')
 ],
 rows: [
 R('IHSG', 'Index · IDX', '7,412', '0.6%', true, [5, 6, 5, 7, 8, 7, 9, 10, 9, 11], 'HOLD', 'BUY', 4),

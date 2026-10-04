@@ -1,0 +1,109 @@
+{
+  "meta": {
+    "description": "Business opportunities and investment signals from the news."
+  },
+  "app": {
+    "name": "Opportunity Radar"
+  },
+  "nav": {
+    "main": "Main",
+    "radar": "Radar",
+    "opportunities": "Opportunities",
+    "news": "News",
+    "invest": "Investments",
+    "calculators": "Calculators",
+    "language": "Language"
+  },
+  "page": {
+    "title": {
+      "radar": "Radar",
+      "opportunities": "Opportunities",
+      "news": "News",
+      "invest": "Investments",
+      "asset": "Asset report",
+      "calculators": "Calculators"
+    },
+    "documentTitle": "{page} · Opportunity Radar",
+    "emptyFrame": "Nothing here yet"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This page does not exist.",
+    "back": "Back to Radar"
+  },
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "{n}m ago",
+    "hoursAgo": "{n}h ago",
+    "daysAgo": "{n}d ago"
+  },
+  "calc": {
+    "title": "Calculators",
+    "intro": "Provisional projections from your own assumptions. Change any number; results update as you type.",
+    "inv": {
+      "title": "Investment projection",
+      "presetGroup": "Asset type assumptions",
+      "preset": {
+        "cash": "Cash & bonds",
+        "gold": "Gold",
+        "stocks": "Stocks",
+        "crypto": "Crypto"
+      },
+      "start": "Starting amount (Rp)",
+      "monthly": "Added each month (Rp)",
+      "years": "Years",
+      "return": "Yearly return (%)",
+      "spread": "Uncertainty (± % points)",
+      "inflation": "Inflation (%)",
+      "presetNote": "The asset-type buttons fill in example assumptions, not forecasts. Higher-risk assets get a wider uncertainty band.",
+      "valueAfter": {
+        "one": "Value after {years} year",
+        "other": "Value after {years} years"
+      },
+      "paid": "You paid in",
+      "real": "In today's money",
+      "axisNow": "Now",
+      "axisYear": "Year {years}",
+      "optimistic": "Optimistic",
+      "base": "Base",
+      "pessimistic": "Pessimistic",
+      "paidLine": "Paid in",
+      "chartLabel": "Projected value over time for pessimistic, base and optimistic returns, compared with the amount paid in"
+    },
+    "biz": {
+      "title": "Business projection",
+      "capital": "Starting capital (Rp)",
+      "fixed": "Fixed cost per month (Rp)",
+      "revenue": "First-month revenue (Rp)",
+      "growth": "Revenue growth per month (%)",
+      "margin": "Gross margin (%)",
+      "months": "Months to project",
+      "breakeven": "Monthly break-even",
+      "payback": "Capital paid back",
+      "lowest": "Cash needed at the lowest point",
+      "end": {
+        "one": "Net cash after {months} month",
+        "other": "Net cash after {months} months"
+      },
+      "month": "Month {n}",
+      "notWithin": {
+        "one": "Not within {months} month",
+        "other": "Not within {months} months"
+      },
+      "axisStart": "Month 0",
+      "paybackLine": "Dashed line = capital fully paid back",
+      "chartLabel": "Cumulative cash over time; the business has paid back its capital where the line crosses the dashed zero line"
+    },
+    "unit": {
+      "million": "million",
+      "billion": "billion",
+      "trillion": "trillion"
+    },
+    "disclaimer": "Projections are arithmetic on the assumptions you enter. They are not forecasts or financial advice; real returns and revenues vary and can be negative.",
+    "err": {
+      "required": "Enter a number",
+      "range": "Enter a value from {min} to {max}",
+      "keptPrevious": "Showing the last valid result"
+    }
+  }
+}

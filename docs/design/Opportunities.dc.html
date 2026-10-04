@@ -1,3 +1,4 @@
+<!-- Reference only: sample data, not app code. UI text: docs/design/copy.md wins. Signal wording: docs/signals/rules-v1.md wins. -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -20,16 +21,16 @@ a{color:#2DD4BF}a:hover{color:#5EEAD4}
 <svg viewBox="0 0 24 24" style="width: 22px; height: 22px; fill: none; stroke: #2DD4BF; stroke-width: 2; stroke-linecap: round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4"></circle><path d="M12 12 L19 5"></path></svg>
 Opportunity Radar</a>
 <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto">
-<a href="Main.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Radar</a>
+<a href="Main.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #D4CEE6; font-weight: 500">Radar</a>
 <a href="Opportunities.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #FAF8FF; font-weight: 600; background: #4B3E75">Opportunities</a>
-<a href="News.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">News</a>
-<a href="Invest.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Investments</a>
-<a href="Calculator.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Calculators</a>
+<a href="News.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #D4CEE6; font-weight: 500">News</a>
+<a href="Invest.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #D4CEE6; font-weight: 500">Investments</a>
+<a href="Calculator.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #D4CEE6; font-weight: 500">Calculators</a>
 </nav>
-<span style="font-size: 12px; color: #C1B9DA; border: 1px dashed #C1B9DA; border-radius: 999px; padding: 2px 10px">Sample data</span>
+<span style="font-size: 12px; color: #D4CEE6; border: 1px dashed #C1B9DA; border-radius: 999px; padding: 2px 10px">Sample data</span>
 <div role="group" aria-label="Language" style="display: flex; border: 1px solid #4B3E75; border-radius: 6px; overflow: hidden">
 <a href="Main.dc.html" aria-current="true" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #362B5A; background: #FAF8FF">EN</a>
-<a href="Main-ID.dc.html" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #C1B9DA">ID</a>
+<a href="Main-ID.dc.html" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #D4CEE6">ID</a>
 </div>
 <a href="Invest.dc.html#alerts" aria-label="Alerts, 3 new" style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: #FAF8FF">
 <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>
@@ -40,7 +41,7 @@ Opportunity Radar</a>
 <main style="max-width: 1200px; margin: 0 auto; padding: 24px clamp(16px, 3vw, 32px) 48px; display: flex; flex-direction: column; gap: 24px">
 <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
 <h1 style="margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.01em">Opportunities</h1>
-<div style="color: #C1B9DA">18 open · re-scored every morning from the news</div>
+<div style="color: #D4CEE6">18 open · re-scored every morning from the news</div>
 </div>
 <div style="display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center">
 <div role="group" aria-label="Region" style="display: flex; gap: 4px">
@@ -61,7 +62,7 @@ Opportunity Radar</a>
 <sc-for list="{{opps}}" as="o" hint-placeholder-count="6">
 <button type="button" onClick="{{o.pick}}" aria-pressed="{{o.on}}" style="text-align: left; font: inherit; color: #FAF8FF; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); border: 1px solid {{o.border}}; box-shadow: 0 0 0 1px {{o.ring}}; border-radius: 10px; padding: 12px 16px; display: flex; gap: 12px; align-items: center; cursor: pointer">
 <span style="flex: 0 0 40px; font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500; color: #2DD4BF">{{o.score}}</span>
-<span style="flex: 1 1 auto; min-width: 0"><span style="font-weight: 600">{{o.title}}</span><br><span style="font-size: 12px; color: #C1B9DA">{{o.region}} · {{o.sector}} · {{o.horizon}}</span></span>
+<span style="flex: 1 1 auto; min-width: 0"><span style="font-weight: 600">{{o.title}}</span><br><span style="font-size: 12px; color: #D4CEE6">{{o.region}} · {{o.sector}} · {{o.horizon}}</span></span>
 <span style="font-size: 12px; font-weight: 600; color: {{o.trendColor}}">{{o.trend}}</span>
 </button>
 </sc-for>
@@ -70,10 +71,10 @@ Opportunity Radar</a>
 <article style="flex: 999 1 560px; min-width: 0; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 20px">
 <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; justify-content: space-between">
 <div style="flex: 1 1 360px; min-width: 0">
-<div style="font-size: 12px; color: #C1B9DA">{{sel.region}} · {{sel.sector}} · Horizon {{sel.horizon}}</div>
+<div style="font-size: 12px; color: #D4CEE6">{{sel.region}} · {{sel.sector}} · Horizon {{sel.horizon}}</div>
 <h2 style="margin: 4px 0 0; font-size: 22px; font-weight: 700; letter-spacing: -0.01em">{{sel.title}}</h2>
 </div>
-<div style="text-align: right"><div style="font-family: 'Geist Mono', monospace; font-size: 34px; font-weight: 500; line-height: 1; color: #2DD4BF">{{sel.score}}</div><div style="font-size: 12px; color: #C1B9DA">opportunity score / 100</div></div>
+<div style="text-align: right"><div style="font-family: 'Geist Mono', monospace; font-size: 34px; font-weight: 500; line-height: 1; color: #2DD4BF">{{sel.score}}</div><div style="font-size: 12px; color: #D4CEE6">opportunity score / 100</div></div>
 </div>
 <p style="margin: 0; font-size: 15px">{{sel.thesis}}</p>
 
@@ -87,15 +88,15 @@ Opportunity Radar</a>
 <span style="flex: 0 0 28px; text-align: right; font-family: 'Geist Mono', monospace; font-size: 13px">{{f.val}}</span>
 </div>
 </sc-for>
-<div style="font-size: 12px; color: #C1B9DA">Higher is better on every row (low competition and low regulatory risk score high).</div>
+<div style="font-size: 12px; color: #D4CEE6">Higher is better on every row (low competition and low regulatory risk score high).</div>
 </section>
 <section aria-labelledby="fs" style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
 <h3 id="fs" style="margin: 0; font-size: 14px; font-weight: 600">Quick facts</h3>
 <dl style="margin: 0; display: grid; grid-template-columns: 132px 1fr; gap: 6px 12px">
-<dt style="color: #C1B9DA">Starting capital</dt><dd style="margin: 0">{{sel.capital}}</dd>
-<dt style="color: #C1B9DA">Who buys</dt><dd style="margin: 0">{{sel.buyer}}</dd>
-<dt style="color: #C1B9DA">Model</dt><dd style="margin: 0">{{sel.model}}</dd>
-<dt style="color: #C1B9DA">Score, 30 days</dt><dd style="margin: 0; font-weight: 600; color: {{sel.trendColor}}">{{sel.trend}}</dd>
+<dt style="color: #D4CEE6">Starting capital</dt><dd style="margin: 0">{{sel.capital}}</dd>
+<dt style="color: #D4CEE6">Who buys</dt><dd style="margin: 0">{{sel.buyer}}</dd>
+<dt style="color: #D4CEE6">Model</dt><dd style="margin: 0">{{sel.model}}</dd>
+<dt style="color: #D4CEE6">Score, 30 days</dt><dd style="margin: 0; font-weight: 600; color: {{sel.trendColor}}">{{sel.trend}}</dd>
 </dl>
 </section>
 </div>
@@ -104,7 +105,7 @@ Opportunity Radar</a>
 <h3 id="why" style="margin: 0; font-size: 14px; font-weight: 600">Why now — evidence from the news</h3>
 <sc-for list="{{sel.evidence}}" as="e" hint-placeholder-count="3">
 <a href="News.dc.html" style="display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 10px 12px; border: 1px solid #4B3E75; border-radius: 8px; text-decoration: none; color: #FAF8FF">
-<span style="flex: 1 1 320px; min-width: 0; font-weight: 500">{{e.title}}</span><span style="font-size: 12px; color: #C1B9DA">{{e.src}}</span>
+<span style="flex: 1 1 320px; min-width: 0; font-weight: 500">{{e.title}}</span><span style="font-size: 12px; color: #D4CEE6">{{e.src}}</span>
 </a>
 </sc-for>
 </section>
@@ -123,7 +124,7 @@ Opportunity Radar</a>
 <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding-top: 16px; border-top: 1px solid #4B3E75">
 <button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 6px; border: 0; background: #2DD4BF; color: #362B5A; font: inherit; font-weight: 600">Save to my shortlist</button>
 <button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 6px; border: 1px solid #65578F; background: #362B5A; color: #FAF8FF; font: inherit; font-weight: 500">Full report (PDF)</button>
-<span style="color: #C1B9DA">Related market exposure: <a href="Invest.dc.html">{{sel.related}}</a></span>
+<span style="color: #D4CEE6">Related market exposure: <a href="Invest.dc.html">{{sel.related}}</a></span>
 </div>
 </article>
 </div>
@@ -134,7 +135,7 @@ Opportunity Radar</a>
 class Component extends DCLogic {
 renderVals() {
 const self = this, picked = (this.state && this.state.picked) || 0;
-const up = '#2DD4BF', down = '#FB923C', flat = '#C1B9DA';
+const up = '#2DD4BF', down = '#FB923C', flat = '#D4CEE6';
 const F = function (a) { return ['Demand', 'Timing', 'Low competition', 'Capital efficiency', 'Low regulatory risk'].map(function (n, i) { return { name: n, val: a[i], pct: a[i] + '%' }; }); };
 const T = function (a) { return a.map(function (t) { return { t: t }; }); };
 const data = [

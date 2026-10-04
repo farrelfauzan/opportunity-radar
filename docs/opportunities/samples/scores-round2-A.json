@@ -1,0 +1,7 @@
+{"scorer":"A (Designer)","round":2,"written_utc":"2026-10-04T01:24:21Z","seen_other_scores":false,
+ "factors":["demand","timing","low_competition","capital_efficiency","low_regulatory_risk"],
+ "scores":{"theme-d":[75,85,45,70,65],"theme-e":[50,55,60,40,55],"theme-f":[55,60,35,60,65]},
+ "reasons":{
+  "theme-d":"Millions of marketplace sellers newly withheld from 1 Oct; authorities reinforcing (timing >= 60 rule) so high; accounting apps and marketplace tools exist; software is capital-light; tax data needs care but is supported.",
+  "theme-e":"Need is real but buyers are government and donors; fires now but the ministry is acting (timing <= 60 rule); few private players; sensors and field work cost capital and sales are slow; government contracts and land tenure add risk.",
+  "theme-f":"Emerging need; signals mixed (Apple tightening reinforces, others are warnings) so mid; platforms are building controls themselves; software but needs integrations; regulation mostly favourable."}}

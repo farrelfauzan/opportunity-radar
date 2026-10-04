@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Example RSS</title>
+    <link>https://example.com/</link>
+    <item>
+      <title>Plain RSS item</title>
+      <link>https://example.com/news/plain</link>
+      <description>A plain description.</description>
+      <pubDate>Sat, 03 Oct 2026 17:30:00 +0700</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[HTML &amp; entities: <b>Bank</b> says &#8217;rates&#8217; stay &lt;5%]]></title>
+      <link>https://example.com/news/html</link>
+      <description><![CDATA[<img src="https://example.com/a.jpg" alt="x"/><p>First &amp; second&nbsp;paragraph.</p>
+        <script>alert("never shown")</script><style>p { color: red }</style>
+        <p>It&#8217;s   <a href="https://example.com">linked</a> text.</p>]]></description>
+      <pubDate>Sat, 03 Oct 2026 10:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Escaped twice</title>
+      <link>https://example.com/news/escaped</link>
+      <description>&lt;p&gt;Escaped &amp;amp; decoded &amp;lt;b&amp;gt;once more&amp;lt;/b&amp;gt;&lt;/p&gt;</description>
+      <pubDate>Sat, 03 Oct 2026 09:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>No date on this item</title>
+      <link>https://example.com/news/no-date</link>
+      <description>The feed gave no publish date.</description>
+    </item>
+    <item>
+      <title>Dated in the future</title>
+      <link>https://example.com/news/future</link>
+      <pubDate>Fri, 01 Jan 2100 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>A javascript link</title>
+      <link>javascript:alert(1)</link>
+      <description>Must be skipped.</description>
+      <pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>No link at all</title>
+      <description>Must be skipped.</description>
+      <pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>   </title>
+      <link>https://example.com/news/no-title</link>
+      <pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

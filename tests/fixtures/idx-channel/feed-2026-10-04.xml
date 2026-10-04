@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedweb.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/" xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="https://search.yahoo.com/mrss/">
+ <channel>
+  <title>IDX Channel - Berita Ekonomi, Bisnis &amp; Investasi Terkini Hari Ini</title>
+  <atom:link href="https://www.idxchannel.com/rss" rel="self" type="application/rss+xml"/>
+  <link>https://www.idxchannel.com/rss</link>
+  <description>Berita terkini seputar ekonomi, bisnis, investasi, bursa saham, market, finansial, perbankan &amp; entrepreneur di Indonesia serta dunia</description>
+  <language>id</language>
+  <image>
+   <title>IDX Channel - Berita Ekonomi, Bisnis &amp; Investasi Terkini Hari Ini</title>
+   <link>https://www.idxchannel.com/rss</link>
+   <width>144</width>
+   <height>32</height>
+   <url>https://static.idxchannel.com/IDXChannel.png</url>
+   <description>IDX Channel - Berita Ekonomi, Bisnis &amp; Investasi</description>
+  </image>
+  <item>
+   <title><![CDATA[Menhub Bakal Perketat Seleksi Petinggi Pelni hingga Pelindo]]></title>
+   <link>https://www.idxchannel.com/economics/menhub-bakal-perketat-seleksi-petinggi-pelni-hingga-pelindo</link>
+   <url>https://www.idxchannel.com/rss</url>
+   <guid>https://www.idxchannel.com/economics/menhub-bakal-perketat-seleksi-petinggi-pelni-hingga-pelindo</guid>
+   <idnews>397528</idnews>
+   <pubDate>Sun, 04 Oct 2026 08:00:00 +0700</pubDate>
+   <enclosure url="https://img.idxchannel.com/media/439/images/idx/2026/10/04/dudy_menhub.jpg" length="600" type="image/jpg"/>
+   <category><![CDATA[ECONOMICS]]></category>
+   <description>&lt;img src=&quot;https://img.idxchannel.com/media/439/images/idx/2026/10/04/dudy_menhub.jpg&quot; align=&quot;left&quot; hspace=&quot;7&quot; width=&quot;100&quot; /&gt;<![CDATA[Kemenhub berencana memperketat seleksi petinggi perusahaan operator transportasi untuk memperkuat keselamatan transportasi publik. (Foto: Dok. Kemenhub)]]></description>
+  </item>
+  <item>
+   <title><![CDATA[Gempa Bumi M5,9 Landa Aceh Jaya, Tidak Berpotensi Tsunami]]></title>
+   <link>https://www.idxchannel.com/news/gempa-bumi-m59-landa-aceh-jaya-tidak-berpotensi-tsunami</link>
+   <url>https://www.idxchannel.com/rss</url>
+   <guid>https://www.idxchannel.com/news/gempa-bumi-m59-landa-aceh-jaya-tidak-berpotensi-tsunami</guid>
+   <idnews>397527</idnews>
+   <pubDate>Sun, 04 Oct 2026 07:40:00 +0700</pubDate>
+   <enclosure url="https://img.idxchannel.com/media/439/images/idx/2026/10/04/gempa_aceh_jaya_bmkg.jpg" length="600" type="image/jpg"/>
+   <category><![CDATA[News]]></category>
+   <description>&lt;img src=&quot;https://img.idxchannel.com/media/439/images/idx/2026/10/04/gempa_aceh_jaya_bmkg.jpg&quot; align=&quot;left&quot; hspace=&quot;7&quot; width=&quot;100&quot; /&gt;<![CDATA[Badan Meteorologi, Klimatologi, dan Geofisika (BMKG) menyatakan adanya gempa bumi dengan kekuatan 5,9 magnitudo di Kabupaten Aceh Jaya. (Foto: Dok. BMKG)]]></description>
+  </item>
+  <item>
+   <title><![CDATA[KAI Angkat Ristadi Jadi Komisaris, Latar Belakang Aktivis Serikat Pekerja]]></title>
+   <link>https://www.idxchannel.com/economics/kai-angkat-ristadi-jadi-komisaris-latar-belakang-aktivis-serikat-pekerja</link>
+   <url>https://www.idxchannel.com/rss</url>
+   <guid>https://www.idxchannel.com/economics/kai-angkat-ristadi-jadi-komisaris-latar-belakang-aktivis-serikat-pekerja</guid>
+   <idnews>397526</idnews>
+   <pubDate>Sun, 04 Oct 2026 07:20:00 +0700</pubDate>
+   <enclosure url="https://img.idxchannel.com/media/439/images/idx/2026/10/04/kai.jpg" length="600" type="image/jpg"/>
+   <category><![CDATA[ECONOMICS]]></category>
+   <description>&lt;img src=&quot;https://img.idxchannel.com/media/439/images/idx/2026/10/04/kai.jpg&quot; align=&quot;left&quot; hspace=&quot;7&quot; width=&quot;100&quot; /&gt;<![CDATA[PT Kereta Api Indonesia (Persero) atau KAI resmi mengangkat Ristadi sebagai Komisaris perusahaan terhitung 1 Oktober 2026. (Foto: Dok. KAI)]]></description>
+  </item>
+ </channel>
+</rss>
