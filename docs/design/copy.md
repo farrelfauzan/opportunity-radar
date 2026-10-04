@@ -188,6 +188,7 @@ Region shown on an item uses `news.region.id` / `news.region.global`. Category a
 | calc.biz.notWithin.other | Not within {months} months | Tidak dalam {months} bulan |
 | calc.biz.axisStart | Month 0 | Bulan ke-0 |
 | calc.biz.paybackLine | Dashed line = capital fully paid back | Garis putus-putus = modal kembali penuh |
+| calc.biz.chartLabel | Cumulative cash over time; the business has paid back its capital where the line crosses the dashed zero line | Kas kumulatif dari waktu ke waktu; modal usaha sudah kembali saat garis memotong garis nol putus-putus |
 | calc.disclaimer | Projections are arithmetic on the assumptions you enter. They are not forecasts or financial advice; real returns and revenues vary and can be negative. | Proyeksi ini hanya hitungan dari asumsi yang Anda masukkan. Ini bukan perkiraan atau nasihat keuangan; imbal hasil dan pendapatan nyata bervariasi dan bisa negatif. |
 | calc.err.required | Enter a number | Masukkan angka |
 | calc.err.range | Enter a value from {min} to {max} | Masukkan nilai dari {min} sampai {max} |
@@ -196,7 +197,7 @@ Region shown on an item uses `news.region.id` / `news.region.global`. Category a
 | calc.unit.billion | billion | miliar |
 | calc.unit.trillion | trillion | triliun |
 
-`calc.inv.chartLabel` and `calc.inv.presetGroup` are accessible names (chart and preset button group). Large amounts in results use compact form, with the unit words `calc.unit.*`: EN `Rp 425.67 million`, `Rp 1.20 billion`, `Rp 2.00 trillion`; ID `Rp 425,67 juta`, `Rp 1,20 miliar`, `Rp 2,00 triliun` (two decimals from billions, one or two from millions as in the canvas; exact values are in the AC of OR-24/25).
+`calc.inv.chartLabel`, `calc.inv.presetGroup` and `calc.biz.chartLabel` are accessible names (charts and the preset button group). Large amounts in results use compact form, with the unit words `calc.unit.*`: millions with one decimal, billions and trillions with two. EN `Rp 425.7 million`, `Rp 1.20 billion`, `Rp 2.00 trillion`; ID `Rp 425,7 juta`, `Rp 1,20 miliar`, `Rp 2,00 triliun`. Each result card also shows the exact rupiah amount below the compact form, except above 2^53 (about 9 × 10^15), where only the compact form is shown. Exact values for the defaults are in the AC of OR-24/25.
 
 ## 5. Radar (OR-23, OR-28, OR-34, OR-39)
 
