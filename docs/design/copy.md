@@ -132,6 +132,7 @@ Exchange holidays come from a small holiday list in config; until it exists, wee
 | news.sources.title | Sources | Sumber |
 | news.sources.indonesia | Indonesia: {names} | Indonesia: {names} |
 | news.sources.global | Global: {names} | Global: {names} |
+| news.sources.notUpdated | not updated | belum diperbarui |
 | news.sources.note | Headlines and links only; the full article opens on the publisher's site. | Hanya judul dan tautan; artikel lengkap dibuka di situs penerbit. |
 | news.onlyLinked | Only news linked to an opportunity | Hanya berita yang terkait peluang |
 | news.impact.opportunity | Opportunity | Peluang |
@@ -169,6 +170,8 @@ Rules
 - How: one line under the snippet (or under the headline where no snippet is shown), muted text, the licence name as a link to the licence deed. Shown in both locales; publisher and licence names are not translated except "European Central Bank" in ID.
 - The Conversation (CC BY-ND, no derivatives): its summary is shown as stored (tags stripped, entities decoded, cut at 500 characters; no other change), never translated, rewritten or summarised by the LLM, also on `/id`. "Why it matters" and other AI text stay visually separate and labelled as ours, so they are commentary, not an altered version.
 - Sources without a reuse licence keep the existing meta line (`news.item.meta`) and no credit line.
+
+Partial state (OR-9 follow-up): when the news is not stale but at least one active source failed on the latest ingestion run (status not ok and not 304), the Sources panel shows `state.partial` at its top and `news.sources.notUpdated` after each affected source name. No page-level banner; the stale banner (§2) takes precedence when both apply.
 
 Region shown on an item uses `news.region.id` / `news.region.global`. Category and region filters live in the URL query. OR-21 adds the impact, why, linked and themes strings; OR-9 uses the rest.
 
