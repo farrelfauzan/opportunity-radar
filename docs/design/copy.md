@@ -174,7 +174,7 @@ Rules
 
 Partial state (OR-9 follow-up): when the news is not stale but at least one active source failed on the latest ingestion run (status not ok and not 304), the Sources panel shows `state.partial` at its top and `news.sources.notUpdated` after each affected source name. No page-level banner; the stale banner (§2) takes precedence when both apply.
 
-Region shown on an item uses `news.region.id` / `news.region.global`. Category and region filters live in the URL query. OR-21 adds the impact, why, linked and themes strings; OR-9 uses the rest.
+Region shown on an item uses `news.region.id` / `news.region.global`. Category and region filters live in the URL query. OR-21 adds the impact, why, linked and themes strings; OR-9 uses the rest. Theme labels are `news.theme.<id>`, one per id in `docs/opportunities/scoring-v1.md` §8 with the EN and ID text from that table (not repeated here, like the sector labels in §6). The Trending themes card ranks the last 7 days' triaged articles by theme, leaves `other` out of the ranking, and is omitted entirely when nothing is left to rank. Right column on desktop: Trending themes first, Sources second (as in the design).
 
 ## 4. Calculators (OR-24, OR-25, OR-40)
 
@@ -627,7 +627,7 @@ Used only to pre-fill the business calculator (within OR-25's input range).
 
 - Shell: nav wraps onto a second line; language switch stays on the first line at the right; no horizontal scroll at 360 px.
 - Radar: one column in the §5 section order; venture cards stack; market snapshot rows keep price and change on one line, sparkline below.
-- News: category chips wrap; region select full width; the Sources and Trending themes panels move below the list.
+- News: category chips wrap; region select full width; the Trending themes and Sources panels move below the list, in that order.
 - Opportunities: list only; tapping an item opens `/[locale]/opportunities/[id]` with a back link; filters collapse into a wrapped row of selects.
 - Investments: risk cards one per row; the watchlist becomes cards (name + kind, price + change, signal word, risk), no table scroll.
 - Asset report: header, then range buttons above a full-width chart, then the two signal cards stacked, then the report sections.
