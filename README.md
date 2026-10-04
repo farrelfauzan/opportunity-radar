@@ -1,3 +1,49 @@
+# Opportunity Radar
+
+## Run it locally
+
+**Docker Desktop must be running** for development, QA and the browser tests: the app stores its
+data in a local Postgres started with docker compose.
+
+One line, from a clean checkout:
+
+```bash
+pnpm install && pnpm db:setup && pnpm dev
+```
+
+`pnpm db:setup` starts Postgres on port **54329** (loopback only, data in the named volume
+`opportunity-radar_or_pgdata`), writes `.env.local` with the local connection settings if the file
+does not exist, creates and migrates the development and test databases, and seeds the
+development database with sample news. It is safe to run again.
+
+## Database
+
+| Command | What it does |
+|---|---|
+| `pnpm db:setup` | Everything above, in one step |
+| `pnpm db:up` / `pnpm db:down` | Start / stop Postgres (stopping keeps the data; use it to see the app's error states) |
+| `pnpm db:migrate` | Apply pending migrations. Running it twice changes nothing |
+| `pnpm db:seed` | Add the sample sources and 66 articles, with times relative to now |
+| `pnpm db:set-last-run <job> <minutes ago \| ISO time>` | Record a successful run of a job at that time (stale-data states) |
+| `pnpm db:reset` | Empty the **test** database and migrate it. Refuses any database whose name does not end in `_test` |
+| `pnpm db:generate` | After changing `src/server/data/schema.ts`: write the next migration into `drizzle/` |
+
+`migrate`, `seed` and `set-last-run` work on the development database; add `--test` for the test
+database, for example `pnpm db:seed --test`. `pnpm db:reset` always works on the test database.
+
+There are two databases on the one server, chosen by env vars in `.env.local` (names in
+`.env.example`): `DATABASE_URL` (development) and `TEST_DATABASE_URL` (used by `pnpm test` and by
+QA). Tests never touch development data. To run the app on the test database:
+`DATABASE_URL="$TEST_DATABASE_URL" pnpm dev` after `set -a; source .env.local; set +a`.
+
+Every worktree on this machine shares the same Postgres container and volume. The local database
+has no password: its port is published on 127.0.0.1 only.
+
+The data model is described in [docs/data-model.md](docs/data-model.md); tests in
+[docs/testing.md](docs/testing.md).
+
+## Next.js
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
