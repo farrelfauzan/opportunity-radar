@@ -15,7 +15,7 @@ import {
   type VentureMarketInput,
 } from "@/server/data";
 import type { JobOutcome } from "@/server/jobs/runner";
-import { callLlm, InvalidOutputError, type LlmCall } from "@/server/llm/client";
+import { BudgetExhaustedError, callLlm, InvalidOutputError, type LlmCall } from "@/server/llm/client";
 import { fenceUntrusted } from "@/server/llm/fence";
 import { overallScore } from "@/server/opportunities/generate";
 import { keywordMatcher } from "./match.ts";
@@ -54,6 +54,7 @@ export function parseVentureReply(value: unknown, inputIds: ReadonlySet<number>)
   const relevance = new Map<number, number>();
   for (const a of v.articles as { id?: unknown; relevance?: unknown }[]) {
     if (!Number.isInteger(a?.id) || !inputIds.has(a.id as number)) throw new Error(`article ${JSON.stringify(a?.id)} was not in the input`);
+    if (relevance.has(a.id as number)) throw new Error(`article ${a.id} is rated twice`);
     if (!Number.isInteger(a.relevance) || (a.relevance as number) < 0 || (a.relevance as number) > 100) throw new Error(`article ${a.id}: relevance must be 0-100`);
     relevance.set(a.id as number, a.relevance as number);
   }
@@ -88,8 +89,9 @@ export function parseVentureReply(value: unknown, inputIds: ReadonlySet<number>)
   return { relevance, assessment: { markets, tailwind: wind("tailwind"), headwind: wind("headwind") } };
 }
 
-const NO_NEWS = (articles: VentureMarketInput["articles"] = []): VentureMarketInput => ({
-  articles,
+const NO_NEWS = (candidateIds: number[] = []): VentureMarketInput => ({
+  candidateIds,
+  articles: [],
   markets: { indonesia: null, global: null },
   relatedArticles: 0,
   winds: { tailwind: null, headwind: null },
@@ -119,13 +121,15 @@ async function viewOf(venture: Venture, news: Candidate[], transport?: LlmCall<u
     fetch: transport,
   });
   const articles = [...reply.relevance].map(([id, relevance]) => ({ id, relevance })).filter((a) => a.relevance >= MIN_RELEVANCE);
-  if (!reply.assessment) return NO_NEWS(); // matched by keyword, but none rated relevant: no score is invented
+  // Matched by keyword, but none rated relevant: no score is invented, and old matches go.
+  if (!reply.assessment) return NO_NEWS([...inputIds]);
   const { markets, tailwind, headwind } = reply.assessment;
   const market = (f: FactorScores) => ({
     score: overallScore(Object.fromEntries(FACTOR_KEYS.map((k) => [k, { score: f[k] }])) as Parameters<typeof overallScore>[0]),
     factors: f,
   });
   return {
+    candidateIds: [...inputIds],
     articles,
     markets: { indonesia: market(markets.indonesia), global: market(markets.global) },
     relatedArticles: articles.length,
@@ -145,7 +149,11 @@ export async function assessVentures(options: { transport?: LlmCall<unknown>["fe
     try {
       view = await viewOf(venture, news, options.transport);
     } catch (error) {
-      if (!(error instanceof InvalidOutputError)) throw error; // budget, settings, provider down: stop the run
+      if (error instanceof BudgetExhaustedError) {
+        // Stop, but keep what this run did.
+        return { status: "partial", counts, error: `${error.message}; ${counts.scored} ventures assessed before the cap` };
+      }
+      if (!(error instanceof InvalidOutputError)) throw error; // settings, provider down: stop the run
       counts.rejected++;
       reasons.push(`${venture.slug}: ${error.message}`.slice(0, 200));
       continue; // yesterday's view stays the newest

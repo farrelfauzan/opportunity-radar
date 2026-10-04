@@ -128,6 +128,44 @@ describe("venture market view", () => {
     expect(await marketRows("performa-vision")).toEqual([]);
   });
 
+  test("a narrower rerun the same day removes matches no longer rated relevant; count and list agree", async () => {
+    await news(["New PPE rules for factories", "PPE shortages in mining"]);
+    await assessVentures({ transport: provider(goodReply).transport });
+    const pv = (await getVenture("performa-vision"))!;
+    expect(await db().execute(sql`select * from venture_articles where venture_id = ${pv.id}`)).toHaveLength(2);
+
+    const narrower = provider((ids) => ({ ...goodReply(ids), articles: [{ id: ids[0], relevance: 90 }, { id: ids[1], relevance: 10 }], headwind: wind([ids[0]]) }));
+    await assessVentures({ transport: narrower.transport });
+
+    const matches = await db().execute(sql`select article_id, relevance from venture_articles where venture_id = ${pv.id}`);
+    expect(matches.map((m) => [Number(m.article_id), m.relevance])).toEqual([[narrower.requests[0].ids[0], 90]]);
+    expect((await ventureMarketView(pv.id, today)).indonesia).toMatchObject({ relatedArticles: 1 });
+  });
+
+  test("everything rated irrelevant on a rerun removes the old matches", async () => {
+    await news(["New PPE rules for factories"]);
+    await assessVentures({ transport: provider(goodReply).transport });
+    await assessVentures({ transport: provider((ids) => ({ articles: ids.map((id) => ({ id, relevance: 5 })) })).transport });
+    expect(await db().execute(sql`select * from venture_articles`)).toEqual([]);
+  });
+
+  test("a rating for an article not in the input, or a duplicate rating, is rejected", async () => {
+    await news(["New PPE rules for factories"]);
+    const unknown = await assessVentures({ transport: provider((ids) => ({ ...goodReply(ids), articles: [...goodReply(ids).articles, { id: 999999, relevance: 80 }] })).transport });
+    expect(unknown.error).toContain("article 999999 was not in the input");
+    const twice = await assessVentures({ transport: provider((ids) => ({ ...goodReply(ids), articles: [...goodReply(ids).articles, { id: ids[0], relevance: 10 }] })).transport });
+    expect(twice.error).toContain("is rated twice");
+  });
+
+  test("the delta is against yesterday only, not an older row", async () => {
+    await news(["New PPE rules for factories"]);
+    const pv = (await getVenture("performa-vision"))!;
+    await db().execute(sql`insert into venture_market (venture_id, day, region, score, factors, related_articles)
+      values (${pv.id}, ${addDays(today, -3)}, 'indonesia', 70, ${JSON.stringify(scores(70))}::jsonb, 1)`);
+    await assessVentures({ transport: provider(goodReply).transport });
+    expect((await ventureMarketView(pv.id, today)).indonesia).toMatchObject({ score: 79, delta: null });
+  });
+
   test("a rerun on the same day replaces that day's rows", async () => {
     await news(["New PPE rules for factories"]);
     await assessVentures({ transport: provider(goodReply).transport });

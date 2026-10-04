@@ -17,7 +17,8 @@ describe("keywordMatcher", () => {
     expect(match(text)).toBe(expected);
   });
 
-  test("no keywords match nothing", () => {
+  test("no keywords, or only blank ones, match nothing", () => {
     expect(keywordMatcher([])("anything")).toBe(false);
+    expect(keywordMatcher(["", " "])("two  spaces")).toBe(false);
   });
 });
