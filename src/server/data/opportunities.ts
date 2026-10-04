@@ -277,15 +277,15 @@ export type RefreshedFields = Omit<NewOpportunity, "theme" | "region" | "sectors
  */
 export async function refreshOpportunity(
   id: number,
-  fields: RefreshedFields,
+  /** New text fields, or null to add citations only (scoring-v1 §4: the text is refreshed only on a same-theme match sharing an article). */
+  fields: RefreshedFields | null,
   articleIds: number[],
 ): Promise<{ added: number; skipped: number }> {
   return db().transaction(async (tx) => {
-    const [row] = await tx
-      .update(opportunities)
-      .set(fields)
-      .where(and(eq(opportunities.id, id), eq(opportunities.status, "open")))
-      .returning({ id: opportunities.id });
+    const open = and(eq(opportunities.id, id), eq(opportunities.status, "open"));
+    const [row] = fields
+      ? await tx.update(opportunities).set(fields).where(open).returning({ id: opportunities.id })
+      : await tx.select({ id: opportunities.id }).from(opportunities).where(open).for("update");
     if (!row) throw new Error(`Opportunity ${id} is not open`);
     const cited = new Set(
       (await tx.select({ articleId: opportunityArticles.articleId }).from(opportunityArticles).where(eq(opportunityArticles.opportunityId, id))).map(

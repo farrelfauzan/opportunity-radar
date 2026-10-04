@@ -158,13 +158,16 @@ export async function generateOpportunities(
       // Same opportunity: it keeps its id, gains the new citations and fresh texts. Re-scoring is OR-16's.
       const { theme: _t, region: _r, sectors: _s, ...refreshed } = toFields(o);
       void [_t, _r, _s];
-      const { added, skipped } = await refreshOpportunity(match.id, refreshed, citations);
-      counts.citations_skipped += skipped;
+      // The text is replaced only when the theme is the same and the item cites an article the
+      // opportunity already cites (Designer, OR-50); otherwise only the citations are added.
       const known = open.find((x) => x.id === match.id)!;
+      const refreshText = known.theme === o.theme && citations.some((c) => known.citations.includes(c));
+      const { added, skipped } = await refreshOpportunity(match.id, refreshText ? refreshed : null, citations);
+      counts.citations_skipped += skipped;
       known.citations = [...new Set([...known.citations, ...citations])];
       counts.matched++;
       console.info(
-        `opportunities: theme ${o.theme}/${o.region} → matched #${match.id} (${match.reason}; ${added} new citations` +
+        `opportunities: theme ${o.theme}/${o.region} → matched #${match.id} (${match.reason}; ${refreshText ? "text refreshed" : "citations only"}; ${added} new citations` +
           (skipped ? `, ${skipped} left out at the ${MAX_STORED_CITATIONS}-citation limit)` : ")"),
       );
       continue;

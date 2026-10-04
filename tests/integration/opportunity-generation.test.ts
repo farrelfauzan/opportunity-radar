@@ -214,7 +214,8 @@ describe("continuity (OR-50)", () => {
     const [{ id }] = await stored();
 
     const second = await triagedArticles(2);
-    const updated = opportunity(ids(second), { title: { en: "Scam checks for sellers, updated", id: "Cek penipuan untuk penjual, diperbarui" } });
+    // Same theme and one shared article: the text is refreshed.
+    const updated = opportunity(ids([first[0], ...second]), { title: { en: "Scam checks for sellers, updated", id: "Cek penipuan untuk penjual, diperbarui" } });
     const outcome = await generateOpportunities({ transport: provider(() => ({ opportunities: [updated] })).transport, now: () => NOW });
 
     expect(outcome.counts).toMatchObject({ created: 0, matched: 1 });
@@ -385,5 +386,41 @@ describe("review follow-ups (PR 52)", () => {
     await triagedArticles(3);
     const outcome = await generateOpportunities({ transport: provider(() => ({ opportunities: [] })).transport, now: () => NOW });
     expect(outcome.counts).toMatchObject({ candidates: 3, candidates_available: 3 });
+  });
+});
+
+describe("text refresh on a match (Designer, OR-50)", () => {
+  const ids = (list: number[]) => list.map(String);
+  const titleOf = async () => (await stored())[0].title_en;
+  const newTitle = { en: "A replaced title", id: "Judul pengganti" };
+
+  test("same theme and a shared article: text replaced, citations added", async () => {
+    const a = await triagedArticles(3);
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(ids(a.slice(0, 2)))] })).transport, now: () => NOW });
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(ids([a[0], a[2]]), { title: newTitle })] })).transport, now: () => NOW });
+    expect(await titleOf()).toBe("A replaced title");
+    expect((await stored())[0].cited).toHaveLength(3);
+  });
+
+  test("a different theme matched through 2 shared citations: text unchanged, citations added", async () => {
+    const a = await triagedArticles(3);
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(ids(a.slice(0, 2)))] })).transport, now: () => NOW });
+    const other = opportunity(ids(a), { theme: "oil_gas_coal", region: "global", sectors: ["education"], title: newTitle });
+    const outcome = await generateOpportunities({ transport: provider(() => ({ opportunities: [other] })).transport, now: () => NOW });
+    expect(outcome.counts).toMatchObject({ matched: 1 });
+    expect(await titleOf()).toBe(contract.valid[0].output.title.en);
+    expect((await stored())[0].cited).toHaveLength(3);
+  });
+
+  test("same theme but no shared article: text unchanged, citations added", async () => {
+    const a = await triagedArticles(4);
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(ids(a.slice(0, 2)))] })).transport, now: () => NOW });
+    const outcome = await generateOpportunities({
+      transport: provider(() => ({ opportunities: [opportunity(ids(a.slice(2)), { title: newTitle })] })).transport,
+      now: () => NOW,
+    });
+    expect(outcome.counts).toMatchObject({ matched: 1 });
+    expect(await titleOf()).toBe(contract.valid[0].output.title.en);
+    expect((await stored())[0].cited).toHaveLength(4);
   });
 });
