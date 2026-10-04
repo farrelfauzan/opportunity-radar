@@ -124,6 +124,13 @@ describe("marketView", () => {
   ];
   const fresh = { prices: ago(5), metals: ago(5), crypto: ago(5) };
 
+  test("the sparkline's spoken summary names the first and the last close in this language; none under 2 closes", () => {
+    const view = marketView(rows, fresh, now, "en", en);
+    expect(view.rows[0].trend).toBe("Last 10 closes: from 7,300 to 7,412");
+    expect(marketView(rows, fresh, now, "id", id).rows[0].trend).toBe("10 penutupan terakhir: dari 7.300 ke 7.412");
+    expect(view.rows.map((r) => r.trend)).toEqual(["Last 10 closes: from 7,300 to 7,412", null, null, null]); // 1 close, none, none
+  });
+
   test("four rows in order, each with its name, price and change, in this language", () => {
     const view = marketView(rows, fresh, now, "id", id);
     expect(view.rows.map((r) => r.name)).toEqual(["IHSG", "USD/IDR", "Emas / gram", "Bitcoin"]);
