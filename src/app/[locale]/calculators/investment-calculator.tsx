@@ -61,11 +61,14 @@ export function InvestmentCalculator({
   strings,
   errors,
   units,
+  beyond,
 }: {
   locale: Locale;
   strings: Strings;
   errors: Messages["calc"]["err"];
   units: Messages["calc"]["unit"];
+  /** calc.result.beyond: shown instead of an amount from Rp 1,000 trillion. */
+  beyond: string;
 }) {
   const { fields, texts, valid, checks, anyInvalid, update } = useNumberFields(defaults, ranges, locale);
   const [preset, setPreset] = useState<string | null>("stocks");
@@ -162,7 +165,7 @@ export function InvestmentCalculator({
                 key={card.testId}
                 testId={card.testId}
                 label={card.label}
-                value={formatRupiahCompact(card.value, locale, units)}
+                value={formatRupiahCompact(card.value, locale, units, beyond)}
                 exact={exactRupiah(card.value, locale)}
                 valueClassName={card.accent ? "text-primary" : ""}
               />
@@ -177,7 +180,8 @@ export function InvestmentCalculator({
           >
             <LineChart data={data} accessibilityLayer={false} margin={{ top: 8, right: 2, bottom: 8, left: 2 }}>
               <CartesianGrid vertical={false} stroke="var(--glass-border)" />
-              <YAxis hide domain={[0, "dataMax"]} />
+              {/* No axis labels. The empty formatter also keeps Recharts' off-screen measuring text empty: it would hold "3.5e+48" at the largest inputs. */}
+              <YAxis hide tickFormatter={() => ""} domain={[0, "dataMax"]} />
               {lines.map((line) => (
                 <Line
                   key={line.key}
