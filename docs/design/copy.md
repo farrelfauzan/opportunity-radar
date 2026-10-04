@@ -271,6 +271,12 @@ Region shown on an item uses `news.region.id` / `news.region.global`. Category a
 | radar.ventures.related.one | {n} related news item | {n} berita terkait |
 | radar.ventures.related.other | {n} related news items | {n} berita terkait |
 | radar.ventures.scoreLabel | {score} out of 100 | {score} dari 100 |
+| radar.ventures.scoreAsOf | As of {date} | Per {date} |
+| radar.ventures.deltaUp.one | up {n} point vs yesterday | naik {n} poin dibanding kemarin |
+| radar.ventures.deltaUp.other | up {n} points vs yesterday | naik {n} poin dibanding kemarin |
+| radar.ventures.deltaDown.one | down {n} point vs yesterday | turun {n} poin dibanding kemarin |
+| radar.ventures.deltaDown.other | down {n} points vs yesterday | turun {n} poin dibanding kemarin |
+| radar.ventures.deltaFlat | unchanged vs yesterday | tidak berubah dibanding kemarin |
 | radar.top.title | Top opportunities | Peluang teratas |
 | radar.top.seeAll | See all ({n}) | Lihat semua ({n}) |
 | radar.top.score | score | skor |
@@ -303,6 +309,8 @@ Radar states (OR-23 review):
 - Never run (no brief, no opportunities, no news ever stored): one card with `state.never.title` and `state.never.body`, `{time}` = 07:00 (the morning run), in place of the brief; the other sections show their own empty texts.
 - Top opportunities: "Based on N news items" (`radar.top.basedOn`) is hidden when N is 0; `radar.brief.affected` is plain text (no link).
 - News that moves opportunities: each row shows `news.item.meta` (source · time · region, as on News), the why-text with the AI mark (§3), and `radar.news.linked` when the item is linked to at least one open opportunity (hidden at 0; plain text).
+
+Venture scores on the Radar cards and the venture view (OR-39 review, OR-51): when a score's day is neither today nor yesterday (WIB), `radar.ventures.scoreAsOf` shows next to it in muted text, since a `partial` run can leave an old row looking current. The change vs yesterday (▲ n / ▼ n / — 0) is aria-hidden and carries `radar.ventures.deltaUp` / `.deltaDown` / `.deltaFlat` as its label; the unit is score points, never percent.
 
 My ventures cards (OR-39): the score shows as "72 / 100" ("/ 100" is a number notation, the same in both languages, so it may be literal) with `radar.ventures.scoreLabel` as its accessible label; the card shows the progress label, bar and percent only, while the progress sentence (`venture.progress.delivered` · `.next` · `.inQa`, joined with " · ", parts with no data left out) belongs to the venture view (OR-51); in the never-scored state the related-news count is hidden too. Until the venture view link ships (OR-51), the card shows the related-news count as plain text with `radar.ventures.related` (hidden at 0, where `radar.ventures.noNews` shows); with OR-51 it becomes the link `radar.ventures.open`. A region with no score reuses `venture.market.noScore` (`docs/design/venture-view.md`); a venture never scored shows `state.never.title` + `state.never.body` (07:00) in the scores area, as in venture-view.md's States table.
 
