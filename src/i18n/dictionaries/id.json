@@ -145,9 +145,29 @@
     },
     "empty": "Tidak ada peluang yang cocok dengan filter ini",
     "never": "Belum ada peluang — proses pertama pukul 07.00 WIB",
+    "factor": {
+      "demand": "Permintaan",
+      "timing": "Waktu",
+      "competition": "Persaingan rendah",
+      "capital": "Efisiensi modal",
+      "regulatory": "Risiko regulasi rendah"
+    },
     "detail": {
       "meta": "{region} · {sector} · Horizon {horizon}",
       "score": "skor peluang / 100",
+      "breakdown": "Rincian skor",
+      "breakdownNote": "Makin tinggi makin baik di setiap baris (persaingan rendah dan risiko regulasi rendah bernilai tinggi).",
+      "facts": "Fakta singkat",
+      "capital": "Modal awal",
+      "buyer": "Siapa pembelinya",
+      "model": "Model",
+      "trend30": "Skor, 30 hari",
+      "evidence": "Mengapa sekarang — bukti dari berita",
+      "evidenceMeta": "{source} · {ago}",
+      "aiNote": "Skor adalah perkiraan AI dari berita yang dikutip, dinilai dengan rubrik tetap setiap pagi.",
+      "risks": "Risiko",
+      "steps": "Langkah awal untuk validasi",
+      "related": "Eksposur pasar terkait: {text}",
       "closed": "Peluang ini sudah ditutup atau tidak ada lagi",
       "back": "Kembali ke peluang"
     }

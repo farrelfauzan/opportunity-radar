@@ -145,9 +145,29 @@
     },
     "empty": "No opportunities match these filters",
     "never": "No opportunities yet — the first run is at 07:00 WIB",
+    "factor": {
+      "demand": "Demand",
+      "timing": "Timing",
+      "competition": "Low competition",
+      "capital": "Capital efficiency",
+      "regulatory": "Low regulatory risk"
+    },
     "detail": {
       "meta": "{region} · {sector} · Horizon {horizon}",
       "score": "opportunity score / 100",
+      "breakdown": "Score breakdown",
+      "breakdownNote": "Higher is better on every row (low competition and low regulatory risk score high).",
+      "facts": "Quick facts",
+      "capital": "Starting capital",
+      "buyer": "Who buys",
+      "model": "Model",
+      "trend30": "Score, 30 days",
+      "evidence": "Why now — evidence from the news",
+      "evidenceMeta": "{source} · {ago}",
+      "aiNote": "Scores are AI estimates from the cited news, scored against a fixed rubric every morning.",
+      "risks": "Risks",
+      "steps": "First steps to validate",
+      "related": "Related market exposure: {text}",
       "closed": "This opportunity is closed or no longer exists",
       "back": "Back to opportunities"
     }

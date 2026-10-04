@@ -1,4 +1,4 @@
-import type { Horizon, Trend } from "@/server/data";
+import type { Horizon, Opportunity, OpportunityScore, Trend } from "@/server/data";
 import { formatDateShortWib, formatTimeWib } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { fill, type Messages } from "@/i18n/t";
@@ -45,3 +45,27 @@ export const horizonKey = { "0-6m": "short", "6-12m": "mid", "1-3y": "long" } as
   Horizon,
   keyof Messages["opp"]["horizon"]
 >;
+
+/** The text of a bilingual pair of columns, in the language of the page. */
+export const inLocale = (locale: Locale, en: string, id: string) => (locale === "id" ? id : en);
+
+/** "Indonesia · Logistics & Supply Chain, Fisheries & Maritime · Horizon 6–12 months". */
+export function opportunityMeta(item: Opportunity, m: Messages): string {
+  return fill(m.opp.detail.meta, {
+    region: item.region === "indonesia" ? m.opp.filter.region.id : m.opp.filter.region.global,
+    sector: item.sectors.map((sector) => m.opp.sector[sector]).join(", "),
+    horizon: m.opp.horizon[horizonKey[item.horizon]],
+  });
+}
+
+/** The five factors of the score breakdown, in the order they are shown (dictionary keys opp.factor.*). */
+export const FACTORS = ["demand", "timing", "competition", "capital", "regulatory"] as const;
+export type Factor = (typeof FACTORS)[number];
+
+/** The width of a bar, in whole percent: the score clamped to 0–100. */
+export const barPercent = (value: number) => Math.min(100, Math.max(0, Math.round(value)));
+
+/** One row per factor from the newest score row, in display order; none when there is no score row. */
+export function factorRows(score: Pick<OpportunityScore, Factor> | null): { factor: Factor; value: number }[] {
+  return score ? FACTORS.map((factor) => ({ factor, value: score[factor] })) : [];
+}

@@ -23,7 +23,7 @@ import {
   type Sector,
 } from "../src/server/data/index.ts";
 import { sql } from "../src/server/data/client.ts";
-import { fixtureOpportunities } from "../e2e/opportunity-fixtures.ts";
+import { detailOf, evidenceArticles, factorsOf, fixtureOpportunities } from "../e2e/opportunity-fixtures.ts";
 import { fixtureArticles, fixtureSources } from "../e2e/news-fixtures.ts";
 import { resetTestDatabase } from "./db-admin.ts";
 import { e2eDatabaseUrl } from "./e2e-env.ts";
@@ -51,13 +51,32 @@ function timeOption(name: string, fallback: string): Date | null {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-async function storeOpportunities() {
+/** Stores the articles the opportunities cite (on days before today); returns their ids by fixture key. */
+async function storeEvidence(sourceIds: Map<string, number>) {
+  const ids = new Map<string, number>();
+  for (const e of evidenceArticles) {
+    const { article } = await insertArticle({
+      sourceId: sourceIds.get(e.source)!,
+      link: `https://example.com/e2e/evidence/${e.key}`,
+      region: "indonesia",
+      category: "business",
+      headline: e.headline,
+      snippet: e.snippet,
+      publishedAt: new Date(Date.now() - e.ageDays * DAY_MS),
+    });
+    ids.set(e.key, article.id);
+  }
+  return ids;
+}
+
+async function storeOpportunities(evidence: Map<string, number>) {
   const now = Date.now();
   const today = wibDay(new Date(now));
   for (const f of fixtureOpportunities) {
     const rows = f.history
-      .map(([ago, overall]) => ({ day: addDays(today, -ago), overall, demand: overall, timing: overall, competition: overall, capital: overall, regulatory: overall }))
+      .map(([ago, overall]) => ({ day: addDays(today, -ago), overall, ...factorsOf(overall) }))
       .sort((a, b) => a.day.localeCompare(b.day));
+    const text = detailOf(f);
     const row = await insertOpportunity(
       {
         titleEn: f.title.en,
@@ -69,19 +88,22 @@ async function storeOpportunities() {
         sectors: f.sectors as Sector[],
         horizon: f.horizon,
         capitalLevel: f.capital,
-        capitalReasonEn: "Reason",
-        capitalReasonId: "Alasan",
-        buyerEn: "Buyers",
-        buyerId: "Pembeli",
-        modelEn: "Model",
-        modelId: "Model",
-        risksEn: ["Risk one", "Risk two"],
-        risksId: ["Risiko satu", "Risiko dua"],
-        firstStepsEn: ["Step one"],
-        firstStepsId: ["Langkah satu"],
+        capitalReasonEn: text.capitalReason.en,
+        capitalReasonId: text.capitalReason.id,
+        buyerEn: text.buyer.en,
+        buyerId: text.buyer.id,
+        modelEn: text.model.en,
+        modelId: text.model.id,
+        risksEn: text.risks.en,
+        risksId: text.risks.id,
+        firstStepsEn: text.steps.en,
+        firstStepsId: text.steps.id,
+        relatedExposureEn: text.related?.en ?? null,
+        relatedExposureId: text.related?.id ?? null,
         closedAt: f.closedDaysAgo === undefined ? undefined : new Date(now - f.closedDaysAgo * DAY_MS),
       },
       rows[0],
+      (f.cites ?? []).flatMap((key) => evidence.get(key) ?? []),
     );
     for (const next of rows.slice(1)) await recordOpportunityScore(row.id, next);
   }
@@ -90,6 +112,7 @@ async function storeOpportunities() {
 async function fixtures() {
   await sql()`truncate articles, sources, job_runs, opportunities restart identity cascade`;
   const ids = await storeSources();
+  const evidence = new Map<string, number>();
   if (!args.includes("--no-articles")) {
     for (const a of fixtureArticles()) {
       await insertArticle({
@@ -103,7 +126,8 @@ async function fixtures() {
       });
     }
   }
-  if (!args.includes("--no-opportunities")) await storeOpportunities();
+  if (!args.includes("--no-articles")) for (const [key, id] of await storeEvidence(ids)) evidence.set(key, id);
+  if (!args.includes("--no-opportunities")) await storeOpportunities(evidence);
   const lastRun = timeOption("last-run", "5");
   if (lastRun) await recordSuccessfulRun("ingest-news", lastRun);
   const scoresRun = timeOption("scores-run", "5");
