@@ -61,7 +61,7 @@ export async function writeBrief(options: { transport?: LlmCall<unknown>["fetch"
   const relevant = await briefArticles(new Date(now.getTime() - 24 * 60 * 60 * 1000));
   if (relevant.length < MIN_ARTICLES) {
     console.info(`brief: ${relevant.length} relevant articles in 24 h (fewer than ${MIN_ARTICLES}): no brief today`);
-    return { status: "ok", counts: { articles: relevant.length, articles_relevant: relevant.length, sources: 0, lines: 0 } };
+    return { status: "ok", counts: { articles: relevant.length, articles_relevant: relevant.length, sources: 0, lines: 0, wording_rejected: 0 } };
   }
   // Trimmed to the data budget by priority instead of failing: the day's opportunity changes
   // first (what the brief names), then the articles, most relevant first.
@@ -81,7 +81,7 @@ export async function writeBrief(options: { transport?: LlmCall<unknown>["fetch"
     input.push({ ...a, item });
   }
   // The counts are of the articles the brief was written from ("AI summary of N articles from M sources").
-  const counts = { articles: input.length, articles_relevant: relevant.length, sources: new Set(input.map((a) => a.sourceId)).size, lines: 0, wording_rejected: 0 };
+  const counts: Record<string, number> = { articles: input.length, articles_relevant: relevant.length, sources: new Set(input.map((a) => a.sourceId)).size, lines: 0, wording_rejected: 0 };
   if (input.length < relevant.length) console.info(`brief: ${input.length} of ${relevant.length} relevant articles used`);
   if (input.length < MIN_ARTICLES) {
     console.info(`brief: only ${input.length} articles fit the input: no brief today`);

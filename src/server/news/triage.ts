@@ -18,7 +18,7 @@ import {
 import type { JobOutcome } from "@/server/jobs/runner";
 import { callLlm, InvalidOutputError, type LlmCall } from "@/server/llm/client";
 import { fenceUntrusted } from "@/server/llm/fence";
-import { adviceIn, bannedWording, WORDING_RULE } from "@/server/llm/wording";
+import { adviceIn, countRejection, ruleIdIn, WORDING_RULE, wordingHit, wordingReason } from "@/server/llm/wording";
 
 export const BATCH_SIZE = 10;
 const MAX_WHY_WORDS = 30;
@@ -58,8 +58,8 @@ export function checkItem(raw: unknown): { id: number; result: Omit<Extract<Tria
   const whyEn = typeof why?.en === "string" ? why.en.trim() : "";
   const whyId = typeof why?.id === "string" ? why.id.trim() : "";
   if (!whyEn || !whyId) return "why must be given in EN and ID";
-  const advice = bannedWording(whyEn) ?? bannedWording(whyId); // describe, never instruct (OR-63)
-  if (advice) return `why has advice wording "${advice}"`;
+  const advice = wordingHit(whyEn) ?? wordingHit(whyId); // describe, never instruct (OR-63)
+  if (advice) return wordingReason("why", advice);
   if (words(whyEn) > MAX_WHY_WORDS || words(whyId) > MAX_WHY_WORDS) return `why is longer than ${MAX_WHY_WORDS} words`;
   if (Array.from(whyEn).length > MAX_WHY_CHARS || Array.from(whyId).length > MAX_WHY_CHARS) {
     return `why is longer than ${MAX_WHY_CHARS} characters`;
@@ -79,15 +79,15 @@ export function checkItem(raw: unknown): { id: number; result: Omit<Extract<Tria
  * Advice wording in the first reply also asks for the retry; in the retry's reply only
  * the items with it fail (checkItem), so one stubborn article never fails its whole batch.
  */
-function envelopeParser(counts: { wording_rejected: number }): (value: unknown) => unknown[] {
-  let attempt = 0;
-  return (value) => {
+function envelopeParser(counts: Record<string, number>): (value: unknown, context: { attempt: number }) => unknown[] {
+  return (value, { attempt }) => {
     const items = (value as { items?: unknown } | null)?.items;
     if (!Array.isArray(items)) throw new Error('expected {"items": [...]}');
-    const advice = attempt++ === 0 ? adviceIn(items) : null;
+    // The real attempt (also after a first reply that was not JSON): only the first reply is retried for advice.
+    const advice = attempt === 1 ? adviceIn(items) : null;
     if (advice) {
-      counts.wording_rejected++;
-      throw new Error(`advice wording "${advice}" (describe, never instruct)`);
+      countRejection(counts, advice.id);
+      throw new Error(wordingReason("reply", advice));
     }
     return items;
   };
@@ -97,7 +97,7 @@ function envelopeParser(counts: { wording_rejected: number }): (value: unknown) 
 export async function triageBatch(
   batch: TriageInput[],
   transport?: LlmCall<unknown>["fetch"],
-  counts: { wording_rejected: number } = { wording_rejected: 0 },
+  counts: Record<string, number> = { wording_rejected: 0 },
 ): Promise<TriageResult[]> {
   const fence = fenceUntrusted(
     "ARTICLES",
@@ -146,7 +146,7 @@ export async function triageBatch(
  * (cap reached, provider down) keeps its work; the rest waits for the next run.
  */
 export async function triageNews(options: { transport?: LlmCall<unknown>["fetch"]; maxArticles?: number } = {}): Promise<JobOutcome> {
-  const counts = { ok: 0, failed: 0, batches: 0, wording_rejected: 0 };
+  const counts: Record<string, number> = { ok: 0, failed: 0, batches: 0, wording_rejected: 0 };
   const limit = options.maxArticles ?? Number.POSITIVE_INFINITY;
   const done = new Set<number>();
   while (counts.ok + counts.failed < limit) {
@@ -156,7 +156,10 @@ export async function triageNews(options: { transport?: LlmCall<unknown>["fetch"
     if (batch.some((a) => done.has(a.id))) throw new Error("triage made no progress: results were not stored");
     for (const a of batch) done.add(a.id);
     const results = await triageBatch(batch, options.transport, counts);
-    counts.wording_rejected += results.filter((r) => r.status === "failed" && r.error.includes("advice wording")).length;
+    for (const r of results) {
+      const ruleId = r.status === "failed" ? ruleIdIn(r.error) : null;
+      if (ruleId) countRejection(counts, ruleId);
+    }
     await saveTriage(results);
     counts.batches++;
     for (const r of results) counts[r.status]++;
