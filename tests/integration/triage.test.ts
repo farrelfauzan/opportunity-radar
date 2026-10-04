@@ -336,3 +336,42 @@ describe("opportunity candidates", () => {
     }
   });
 });
+
+describe("wording guard (OR-63)", () => {
+  const advice = (id: number): Item => ({ ...goodItem(id), why: { en: "Investors should buy bank stocks before the rate cut.", id: "Investor sebaiknya membeli saham bank." } });
+
+  test("an advice why twice: that article's triage result is not stored (only a failed marker), the rest are (AC2)", async () => {
+    const ids = await addArticles(3);
+    const { transport, requests } = triageProvider((batch) => ({ items: batch.map((id) => (id === ids[1] ? advice(id) : goodItem(id))) }));
+
+    const outcome = await triageNews({ transport });
+
+    expect(requests).toHaveLength(2); // the first reply is retried
+    expect(requests[0].system).toContain("is expected to ..., according to ...");
+    expect(outcome.counts).toMatchObject({ ok: 2, failed: 1, wording_rejected: 2 }); // the first reply, and the item in the retry
+    const rows = await triageRows();
+    expect(rows[1]).toMatchObject({ article_id: ids[1], status: "failed", category: "business" });
+    expect(rows[1].error).toMatch(/^why has advice wording "/);
+    expect((await db().execute(sql`select why_en from article_triage where article_id = ${ids[1]}`))[0].why_en).toBeNull();
+  });
+
+  test("an advice why, then a clean one on the retry: the clean one is stored (AC5)", async () => {
+    const ids = await addArticles(2);
+    let n = 0;
+    const { transport } = triageProvider((batch) => ({ items: batch.map((id) => (n === 0 && id === ids[0] ? advice(id) : goodItem(id))) }));
+    const wrapped = (async (u: string, init?: RequestInit) => {
+      const r = await transport(u, init);
+      n++;
+      return r;
+    }) as typeof fetch;
+
+    const outcome = await triageNews({ transport: wrapped });
+
+    expect(outcome.counts).toMatchObject({ ok: 2, failed: 0 });
+  });
+
+  test("checkItem rejects advice in either language", () => {
+    expect(checkItem(advice(1))).toMatch(/advice wording/);
+    expect(checkItem({ ...goodItem(1), why: { en: "Fine.", id: "Saatnya menjual emas." } })).toMatch(/advice wording/);
+  });
+});
