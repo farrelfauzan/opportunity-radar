@@ -44,6 +44,8 @@ For one of the owner's own ventures: how far the build is, and whether the marke
 | venture.news.title | Related news, 30 days | Berita terkait, 30 hari |
 | venture.news.empty | No related news in the last 30 days | Tidak ada berita terkait dalam 30 hari terakhir |
 
+`venture.market.trend` is built only when a region's 30-day line has 2 or more points; `{n}` is the number of points drawn (days with no score are not counted).
+
 Reused from `copy.md` (no new keys): `radar.ventures.notConnected` (progress not connected), `radar.ventures.oppId` / `radar.ventures.oppWorld` (card titles), `radar.ventures.tailwind` / `radar.ventures.headwind`, `opp.detail.trend30` (30-day line), `opp.detail.calculator` (button), `opp.factor.*`, `news.impact.*`, `news.cat.*`, `news.loadMore`, `state.*`.
 
 ## States

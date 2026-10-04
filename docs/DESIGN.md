@@ -93,3 +93,4 @@ Numbering matches the sprint plan in Notion (D1–D16). Rows marked "Designer, d
 - 2026-10-05 — Venture view progress sentence: "Next: sprint {n}" / "Berikutnya: sprint {n}" (Orchestrator, on the Reviewer's nit) (`venture-view.md`, OR-51).
 - 2026-10-05 — Market snapshot sparkline summary counts the closes actually drawn (`radar.market.trend` with `{n}`) (`copy.md` §5, OR-28 review).
 - 2026-10-05 — Venture scores (OR-39 review, OR-51): "As of {date}" for scores older than yesterday, spoken change labels in points, and a hidden summary of the 30-day score line (`copy.md` §5, `venture-view.md`).
+- 2026-10-05 — Investments (OR-30): risk-card mapping, signal chip outlines (BUY 2px, HOLD 1px, SELL double; word always shown), watchlist sparkline summary reuses `radar.market.trend` (`copy.md` §7). Venture 30-day summary counting rule (`venture-view.md`).
