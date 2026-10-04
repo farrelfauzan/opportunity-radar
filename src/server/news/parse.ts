@@ -56,7 +56,9 @@ export function parseFeed(xml: string): FeedItem[] {
       return {
         title: text(entry.title),
         link: link?.["@_href"] ?? "",
-        description: text(entry.summary) || text(entry.content),
+        // Only the summary: <content> can be the full article (The Conversation, CC BY-ND),
+        // and the article body is never stored (R-1). No summary means an empty snippet.
+        description: text(entry.summary),
         date: text(entry.published) || text(entry.updated),
       };
     });
