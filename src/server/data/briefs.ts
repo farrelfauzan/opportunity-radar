@@ -7,14 +7,15 @@ import { minRelevance } from "./triage.ts";
 export type DailyBrief = typeof dailyBriefs.$inferSelect;
 
 /** Ok-triaged, visible articles relevant enough (TRIAGE_MIN_RELEVANCE), fetched since `since`; newest first. */
+/** Visible, ok-triaged, relevant articles published since `since`, most relevant first, then newest. */
 export async function briefArticles(since: Date) {
   return db()
     .select({ id: articles.id, headline: articles.headline, category: articles.category, why: articleTriage.whyEn, sourceId: articles.sourceId })
     .from(articles)
     .innerJoin(sources, eq(articles.sourceId, sources.id))
     .innerJoin(articleTriage, eq(articleTriage.articleId, articles.id))
-    .where(and(articleIsVisible, eq(articleTriage.status, "ok"), gte(articleTriage.relevance, minRelevance()), gte(articles.fetchedAt, since)))
-    .orderBy(desc(articles.publishedAt), desc(articles.id));
+    .where(and(articleIsVisible, eq(articleTriage.status, "ok"), gte(articleTriage.relevance, minRelevance()), gte(articles.publishedAt, since)))
+    .orderBy(desc(articleTriage.relevance), desc(articles.publishedAt), desc(articles.id));
 }
 
 /** The day's opportunity changes: open opportunities with a score row on `day`, with the score before it (if any). */

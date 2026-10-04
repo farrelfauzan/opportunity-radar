@@ -19,6 +19,7 @@ import {
 import type { JobOutcome } from "@/server/jobs/runner";
 import { callLlm, type LlmCall } from "@/server/llm/client";
 import { fenceUntrusted } from "@/server/llm/fence";
+import { adviceIn, WORDING_RULE } from "@/server/llm/wording";
 import { checkOpportunity, type OpportunityOutput } from "./contract.ts";
 import { findMatch } from "./match.ts";
 
@@ -88,11 +89,23 @@ function toFields(o: OpportunityOutput): NewOpportunity {
   };
 }
 
-/** The reply's shape: {"opportunities": [...]}. Anything else is invalid output (retried once). */
-function parseEnvelope(value: unknown): unknown[] {
-  const items = (value as { opportunities?: unknown } | null)?.opportunities;
-  if (!Array.isArray(items)) throw new Error('expected {"opportunities": [...]}');
-  return items;
+/**
+ * The reply's shape: {"opportunities": [...]}. Anything else is invalid output (retried once).
+ * Advice wording in the first reply also asks for the retry; in the retry's reply only the
+ * items with it are rejected (the contract checks every text), the others are stored.
+ */
+function envelopeParser(counts: { wording_rejected: number }): (value: unknown) => unknown[] {
+  let attempt = 0;
+  return (value) => {
+    const items = (value as { opportunities?: unknown } | null)?.opportunities;
+    if (!Array.isArray(items)) throw new Error('expected {"opportunities": [...]}');
+    const advice = attempt++ === 0 ? adviceIn(items) : null;
+    if (advice) {
+      counts.wording_rejected++;
+      throw new Error(`advice wording "${advice}" (describe, never instruct)`);
+    }
+    return items;
+  };
 }
 
 export async function generateOpportunities(
@@ -112,7 +125,7 @@ export async function generateOpportunities(
     candidates.push(c);
     size += itemSize;
   }
-  const counts = { candidates: candidates.length, candidates_available: ranked.length, created: 0, matched: 0, rejected: 0, closed: 0, citations_skipped: 0 };
+  const counts = { candidates: candidates.length, candidates_available: ranked.length, created: 0, matched: 0, rejected: 0, closed: 0, citations_skipped: 0, wording_rejected: 0 };
   const closeStale = async () => {
     const closed = await closeStaleOpportunities(now);
     counts.closed = closed.length;
@@ -128,10 +141,10 @@ export async function generateOpportunities(
     job: "opportunities",
     role: "report",
     messages: [
-      { role: "system", content: `${SYSTEM}\n${fence.rule}` },
+      { role: "system", content: `${SYSTEM}\n${WORDING_RULE}\n${fence.rule}` },
       { role: "user", content: `Find the opportunities in these ${candidates.length} articles.\n${fence.block}` },
     ],
-    parse: parseEnvelope,
+    parse: envelopeParser(counts),
     maxTokens: MAX_TOKENS,
     fetch: options.transport,
   });
@@ -146,6 +159,7 @@ export async function generateOpportunities(
     const checked = checkOpportunity(raw, inputIds);
     if (!checked.ok) {
       counts.rejected++;
+      if (checked.reason.includes("advice wording")) counts.wording_rejected++;
       const reason = checked.reason.slice(0, MAX_REASON_CHARS);
       reasons.push(`#${index + 1}: ${reason}`);
       console.warn(`opportunities: rejected #${index + 1}: ${reason}`);

@@ -153,3 +153,65 @@ describe("daily brief", () => {
     expect((await getBrief(today))!.lines[0].en).toContain("[mock]");
   }, 60_000);
 });
+
+describe("wording guard (OR-63)", () => {
+  const advice = (articleIds: number[]) => ({ ...line(articleIds), en: "You should buy gold now, you must act.", id: "Anda harus segera beli emas sekarang." });
+  function sequence(...replies: ((d: { articles: { id: number }[] }) => unknown)[]) {
+    let n = 0;
+    return provider((d) => replies[Math.min(n++, replies.length - 1)](d));
+  }
+
+  test("an advice line twice: no brief is stored and the job fails visibly (AC1)", async () => {
+    await relevantArticles(12);
+    const bad = (d: { articles: { id: number }[] }) => ({ lines: [advice([d.articles[0].id]), line([d.articles[1].id]), line([d.articles[2].id])] });
+    const { transport, requests } = sequence(bad);
+
+    await expect(writeBrief({ transport })).rejects.toThrow(/advice wording/);
+
+    expect(requests).toHaveLength(2);
+    expect(requests[0].system).toContain("diperkirakan ..., menurut ..."); // the prompt asks for sourced expectations
+    expect(await getBrief(today)).toBeNull();
+  });
+
+  test("an advice line, then a clean brief on the retry: the clean one is stored (AC5)", async () => {
+    await relevantArticles(12);
+    const bad = (d: { articles: { id: number }[] }) => ({ lines: [advice([d.articles[0].id]), line([d.articles[1].id]), line([d.articles[2].id])] });
+    const good = (d: { articles: { id: number }[] }) => ({ lines: [line([d.articles[0].id]), line([d.articles[1].id]), line([d.articles[2].id])] });
+    const { transport, requests } = sequence(bad, good);
+
+    const outcome = await writeBrief({ transport });
+
+    expect(requests).toHaveLength(2);
+    expect(outcome.counts).toMatchObject({ wording_rejected: 1 });
+    expect((await getBrief(today))!.lines.map((l) => l.en)).not.toContain("You should buy gold now, you must act.");
+  });
+
+  test("200 maximum-size articles and 100 changed opportunities: the input is trimmed to the limit by priority, not failed", async () => {
+    // Quotes double in the JSON data block: the worst case for the input size.
+    const ids = await relevantArticles(200, 3, (i) => `${i} ${'"'.repeat(296)}`);
+    await db().execute(sql`update article_triage set why_en = ${"w".repeat(300)}`);
+    await db().execute(sql`update article_triage set relevance = 90 where article_id = ${ids[199]}`); // the most relevant goes first
+    for (let i = 0; i < 100; i++) await insertOpportunity({ ...fields, titleEn: "t".repeat(90) }, score(today, 60), ids.slice(0, 2));
+    const { transport, requests } = provider((d) => ({ lines: [line([d.articles[0].id]), line([d.articles[1].id]), line([d.articles[2].id])] }));
+
+    const outcome = await writeBrief({ transport });
+
+    expect(requests).toHaveLength(1);
+    expect(requests[0].user.length).toBeLessThan(200_000);
+    const data = JSON.parse(/<<<BRIEF-[0-9a-f]+\n(.*)\nBRIEF-[0-9a-f]+>>>/.exec(requests[0].user)![1]) as { articles: { id: number }[]; opportunities: unknown[] };
+    expect(data.opportunities).toHaveLength(100); // the changes come first
+    expect(data.articles[0].id).toBe(ids[199]);
+    expect(data.articles.length).toBeLessThan(200);
+    // The stored counts are of what was sent.
+    expect(outcome.counts).toMatchObject({ articles: data.articles.length, articles_relevant: 200 });
+    expect((await getBrief(today))!.articleCount).toBe(data.articles.length);
+  });
+
+  test("articles are chosen by publish time: one published 2 days ago but fetched now is left out", async () => {
+    const ids = await relevantArticles(10);
+    await db().execute(sql`update articles set published_at = now() - interval '2 days' where id = ${ids[0]}`);
+    const { transport, requests } = provider(() => ({ lines: [] }));
+    await writeBrief({ transport });
+    expect(requests).toHaveLength(0); // only 9 left in 24 h
+  });
+});
