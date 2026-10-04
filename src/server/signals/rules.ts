@@ -43,6 +43,20 @@ export const IDX_LEBARAN: { lastClose: string; firstOpen: string }[] = [
   { lastClose: "2027-03-05", firstOpen: "2027-03-16" },
 ];
 const LEBARAN_DAYS = 12;
+
+/**
+ * The market's own time zone for a close's age (rules-v1 §4, PR 87): IDX in Jakarta, US stocks and
+ * COMEX metals in New York, crypto in UTC (its daily candles are UTC days, OR-27).
+ */
+export function marketZone(assetClass: AssetClass, idx: boolean): string {
+  if (assetClass === "crypto") return "UTC";
+  return assetClass === "stock" && idx ? "Asia/Jakarta" : "America/New_York";
+}
+
+/** Today's calendar date (YYYY-MM-DD) in a time zone, for the staleness age. */
+export function dayIn(zone: string, at: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).format(at);
+}
 const SEARCH_DOWN = 0.1; // reversal prices: searched down to 10% of the latest close
 const SEARCH_UP = 3; // and up to 3×
 

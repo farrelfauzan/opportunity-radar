@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
-import { currencyChange, evaluate, longVerdict, rsi14, shortVerdict, type Row, type TermResult } from "./rules.ts";
+import { currencyChange, dayIn, evaluate, longVerdict, marketZone, rsi14, shortVerdict, type Row, type TermResult } from "./rules.ts";
 
 // The Researcher's fixtures and expected values (docs/signals/fixtures, generated with exact arithmetic).
 const dir = new URL("../../../docs/signals/fixtures/", import.meta.url);
@@ -219,5 +219,38 @@ describe("ties compare as equal (Reviewer, PR 80)", () => {
 
   test("an RSI of exactly 70 (gains 7u, losses 3u) is not stretched", () => {
     expect(shortVerdict(101, 100, 100 * 0.7 / (0.7 + 0.3))).toBe("BUY");
+  });
+});
+
+describe("staleness in the market's own time zone (rules-v1 §4, PR 87)", () => {
+  // rising_noisy ends on Friday 2026-10-02 (the trading date).
+  const at = (wib: string) => new Date(`${wib}+07:00`);
+  const stateFor = (assetClass: "stock" | "metal" | "crypto", idx: boolean, wib: string) => {
+    const asOf = dayIn(marketZone(assetClass, idx), at(wib));
+    return evaluate(rowsOf("rising_noisy.csv"), { asOf, assetClass, idx }).short.state;
+  };
+
+  test("zones: IDX Jakarta, US stocks and metals New York, crypto UTC", () => {
+    expect(marketZone("stock", true)).toBe("Asia/Jakarta");
+    expect(marketZone("stock", false)).toBe("America/New_York");
+    expect(marketZone("metal", false)).toBe("America/New_York");
+    expect(marketZone("crypto", false)).toBe("UTC");
+  });
+
+  test("a US close exactly 7 days old in New York is not STALE at 07:00 WIB (the previous evening there)", () => {
+    expect(dayIn("America/New_York", at("2026-10-10T07:00:00"))).toBe("2026-10-09");
+    expect(stateFor("stock", false, "2026-10-10T07:00:00")).toBe("BUY");
+    // Counted by the WIB date it would be 8 days: the IDX stock with the same close is stale.
+    expect(stateFor("stock", true, "2026-10-10T07:00:00")).toBe("STALE");
+  });
+
+  test("gold's week (Mon 05:00 to Sat 04:00 WIB): Friday's COMEX close stays fresh until New York's Tuesday", () => {
+    expect(stateFor("metal", false, "2026-10-07T07:00:00")).toBe("BUY"); // Tue 6 Oct in New York: 4 days
+    expect(stateFor("metal", false, "2026-10-08T07:00:00")).toBe("STALE"); // Wed 7 Oct in New York: 5 days
+  });
+
+  test("crypto counts UTC days", () => {
+    expect(dayIn("UTC", at("2026-10-05T06:00:00"))).toBe("2026-10-04");
+    expect(stateFor("crypto", false, "2026-10-06T06:00:00")).toBe("BUY"); // 5 Oct UTC: 3 days
   });
 });

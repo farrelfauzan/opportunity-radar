@@ -4,7 +4,7 @@
 // must skip `initial` and `synthetic` rows).
 import { closesForSignals, getAssetBySlug, getSignal, listAssets, saveSignal, wibDay, type Asset, type Signal } from "@/server/data";
 import type { JobOutcome } from "@/server/jobs/runner";
-import { evaluate, RULES_VERSION, type AssetClass, type Evaluation, type Term, type TermResult, type Verdict } from "./rules.ts";
+import { dayIn, evaluate, marketZone, RULES_VERSION, type AssetClass, type Evaluation, type Term, type TermResult, type Verdict } from "./rules.ts";
 
 const VERDICTS = new Set(["BUY", "HOLD", "SELL"]);
 const isVerdict = (state: string): state is Verdict => VERDICTS.has(state);
@@ -67,7 +67,11 @@ async function signalsFor(
     const synthetic = rows.some((r) => r.source === "synthetic");
     if (synthetic) counts.synthetic++;
     const withCurrency = assetClass === "metal" || (assetClass === "stock" && asset.currency === "USD");
-    const evaluation = evaluate(rows, { asOf: day, assetClass, idx: asset.exchange === "IDX", usdIdr: withCurrency ? usdIdr : undefined });
+    const idx = asset.exchange === "IDX";
+    // The close's age is counted in the market's own zone (rules-v1 §4): a 07:00 WIB run is the
+    // previous evening in New York, so it does not add a day to a US close.
+    const asOf = dayIn(marketZone(assetClass, idx), now);
+    const evaluation = evaluate(rows, { asOf, assetClass, idx, usdIdr: withCurrency ? usdIdr : undefined });
     if (evaluation.short.state === "INVALID_DATA") {
       counts.invalid++;
       console.warn(`signals: ${asset.slug}: a close of zero or less in the series; no verdict (INVALID_DATA)`);
