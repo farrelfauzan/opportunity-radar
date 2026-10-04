@@ -609,3 +609,75 @@ export const quotes = pgTable(
     check("quotes_source_check", sql`${t.source} in (${sql.raw(PRICE_SOURCES.map((s) => `'${s}'`).join(", "))})`),
   ],
 );
+
+export const SIGNAL_TERMS = ["short", "long"] as const;
+export type SignalTerm = (typeof SIGNAL_TERMS)[number];
+export const VERDICTS = ["BUY", "HOLD", "SELL"] as const;
+export type SignalVerdict = (typeof VERDICTS)[number];
+/** A term's state: a verdict, or a state with no verdict (rules-v1 §4). */
+export const SIGNAL_STATES = [...VERDICTS, "INSUFFICIENT", "STALE", "INVALID_DATA"] as const;
+export type SignalState = (typeof SIGNAL_STATES)[number];
+
+// The current signal of one asset for one term (OR-29), from rules v1 (docs/signals/rules-v1.md).
+// `verdict` is the last verdict (kept while the state is STALE, INSUFFICIENT or INVALID_DATA);
+// `synthetic` marks a signal computed on made-up prices: never shown as real, never alerted on.
+export const signals = pgTable(
+  "signals",
+  {
+    assetId: integer("asset_id")
+      .notNull()
+      .references(() => assets.id, { onDelete: "cascade" }),
+    term: text().$type<SignalTerm>().notNull(),
+    state: text().$type<SignalState>().notNull(),
+    verdict: text().$type<SignalVerdict>(),
+    // The WIB day the verdict started (its signal_history row).
+    since: date({ mode: "string" }),
+    // The last stored close the rules ran on.
+    asOfDay: date("as_of_day", { mode: "string" }),
+    indicators: jsonb().$type<{ close: number; sma50: number | null; sma200: number | null; rsi: number | null } | null>(),
+    checks: jsonb().$type<{ check: string; key: string; values: Record<string, number>; verdict: string; counted: boolean }[]>().notNull(),
+    agree: jsonb().$type<{ n: number; m: number } | null>(),
+    reversals: jsonb().$type<{ key: string; to: string; stays: number | null; at: number | null }[]>().notNull(),
+    currency: jsonb().$type<{ key: string; pct: number } | null>(),
+    rulesVersion: text("rules_version").notNull(),
+    synthetic: boolean().notNull().default(false),
+    computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.assetId, t.term] }),
+    check("signals_term_check", inList(t.term, SIGNAL_TERMS)),
+    check("signals_state_check", inList(t.state, SIGNAL_STATES)),
+    check("signals_verdict_check", inList(t.verdict, VERDICTS)),
+  ],
+);
+
+// A change of verdict (OR-29): written only when BUY / HOLD / SELL changes. The first verdict of an
+// asset and term is the `initial` baseline: no alert (OR-34), no chart marker (OR-31).
+export const signalHistory = pgTable(
+  "signal_history",
+  {
+    assetId: integer("asset_id")
+      .notNull()
+      .references(() => assets.id, { onDelete: "cascade" }),
+    term: text().$type<SignalTerm>().notNull(),
+    // The WIB day of the run that saw the change.
+    day: date({ mode: "string" }).notNull(),
+    fromVerdict: text("from_verdict").$type<SignalVerdict>(),
+    toVerdict: text("to_verdict").$type<SignalVerdict>().notNull(),
+    // A `signal.trigger.*` text key (copy §8.1).
+    trigger: text().notNull(),
+    // The close the change was computed on, and its day.
+    close: doublePrecision().notNull(),
+    closeDay: date("close_day", { mode: "string" }).notNull(),
+    initial: boolean().notNull().default(false),
+    rulesVersion: text("rules_version").notNull(),
+    synthetic: boolean().notNull().default(false),
+  },
+  (t) => [
+    primaryKey({ columns: [t.assetId, t.term, t.day] }),
+    check("signal_history_term_check", inList(t.term, SIGNAL_TERMS)),
+    check("signal_history_to_check", inList(t.toVerdict, VERDICTS)),
+    check("signal_history_from_check", sql`(${t.initial} and ${t.fromVerdict} is null) or (not ${t.initial} and ${t.fromVerdict} in ('BUY', 'HOLD', 'SELL') and ${t.fromVerdict} <> ${t.toVerdict})`),
+    check("signal_history_trigger_check", sql`${t.trigger} ~ '^signal\\.trigger\\.[a-zA-Z0-9.]+$'`),
+  ],
+);

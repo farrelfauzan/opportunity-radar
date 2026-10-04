@@ -78,6 +78,13 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
   Binance's public market-data host `data-api.binance.vision` (USDT treated as USD), and their rupiah
   price from Indodax. Live by default; `PRICES_CRYPTO=fixtures` uses made-up replies (tests).
   Crypto volume is stored in USD; the running UTC day is stored too and is not a final close.
+- `pnpm job signals` (after the price jobs) applies the published rules v1 (`docs/signals/rules-v1.md`)
+  to every asset's daily closes: a short-term and a long-term verdict (BUY / HOLD / SELL, or no
+  verdict when the history is too short, out of date or broken), the checks behind it and the prices
+  that would change it. A history row is written only when a verdict changes; the first one is an
+  `initial` baseline. Signals on made-up prices are stored with `synthetic = true` and the screens
+  show "No signal: sample data" instead, unless `SHOW_SAMPLE_SIGNALS=1` (development and QA only;
+  ignored in production). No alert comes from them.
 - Made-up prices are stored with `source = synthetic` and are never written over real ones: a run in
   fixtures mode on an asset that already has real prices writes nothing for it and is `partial`. An
   unknown `PRICES_*` value fails the run.
