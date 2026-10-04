@@ -114,6 +114,9 @@ for (const locale of ["en", "id"] as const) {
       await expect(score(connected.slug, "indonesia")).toContainText("76");
       await expect(score(connected.slug, "indonesia")).toContainText("/ 100");
       await expect(score(connected.slug, "indonesia").locator("[data-trend]")).toHaveText("▲ 5");
+      // The "76 / 100" notation is hidden from screen readers, which get "76 out of 100" instead.
+      await expect(score(connected.slug, "indonesia").locator('[aria-hidden="true"]')).toContainText("76");
+      await expect(score(connected.slug, "indonesia").locator(".sr-only")).toHaveText(locale === "en" ? "76 out of 100" : "76 dari 100");
       await expect(score(connected.slug, "global")).toContainText(c.oppWorld);
       await expect(score(connected.slug, "global")).toContainText("68");
       await expect(score(connected.slug, "global").locator("[data-trend]")).toHaveText("▼ 2");

@@ -59,6 +59,7 @@
     },
     "ventures": {
       "title": "My ventures",
+      "scoreLabel": "{score} out of 100",
       "subtitle": "Progress from each project's board · market view re-scored daily from the news",
       "progressMvp": "Progress to MVP",
       "progressRelease": "Progress to next release",

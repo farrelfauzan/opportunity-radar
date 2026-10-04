@@ -59,6 +59,7 @@
     },
     "ventures": {
       "title": "Usaha saya",
+      "scoreLabel": "{score} dari 100",
       "subtitle": "Progres dari papan tiap proyek · pandangan pasar dinilai ulang tiap hari dari berita",
       "progressMvp": "Progres menuju MVP",
       "progressRelease": "Progres menuju rilis berikutnya",

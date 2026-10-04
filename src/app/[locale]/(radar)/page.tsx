@@ -308,8 +308,12 @@ function ScoreTile({ region, label, view, m }: { region: string; label: string; 
         <p className="text-xs text-muted-foreground">{m.venture.market.noScore}</p>
       ) : (
         <p className="flex flex-wrap items-baseline gap-x-2 font-mono">
-          <span className="text-[22px] font-medium text-primary">{score}</span>
-          <span className="text-xs text-muted-foreground">/ 100</span>
+          {/* The notation is for the eye; the screen reader gets "76 out of 100" (radar.ventures.scoreLabel). */}
+          <span aria-hidden="true" className="flex items-baseline gap-x-2">
+            <span className="text-[22px] font-medium text-primary">{score}</span>
+            <span className="text-xs text-muted-foreground">/ 100</span>
+          </span>
+          <span className="sr-only">{fill(m.radar.ventures.scoreLabel, { score })}</span>
           {change && (
             <span
               data-trend={change.direction}
