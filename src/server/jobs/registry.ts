@@ -1,5 +1,6 @@
 import { callLlm } from "@/server/llm/client";
 import { ingestNews } from "@/server/news/ingest";
+import { writeBrief } from "@/server/opportunities/brief";
 import { generateOpportunities } from "@/server/opportunities/generate";
 import { triageNews } from "@/server/news/triage";
 import type { Job, Registry } from "./runner.ts";
@@ -79,7 +80,8 @@ export const jobs: Registry = {
   // OR-15 (matching, update and close come with OR-50).
   opportunities: { timeoutSeconds: 600, after: ["triage"], run: () => generateOpportunities() },
   scores: stub("scores", ["opportunities"]),
-  brief: stub("brief", ["scores"]),
+  // OR-22: the daily brief, the last morning step.
+  brief: { timeoutSeconds: 300, after: ["scores"], run: () => writeBrief() },
   morning: { steps: ["triage", "opportunities", "scores", "brief"] },
   ...(production ? {} : testJobs),
 };

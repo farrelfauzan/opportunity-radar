@@ -500,3 +500,29 @@ export const articleTriage = pgTable(
     ),
   ],
 );
+
+export type BriefLine = {
+  /** A news category id; the Radar shows its label (news.cat.*). */
+  label: Category;
+  en: string;
+  id: string;
+  opportunityIds: number[];
+  articleIds: number[];
+};
+
+// The Radar's daily brief (OR-22): one per WIB day, written by the last morning
+// step and never on a page view. Replaced when the job runs again that day.
+export const dailyBriefs = pgTable(
+  "daily_briefs",
+  {
+    day: date({ mode: "string" }).primaryKey(),
+    lines: jsonb().$type<BriefLine[]>().notNull(),
+    articleCount: integer("article_count").notNull(),
+    sourceCount: integer("source_count").notNull(),
+    generatedAt: timestamp("generated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check("daily_briefs_lines_check", sql`jsonb_typeof(${t.lines}) = 'array' and jsonb_array_length(${t.lines}) between 3 and 5`),
+    check("daily_briefs_counts_check", sql`${t.articleCount} >= 10 and ${t.sourceCount} >= 1 and ${t.sourceCount} <= ${t.articleCount}`),
+  ],
+);
