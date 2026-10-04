@@ -162,7 +162,7 @@ Four sources are reused under licences that require a credit and a link to the o
 Rules
 - Where: on every surface that shows one of these items: News list (OR-9, OR-21), Radar "News that moves opportunities" (OR-23), opportunity evidence (OR-18), venture related news and wind evidence (OR-51), daily-brief citations if shown. The app has no article detail page: the headline opens the publisher's original in a new tab, which is the required link. `news.credit.original` is used only where a surface shows no clickable headline.
 - How: one line under the snippet (or under the headline where no snippet is shown), muted text, the licence name as a link to the licence deed. Shown in both locales; publisher and licence names are not translated except "European Central Bank" in ID.
-- The Conversation (CC BY-ND, no derivatives): its summary is shown exactly as stored, never translated, rewritten or summarised by the LLM, also on `/id`. "Why it matters" and other AI text stay visually separate and labelled as ours, so they are commentary, not an altered version.
+- The Conversation (CC BY-ND, no derivatives): its summary is shown as stored (tags stripped, entities decoded, cut at 500 characters; no other change), never translated, rewritten or summarised by the LLM, also on `/id`. "Why it matters" and other AI text stay visually separate and labelled as ours, so they are commentary, not an altered version.
 - Sources without a reuse licence keep the existing meta line (`news.item.meta`) and no credit line.
 
 Region shown on an item uses `news.region.id` / `news.region.global`. Category and region filters live in the URL query. OR-21 adds the impact, why, linked and themes strings; OR-9 uses the rest.
