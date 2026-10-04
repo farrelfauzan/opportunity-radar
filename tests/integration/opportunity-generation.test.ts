@@ -481,3 +481,27 @@ describe("wording guard (OR-63)", () => {
     expect(outcome.error).toMatch(/thesis\.en: has advice wording/);
   });
 });
+
+describe("OR-65: imperatives are allowed only in first steps", () => {
+  const step = { en: "Buy a small batch of stock to test demand.", id: "Beli sedikit stok untuk menguji permintaan." };
+
+  test("a first step starting with \"Buy\" is stored (business validation, not advice)", async () => {
+    const ids = await triagedArticles(2);
+    const item = opportunity(ids.map(String));
+    const outcome = await generateOpportunities({
+      transport: provider(() => ({ opportunities: [{ ...item, firstSteps: [step, ...item.firstSteps.slice(1)] }] })).transport,
+      now: () => NOW,
+    });
+    expect(outcome.counts).toMatchObject({ created: 1, rejected: 0, wording_rejected: 0 });
+  });
+
+  test("the same line as a thesis is rejected", async () => {
+    const ids = await triagedArticles(2);
+    const outcome = await generateOpportunities({
+      transport: provider(() => ({ opportunities: [opportunity(ids.map(String), { thesis: step })] })).transport,
+      now: () => NOW,
+    });
+    expect(outcome.counts).toMatchObject({ created: 0, rejected: 1 });
+    expect(outcome.counts?.["wording:imperative"]).toBeGreaterThan(0);
+  });
+});

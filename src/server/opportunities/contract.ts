@@ -48,7 +48,8 @@ function text(value: unknown, path: string, max: number): Text {
     if (typeof s !== "string") fail(`${path}.${lang}`, "must be a string");
     if ((s as string).trim() === "") fail(`${path}.${lang}`, "is empty");
     if (Array.from(s as string).length > max) fail(`${path}.${lang}`, `is longer than ${max} characters`);
-    const advice = wordingHit(s as string); // describe, never instruct (OR-63)
+    // Describe, never instruct (OR-63); first steps may start with an imperative (OR-65).
+    const advice = wordingHit(s as string, "general", { firstStep: path.startsWith("firstSteps") });
     if (advice) fail(`${path}.${lang}`, `has advice wording (rule "${advice.id}"; describe, never instruct)`);
   }
   return { en: object.en as string, id: object.id as string };

@@ -51,8 +51,14 @@ const GENERAL = [
   // EN: advice addressed to the reader, instructions, promises.
   "you should", "you must", "you need to", "we recommend", "recommend(?:s|ed|ing)?", "advis(?:e|es|ed)", "advised to",
   "buy now", "sell now", "act now", "follow the signals?", "good time to", "take profit", "taking profit", "stop loss",
-  "your portfolio", "guaranteed", "target price", "don't miss", "consider (?:buying|selling)", "ought to",
+  "your portfolio", "target price", "don't miss", "consider (?:buying|selling)", "ought to",
   "time to (?:buy|sell)", "now is the time", "buy the dip", "risk free", "(?:can't|cannot) lose",
+  // OR-65 (QA's OR-63 report). Suggest: only advice ("we suggest", "suggest buying"); "the data suggest" describes.
+  "we suggest", "I suggest", "suggest(?:s|ed)? (?:buying|selling|investing)",
+  // Certainty: "make / be sure to" are instructions for a task, not certainty about a price.
+  "(?<!(?:make|be)\\s)sure to", "certain to", "guarantee(?:s|d|ing)?", "surefire", "(?:can't|cannot) go wrong", "no brainer",
+  // Analyst ratings.
+  "strong (?:buy|sell)", "(?:buy|sell) rating", "rated(?: [\\p{L}']+){0,3}? (?:a |as )?(?:buy|sell)",
   // should / need to (EN and ID) followed within two words by a buy/sell verb ("Investors should buy bank stocks").
   // "must / harus / wajib" + verb is the mandate check below.
   `(?:should|need to|sebaiknya|perlu)(?: \\S+){0,2}? (?:${ACTIONS})`,
@@ -61,7 +67,15 @@ const GENERAL = [
   "beli sekarang", "jual sekarang", "segera beli", "segera jual", "ikuti sinyal", "waktu yang tepat untuk",
   "ambil untung", "dijamin", "pasti naik", "pasti turun", "target harga", "jangan lewatkan", "portofolio Anda",
   "layak dibeli", "layak dijual", "saatnya (?:membeli|menjual|beli|jual)", "tanpa risiko",
+  // OR-65: ID recommend in every form (as EN "recommend"), suggest as advice, certainty, ratings.
+  "merekomendasikan", "direkomendasikan", "rekomendasikan(?:lah)?", "rekomendasi (?:beli|jual)",
+  "kami menyarankan", "saya menyarankan", "menyarankan(?: untuk)? (?:membeli|menjual|beli|jual)",
+  "lebih baik (?:beli|jual|membeli|menjual)", "pasti akan", "tidak mungkin rugi", "pasti untung", "peringkat (?:beli|jual)",
 ];
+
+// OR-65: a buy / sell imperative as the first word of a sentence, in every AI text except opportunity
+// first steps (business validation: "Buy a small batch of stock to test demand").
+const IMPERATIVES = "buy|sell|hold|invest in|beli|belilah|jual|juallah|tahan|investasikan";
 
 const SIGNAL_ONLY = [
   // rules-v1 §7.4, EN
@@ -93,9 +107,11 @@ const CLAUSE_WORD_RE = new RegExp(wholeWords(CLAUSE_WORDS), "iu");
 // A fixed list (no part-of-speech tagging), within three words after the authority word (Designer and
 // Orchestrator, OR-64): "…, OJK data show" and "…, data OJK menunjukkan" are attributions.
 const REPORTING_VERBS =
-  "says?|said|states?|stated|announces?|announced|shows?|showed|shown|reports?|reported|notes?|noted|warns?|warned|claims?|claimed|estimates?|estimated|added|told|expects|predicted|kata|mengatakan|menyatakan|mengumumkan|menunjukkan|melaporkan|mencatat|menyebut|menyebutkan|memperingatkan|menilai";
+  "says?|said|states?|stated|announces?|announced|shows?|showed|shown|reports?|reported|notes?|noted|warns?|warned|claims?|claimed|estimates?|estimated|added|told|expects|predicted|kata|mengatakan|menyatakan|mengumumkan|menunjukkan|melaporkan|mencatat|menyebut|menyebutkan|memperingatkan|menilai|ujar|ujarnya|tutur|tuturnya|katanya";
 const REPORTING_AFTER = new RegExp(`^(?: [\\p{L}']+){0,2}? (?:${REPORTING_VERBS})(?![\\p{L}])`, "iu");
-const REPORTING_BEFORE = /(?:according to|menurut)\s+(?:[\p{L}']+\s+){0,2}$/iu;
+// … and before it: "according to the ministry", "menurut OJK", "kata kementerian", "ujar menteri".
+const INSTITUTION = /^(?:OJK|BI|ministry|ministries|authority|authorities|kementerian|otoritas)$/iu;
+const REPORTING_BEFORE = /(?:according to|menurut|kata|ujar|tutur|said|says)\s+(?:[\p{L}']+\s+){0,2}$/iu;
 // Not a sentence end: a period between digits ("12.5%", "Rp 1.000.000"), inside "U.S.", or after these.
 const ABBREVIATION = /(?:^|[^\p{L}])(?:no|u\.s|e\.g|i\.e|mr|mrs|dr|vs|inc|ltd|tbk)$/iu;
 // Bounded work on long texts: the policy noun is looked for just before a forecast, a sentence near a hit.
@@ -108,18 +124,38 @@ const AUTHORITY_REACH_WORDS = 8;
  * hyphens removed, HTML tags and markdown marks dropped, hyphens and underscores read as spaces, curly
  * apostrophes as straight ones, and runs of spaces collapsed (line breaks are kept: they end a sentence).
  */
-export function normalise(text: string): string {
+export function normalise(text: string, options: { joinInlineTags?: boolean } = {}): string {
   return text
+    // HTML entities first, so "&lt;b&gt;" and "&#115;hould" are read as what they show.
+    .replace(/&(?:lt|gt|amp|nbsp|quot|apos|#\d{1,6}|#x[0-9a-f]{1,6});/gi, decodeEntity)
     .normalize("NFKC")
     .replace(/[­​-‍⁠﻿]/g, "")
     // Tags: only the tag name and the brackets go, the words inside stay and are checked
     // ("<b you should buy gold now>" is still caught); linear on any input.
-    .replace(/<\/?(?:a|b|i|u|s|em|strong|span|p|br|div|sup|sub|small|mark|code|del|ins|font|li|ul|ol)\b/gi, " ")
+    // A bare inline tag is a space, or (the second reading, `joinInlineTags`) removed between letters,
+    // so "shou<b>ld</b>" is caught as "should" and "<b>you</b>should" as "you should"; block tags
+    // (br, p, div, li) are always a space. `wordingHit` checks both readings.
+    .replace(new RegExp(`<\\/?(?:${TAGS})\\s*\\/?>`, "giu"), (tag, at: number, all: string) =>
+      options.joinInlineTags && !/^<\/?(?:br|p|div|li|ul|ol)\b/i.test(tag) && /\p{L}/u.test(all[at - 1] ?? "") && /\p{L}/u.test(all[at + tag.length] ?? "") ? "" : " ",
+    )
+    .replace(new RegExp(`<\\/?(?:${TAGS})\\b`, "gi"), " ")
     .replace(/\/?>/g, " ")
     .replace(/[*`~]/g, "")
+    // Compounds are not instructions or ratings: "Sell-off", "Buy-back", "sell-side", "buy-in".
+    .replace(/(?<![\p{L}])(buy|sell|hold)\s?[-\u2010\u2011]\s?(?=(?:off|back|side|in|out|ups?|downs?)(?![\p{L}]))/giu, "$1")
     .replace(/[_\-‐‑]/g, " ")
     .replace(/[‘’]/g, "'")
     .replace(/[^\S\n]+/g, " ");
+}
+
+const TAGS = "a|b|i|u|s|em|strong|span|p|br|div|sup|sub|small|mark|code|del|ins|font|li|ul|ol";
+const ENTITIES: Record<string, string> = { "&lt;": "<", "&gt;": ">", "&amp;": "&", "&nbsp;": " ", "&quot;": '"', "&apos;": "'" };
+
+function decodeEntity(entity: string): string {
+  const named = ENTITIES[entity.toLowerCase()];
+  if (named) return named;
+  const code = entity[2] === "x" || entity[2] === "X" ? parseInt(entity.slice(3, -1), 16) : parseInt(entity.slice(2, -1), 10);
+  return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : " ";
 }
 
 /** Whether position `i` ends a sentence: `! ?`, a line break, or a period that is not a decimal or an abbreviation. */
@@ -184,10 +220,25 @@ function hasAuthority(text: string, hitStart: number, hitEnd: number): boolean {
   for (const m of text.slice(from, to).matchAll(AUTHORITY_RE)) {
     const at = from + m.index;
     if (REPORTING_AFTER.test(text.slice(at + m[0].length, at + m[0].length + 60))) continue; // "the ministry says"
-    if (REPORTING_BEFORE.test(text.slice(Math.max(0, at - 40), at))) continue; // "according to the ministry"
+    // "according to the ministry": only an institution can be quoted ("Reuters said the new rule means
+    // funds must invest …" keeps "rule" as the authority).
+    if (INSTITUTION.test(m[0]) && REPORTING_BEFORE.test(text.slice(Math.max(0, at - 40), at))) continue;
     return true;
   }
   return false;
+}
+
+const IMPERATIVE_RE = new RegExp(wholeWords(IMPERATIVES), "giu");
+
+/** A buy / sell imperative that starts a sentence (the text's start, or after a sentence end), or null. */
+function imperativeStart(text: string): string | null {
+  for (const hit of text.matchAll(IMPERATIVE_RE)) {
+    let i = hit.index - 1;
+    while (i >= 0 && text[i] === " ") i--;
+    // A sentence start: the text's start, a sentence end, or a colon or opening quote ("Tip: Buy …").
+    if (i < 0 || sentenceEndAt(text, i) || /[:"'\u201C\u00AB(]/.test(text[i])) return hit[0];
+  }
+  return null;
 }
 
 /** A mandate without an authority word near it, or null. */
@@ -200,11 +251,24 @@ function unmandated(text: string): string | null {
 export type WordingHit = { id: string; match: string };
 
 /** The first banned wording in `text` (after `normalise`), or null. */
-export function wordingHit(text: string, list: WordingList = "general"): WordingHit | null {
-  const normal = normalise(text);
+/** Where a text sits: opportunity first steps may start with an imperative (OR-65). */
+export type WordingContext = { firstStep?: boolean };
+
+export function wordingHit(text: string, list: WordingList = "general", context: WordingContext = {}): WordingHit | null {
+  const hit = hitIn(normalise(text), list, context);
+  // The second reading, with inline tags removed between letters, only when there are tags at all.
+  if (hit || !/<|&lt;/i.test(text)) return hit;
+  return hitIn(normalise(text, { joinInlineTags: true }), list, context);
+}
+
+function hitIn(normal: string, list: WordingList, context: WordingContext): WordingHit | null {
   for (const { id, pattern } of LISTS[list]) {
     const hit = pattern.exec(normal);
     if (hit) return { id, match: hit[0] };
+  }
+  if (!context.firstStep) {
+    const imperative = imperativeStart(normal);
+    if (imperative) return { id: "imperative", match: imperative };
   }
   if (list === "signal") return null; // the signal list already rejects every mandate and every forecast
   const mandate = unmandated(normal);
@@ -232,9 +296,9 @@ export class AdviceError extends Error {
 }
 
 /** Throws an AdviceError when any of the texts has banned wording; `what` names the field. */
-export function assertDescriptive(texts: Record<string, string>, list: WordingList = "general"): void {
+export function assertDescriptive(texts: Record<string, string>, list: WordingList = "general", context: WordingContext = {}): void {
   for (const [what, text] of Object.entries(texts)) {
-    const hit = wordingHit(text, list);
+    const hit = wordingHit(text, list, context);
     if (hit) throw new AdviceError(wordingReason(what, hit), hit.id);
   }
 }
@@ -261,17 +325,25 @@ export function countingAdvice<T, C>(parse: (value: unknown, context: C) => T, c
   };
 }
 
-/** The first banned wording in any string inside `value` (a reply item, scanned deeply), or null. */
-export function adviceIn(value: unknown, list: WordingList = "general"): WordingHit | null {
-  if (typeof value === "string") return wordingHit(value, list);
+/**
+ * The first banned wording in any string inside `value` (a reply item, scanned deeply), or null.
+ * Strings under a `firstSteps` key are opportunity first steps (imperatives allowed).
+ */
+export function adviceIn(value: unknown, list: WordingList = "general", context: WordingContext = {}): WordingHit | null {
+  if (typeof value === "string") return wordingHit(value, list, context);
   if (Array.isArray(value)) {
     for (const v of value) {
-      const hit = adviceIn(v, list);
+      const hit = adviceIn(v, list, context);
       if (hit) return hit;
     }
     return null;
   }
-  if (value && typeof value === "object") return adviceIn(Object.values(value), list);
+  if (value && typeof value === "object") {
+    for (const [key, v] of Object.entries(value)) {
+      const hit = adviceIn(v, list, key === "firstSteps" ? { firstStep: true } : context);
+      if (hit) return hit;
+    }
+  }
   return null;
 }
 

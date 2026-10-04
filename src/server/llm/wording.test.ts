@@ -189,6 +189,10 @@ describe("OR-64: normalisation, clause breaks, forecast forms, the authority exc
     "Investors must buy gold, OJK data show.",
     "Investor harus membeli emas, data OJK menunjukkan.",
     "Investors must buy gold, according to the ministry.",
+    // QA, OR-64: the Indonesian reporting verb before the authority word, and ujar / tutur.
+    "Investor harus membeli emas, kata kementerian.",
+    "Investor harus membeli emas, ujar otoritas.",
+    "Investor harus membeli emas, OJK tuturnya.",
     "Investors must sell now, the regulator warned.",
     // "recommend" in any inflection, also inside names (accepted).
     "Recommended Daily Allowance rises.",
@@ -241,6 +245,38 @@ describe("OR-64: normalisation, clause breaks, forecast forms, the authority exc
     }
   });
 
+  test("HTML entities are decoded before matching (Reviewer, PR 82)", () => {
+    for (const line of ["you &lt;b&gt;should&lt;/b&gt; buy gold", "you &#115;hould buy gold", "you&nbsp;should&nbsp;buy gold", "you &#x73;hould buy gold"]) {
+      expect(bannedWording(line)).not.toBeNull();
+    }
+    expect(bannedWording("Prices &amp; volumes rose 5%.")).toBeNull();
+    // A word split by a tag is joined back; tags between words still separate them.
+    expect(bannedWording("shou<b>ld</b> buy gold")).not.toBeNull();
+    expect(bannedWording("you &lt;b&gt;sh&lt;/b&gt;ould buy gold")).not.toBeNull();
+    expect(normalise("buy<b></b> now")).toBe("buy now");
+    expect(normalise("Gold<br>prices")).toBe("Gold prices"); // a block tag separates
+  });
+
+  test("both readings of inline tags are checked (Reviewer, PR 94)", () => {
+    for (const line of ["<b>you</b>should buy gold", "you<b>should</b> buy gold", "you<b>should</b>buy gold now", "<i>you</i>should buy gold", "you<span>should</span>buy gold", "shou<b>ld</b> buy gold"]) {
+      expect(bannedWording(line)).not.toBeNull();
+    }
+  });
+
+  test("compounds are not imperatives or ratings; a sentence start after a colon or quote is", () => {
+    for (const line of ["Sell-off in bonds deepened.", "Buy-back plans grew.", "Sell-side analysts disagree.", "Buy-in from banks is slow.", "Strong buy-in from banks."]) {
+      expect(bannedWording(line)).toBeNull();
+    }
+    for (const line of ["Tip: Buy gold today.", '"Buy gold today."', "Morgan Stanley rated the stock a buy.", "BBCA rated as sell by analysts."]) {
+      expect(bannedWording(line)).not.toBeNull();
+    }
+  });
+
+  test("only an institution is excused by a reporting verb before it, not a rule", () => {
+    expect(bannedWording("Reuters said the new rule means funds must invest 30% in bonds.")).toBeNull();
+    expect(bannedWording("Investor harus membeli emas, kata kementerian.")).not.toBeNull();
+  });
+
   test("many < characters stay fast", () => {
     for (const text of ["<".repeat(100_000), "<a ".repeat(33_000)]) {
       const started = performance.now();
@@ -258,5 +294,94 @@ describe("OR-64: normalisation, clause breaks, forecast forms, the authority exc
     const started = performance.now();
     expect(bannedWording(text)).toBeNull();
     expect(performance.now() - started).toBeLessThan(1000);
+  });
+});
+
+describe("OR-65: suggest, certainty, ratings, sentence-initial imperatives", () => {
+  test.each([
+    "Kami merekomendasikan saham BBCA.",
+    "Saham ini direkomendasikan.",
+    "Kami menyarankan membeli emas.",
+    "Analis menyarankan untuk menjual saham.",
+    "Lebih baik beli emas sekarang.",
+    "We suggest buying gold.",
+    "I suggest selling now.",
+    "Analysts suggested investing early.",
+    "Gold is sure to rise.",
+    "Silver is certain to fall.",
+    "We guarantee returns.",
+    "A guaranteed winner.",
+    "A surefire way to profit.",
+    "You can't go wrong with gold.",
+    "It's a no-brainer.",
+    "Harga emas pasti akan naik.",
+    "Tidak mungkin rugi.",
+    "Pasti untung.",
+    "Strong buy rating on BBCA.",
+    "BBCA was rated a sell.",
+    "Peringkat beli untuk BBCA.",
+    "Rekomendasi beli untuk emas.",
+    "Buy gold today.",
+    "Belilah emas hari ini.",
+    "Demand is rising. Sell your stocks.",
+    "Hold the shares until March.",
+    "Invest in gold.",
+    "Jual saham sekarang.",
+    "The fund guarantees 10% returns.",
+    "Dana ini pasti akan naik.",
+    // Accepted false positives (Orchestrator): rejected on purpose, then retried.
+    "The government guarantees deposits up to Rp 2 billion.",
+    "Menteri: 'Pemerintah pasti akan menerbitkan aturan baru.'",
+    "Hold on to the receipts for the audit.",
+    "Tahan banting di cuaca ekstrem.",
+  ])("rejects %s", (line) => {
+    expect(bannedWording(line)).not.toBeNull();
+  });
+
+  test.each([
+    "The data suggest demand is rising.",
+    "Kementerian menyarankan agar platform memverifikasi penjual.",
+    "Make sure to register on OSS first.",
+    "Be sure to compare three suppliers.",
+    "Sellers hold most of the stock in Java.", // "hold" mid-sentence describes
+    "Clinic owners buy software once a year.",
+  ])("passes %s", (line) => {
+    expect(bannedWording(line)).toBeNull();
+  });
+
+  test("opportunity first steps may start with an imperative; the same line elsewhere is rejected", () => {
+    for (const step of ["Buy a small batch of stock to test demand.", "Interview five clinic owners this week.", "Wawancarai lima pemilik klinik minggu ini."]) {
+      expect(wordingHit(step, "general", { firstStep: true })).toBeNull();
+    }
+    expect(wordingHit("Buy a small batch of stock to test demand.")).toMatchObject({ id: "imperative" });
+    // Other advice is still rejected in a first step.
+    expect(wordingHit("We suggest buying gold.", "general", { firstStep: true })).not.toBeNull();
+  });
+
+  test("the first-reply scan treats a firstSteps key as first steps", () => {
+    const item = { thesis: { en: "Fine.", id: "Baik." }, firstSteps: { en: ["Buy a small batch of stock to test demand."], id: ["Beli sedikit stok."] } };
+    expect(adviceIn(item)).toBeNull();
+    expect(adviceIn({ ...item, thesis: { en: "Buy a small batch of stock.", id: "Baik." } })).toMatchObject({ id: "imperative" });
+  });
+
+  test("static copy is never checked: only the AI jobs and the LLM module use the guard", () => {
+    const root = fileURLToPath(new URL("../../", import.meta.url));
+    const users: string[] = [];
+    const walk = (dir: string) => {
+      for (const name of readdirSync(dir)) {
+        const path = join(dir, name);
+        if (statSync(path).isDirectory()) walk(path);
+        else if (/\.tsx?$/.test(name) && !name.endsWith(".test.ts") && /llm\/wording/.test(readFileSync(path, "utf8"))) users.push(path.slice(root.length));
+      }
+    };
+    walk(root);
+    expect(users.sort()).toEqual([
+      "server/news/triage.ts",
+      "server/opportunities/brief.ts",
+      "server/opportunities/contract.ts",
+      "server/opportunities/generate.ts",
+      "server/opportunities/score.ts",
+      "server/ventures/market.ts",
+    ]);
   });
 });
