@@ -74,10 +74,15 @@ and never put a key or token in one.
   (00:00 to about 02:00) can miss "today" fixtures: times before midnight are moved to 00:01, so
   the order of the news items is then by id, and the stale test (3 hours ago) can fall on
   yesterday (the test expects the date form then).
-- `e2e/news.spec.ts` starts a second server (port `E2E_PORT + 1`, same build) whose database
-  connection goes through a small TCP proxy, then stops the proxy: that is how the "store
-  unreachable" state is tested without touching the Postgres server other sessions use.
-  `e2e/opportunities.spec.ts` does the same through `e2e/unreachable-server.ts`.
+- The "store unreachable" tests (`e2e/news.spec.ts`, `e2e/opportunities.spec.ts`) start nothing: the
+  test renames the table the page reads (`runDb("break", "articles")` / `"opportunities"`) in its own
+  e2e database, so the page's query fails the way it does when the store is down, and renames it back
+  (`runDb("restore", ...)`, in a `finally`). Earlier they started a second server behind a TCP proxy,
+  which was too slow and fragile on a busy machine.
+- The skeleton tests use `expectSkeletonOnNavigation` (`e2e/skeleton.ts`): it repeats the whole
+  sequence (fresh page, wait for the header link's prefetch, hold the data request, click) until the
+  skeleton shows or 50 s are up. Without a `loading.tsx` it never shows, so the test still fails.
+  A test that waits for a condition is robust under load; a fixed pause is not.
 - **Seeing the error state by hand.** A server whose database is unreachable at start exits by design
   (`src/instrumentation.ts`), so pointing `DATABASE_URL` at a dead address no longer works. Point it at
   a database that is up but has none of the tables instead: `DATABASE_URL=postgres://postgres@127.0.0.1:54329/postgres
