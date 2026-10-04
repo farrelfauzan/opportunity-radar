@@ -412,7 +412,8 @@ test("a skeleton shows while the screen loads on client-side navigation", async 
   // The header link prefetches the loading skeleton. Wait until the page is idle, so the
   // prefetch has finished and the skeleton is in the router cache; then slow the real request.
   await page.goto("/en/calculators", { waitUntil: "networkidle" });
-  await page.waitForTimeout(500);
+  // The header link's prefetch must have finished (it shows up as a resource request).
+  await page.waitForFunction(() => performance.getEntriesByType("resource").some((e) => /\/en\/news/.test(e.name)));
   await page.route(/\/en\/news/, async (route) => {
     if (!route.request().headers()["next-router-prefetch"]) await new Promise((resolve) => setTimeout(resolve, 1500));
     await route.continue();
@@ -618,4 +619,90 @@ test("switching a source off drops its articles from the list, the header counts
   } finally {
     resetFixtures();
   }
+});
+
+// ---- Partial state (OR-59) -------------------------------------------------------------------
+
+const activeSources = fixtureSources.length; // all fixture sources are active
+const partialLine = {
+  en: (ok: number, names: string) => `${ok} of ${activeSources} sources updated · not updated: ${names}`,
+  id: (ok: number, names: string) => `${ok} dari ${activeSources} sumber diperbarui · belum diperbarui: ${names}`,
+};
+
+test("one source failed on the latest run: the Sources panel says so in EN and ID, with no page banner", async ({
+  page,
+}) => {
+  try {
+    runDb("source-status", "katadata", "403");
+    runDb("source-status", "antara", "304"); // an unchanged feed is a successful check
+    for (const locale of ["en", "id"] as const) {
+      await page.goto(`/${locale}/news`);
+      const card = sourcesCard(page, locale);
+      await expect(card).toContainText(partialLine[locale](activeSources - 1, "Katadata"));
+      await expect(card).toContainText(`Katadata — ${locale === "en" ? "not updated" : "belum diperbarui"}`);
+      await expect(card).not.toContainText(`Antara — `);
+      await expect(page.getByRole("status")).toHaveCount(0); // no page-level banner
+    }
+  } finally {
+    resetFixtures();
+  }
+});
+
+test("every source ok or 304: no partial line", async ({ page }) => {
+  try {
+    runDb("source-status", "antara", "200");
+    runDb("source-status", "katadata", "304");
+    await page.goto("/en/news");
+    await expect(sourcesCard(page, "en")).toContainText(copy.en.note);
+    await expect(sourcesCard(page, "en")).not.toContainText("sources updated");
+    await expect(sourcesCard(page, "en")).not.toContainText("not updated");
+  } finally {
+    resetFixtures();
+  }
+});
+
+test("all sources failed: 0 of N, every name listed", async ({ page }) => {
+  try {
+    for (const source of fixtureSources) runDb("source-status", source.slug, "503");
+    await page.goto("/en/news");
+    const card = sourcesCard(page, "en");
+    await expect(card).toContainText(`0 of ${activeSources} sources updated · not updated:`);
+    await expect(card).toContainText("Katadata");
+    await expect(card).toContainText(longSourceName);
+  } finally {
+    resetFixtures();
+  }
+});
+
+test("while the news is stale only the stale banner shows, not the partial line", async ({ page }) => {
+  try {
+    runDb("fixtures", "--last-run=180");
+    runDb("source-status", "katadata", "403");
+    await page.goto("/en/news");
+    await expect(page.getByRole("status")).toContainText("News last updated");
+    await expect(sourcesCard(page, "en")).not.toContainText("sources updated");
+    await expect(sourcesCard(page, "en")).not.toContainText("not updated");
+  } finally {
+    resetFixtures();
+  }
+});
+
+test("an inactive source that failed is neither counted nor listed", async ({ page }) => {
+  try {
+    runDb("source-status", "katadata", "403");
+    runDb("deactivate", "katadata");
+    await page.goto("/en/news");
+    const card = sourcesCard(page, "en");
+    await expect(card).not.toContainText("Katadata");
+    await expect(card).not.toContainText("sources updated");
+  } finally {
+    resetFixtures();
+  }
+});
+
+test("the category chips form a named group", async ({ page }) => {
+  await page.goto("/en/news");
+  await expect(page.getByRole("group", { name: "Category" }).getByRole("link")).toHaveCount(6);
+  await page.goto("/id/news");
+  await expect(page.getByRole("group", { name: "Kategori" }).getByRole("link")).toHaveCount(6);
 });
