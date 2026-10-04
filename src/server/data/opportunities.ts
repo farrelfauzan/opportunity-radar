@@ -209,3 +209,59 @@ export async function citeArticles(opportunityId: number, articleIds: number[]):
     .values(articleIds.map((articleId) => ({ opportunityId, articleId })))
     .onConflictDoNothing();
 }
+
+export type RescoreInput = {
+  id: number;
+  titleEn: string;
+  thesisEn: string;
+  theme: string;
+  region: string;
+  sectors: string[];
+  horizon: string;
+  capitalLevel: string;
+  articles: { id: number; headline: string; snippet: string; why: string | null }[];
+};
+
+/**
+ * Open opportunities to re-score on `today` (a WIB day): last scored before
+ * today, with at least one cited article fetched on or after the day of that
+ * score (new evidence; scoring-v1 §4). Until OR-50's cited_at exists this uses
+ * the article's fetch time, which may re-score once too often but never misses
+ * new evidence. Each comes with its cited articles, newest first (at most 30).
+ */
+export async function opportunitiesToRescore(today: string, limit: number): Promise<RescoreInput[]> {
+  const rows = (await db().execute(sqlTag`
+    select o.id, o.title_en, o.thesis_en, o.theme, o.region, o.sectors, o.horizon, o.capital_level,
+      (select coalesce(json_agg(x order by x.published_at desc), '[]') from (
+         select a.id, a.headline, a.snippet, t.why_en as why, a.published_at
+         from opportunity_articles oa
+         join articles a on a.id = oa.article_id
+         join sources s on s.id = a.source_id and s.active
+         left join article_triage t on t.article_id = a.id and t.status = 'ok'
+         where oa.opportunity_id = o.id
+         order by a.published_at desc limit 30) x) as articles
+    from opportunities o
+    join lateral (select max(day) as last_day from opportunity_scores where opportunity_id = o.id) s on true
+    where o.status = 'open'
+      and s.last_day < ${today}::date
+      and exists (
+        select 1 from opportunity_articles oa join articles a on a.id = oa.article_id
+        where oa.opportunity_id = o.id
+          and a.fetched_at >= (s.last_day::timestamp at time zone 'Asia/Jakarta'))
+    order by o.id
+    limit ${limit}`)) as unknown as {
+    id: number; title_en: string; thesis_en: string; theme: string; region: string; sectors: string[];
+    horizon: string; capital_level: string; articles: RescoreInput["articles"];
+  }[];
+  return rows.map((r) => ({
+    id: Number(r.id),
+    titleEn: r.title_en,
+    thesisEn: r.thesis_en,
+    theme: r.theme,
+    region: r.region,
+    sectors: r.sectors,
+    horizon: r.horizon,
+    capitalLevel: r.capital_level,
+    articles: r.articles.map((a) => ({ ...a, id: Number(a.id) })),
+  }));
+}
