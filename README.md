@@ -63,7 +63,8 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
   step; later steps are recorded as `skipped`.
 - `--test` runs against the test database; `--timeout <seconds>` overrides the job's own time
   limit (a value that is not a positive number exits with code 2 and runs nothing).
-- `pnpm job ingest-news` fetches the active news feeds once (12; the list and each feed's terms are in `src/server/news/feeds.ts`) (meant to run every 30 minutes) and stores
+- `pnpm job ingest-news` fetches each active news feed once (meant to run every 30 minutes; the
+  feed list and each feed's terms are in `src/server/news/feeds.ts`) and stores
   new articles: headline, snippet and link only. `pnpm sources:health` prints, per source, the
   last successful check, the last status (`200`, `304`, `403`, `timeout`, …) and the number of
   articles stored in the last 24 hours.
