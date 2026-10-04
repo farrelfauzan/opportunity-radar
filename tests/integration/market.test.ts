@@ -95,6 +95,22 @@ describe("getMarketSnapshot", () => {
     expect(rows.map((r) => [r.slug, r.synthetic])).toEqual([["ihsg", false], ["bitcoin", true]]);
   });
 
+  test("a real quote against made-up candles has no change and no sparkline (and the reverse)", async () => {
+    await store(IHSG, { candles: series("2026-10-02", 5), candleSource: "synthetic", quote: { price: 7412, asOf: "2026-10-05T03:00:00Z", source: "yahoo" } });
+    await store(BITCOIN, { candles: series("2026-10-02", 5), candleSource: "binance", quote: { price: 98400, asOf: "2026-10-05T03:00:00Z", source: "synthetic" } });
+    const rows = await getMarketSnapshot();
+    expect(rows.map((r) => [r.slug, r.previousClose, r.closes])).toEqual([["ihsg", null, []], ["bitcoin", null, []]]);
+  });
+
+  test("candles of the price's own kind still give the change when others are mixed in", async () => {
+    await store(IHSG, { candles: series("2026-10-01", 3, 1100), candleSource: "synthetic" });
+    const { id } = await upsertAsset(IHSG);
+    await upsertCandles(id, "yahoo", [candle("2026-10-02", 100), candle("2026-10-03", 101)]);
+    await setQuote(id, { price: 105, asOf: new Date("2026-10-05T03:00:00Z"), source: "yahoo" });
+    const [row] = await getMarketSnapshot();
+    expect(row).toMatchObject({ synthetic: false, previousClose: 101, closes: [100, 101] });
+  });
+
   test("an asset that is stored but has neither a quote nor a candle is left out; the others stay", async () => {
     await store(IHSG, {});
     await store(GOLD, { quote: { price: 1935000, asOf: "2026-10-04T05:00:00Z", source: "gold-api" } });

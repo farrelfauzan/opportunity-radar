@@ -2,6 +2,7 @@
 //   node --conditions=react-server scripts/e2e-db.ts <command>
 // It only ever touches opportunity_radar_e2e_<E2E_PORT>_test (e2eDatabaseUrl).
 //   setup                                 create, empty and migrate the database
+//   drop                                  drop the database (the browser-test run does it when it ends)
 //   fixtures [--last-run=<minutes ago | ISO time | never>] [--no-articles]
 //            [--scores-run=<minutes ago | ISO time | never>] [--brief-run=<minutes ago | ISO time | never>] [--no-opportunities] [--no-brief]
 //            [--brief-day=<days from today, e.g. -1>] [--no-market]
@@ -39,7 +40,7 @@ import { detailOf, evidenceArticles, factorsOf, fixtureOpportunities } from "../
 import { fixtureArticles, fixtureSources, todayStats } from "../e2e/news-fixtures.ts";
 import { fixtureMarket } from "../e2e/market-fixtures.ts";
 import { fixtureBriefLines } from "../e2e/radar-fixtures.ts";
-import { resetTestDatabase } from "./db-admin.ts";
+import { dropTestDatabase, resetTestDatabase } from "./db-admin.ts";
 import { e2eDatabaseUrl } from "./e2e-env.ts";
 
 const url = e2eDatabaseUrl();
@@ -168,7 +169,8 @@ async function storeMarket(): Promise<Date> {
     const { id } = await upsertAsset({ slug: f.slug, symbol: f.symbol, name: f.name, kind: f.kind, exchange: f.exchange, currency: f.currency, source: f.source });
     await upsertCandles(
       id,
-      f.source,
+      // A made-up price comes with made-up candles (a change against real ones is hidden, see getMarketSnapshot).
+      f.quoteSource === "synthetic" ? "synthetic" : f.source,
       f.closes.map((close, i) => {
         const day = new Date(today - (f.closes.length - i) * DAY_MS).toISOString().slice(0, 10);
         return { day, open: close, high: close, low: close, close, volume: null };
@@ -286,6 +288,9 @@ async function main() {
   switch (command) {
     case "setup":
       await resetTestDatabase(url);
+      break;
+    case "drop":
+      await dropTestDatabase(url);
       break;
     case "fixtures":
       await fixtures();
