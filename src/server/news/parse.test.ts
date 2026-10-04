@@ -27,6 +27,16 @@ describe("parseFeed", () => {
     expect(second).toMatchObject({ link: "https://example.org/posts/2", description: "", date: "2026-10-03T02:00:00Z" });
   });
 
+  test("Atom: <content> is never used as the description, even without a summary", () => {
+    const [entry] = parseFeed(`<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>t</title>
+  <entry><title>Only content</title><link href="https://example.org/full"/>
+    <content type="html">&lt;p&gt;The whole article body.&lt;/p&gt;</content>
+    <published>2026-10-03T08:00:00Z</published></entry>
+</feed>`);
+    expect(entry.description).toBe("");
+  });
+
   test("an empty feed has no items", () => {
     expect(parseFeed(readFixture("synthetic/empty.xml"))).toEqual([]);
   });
