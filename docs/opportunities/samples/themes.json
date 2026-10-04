@@ -1,0 +1,179 @@
+{
+ "note": "Sample themes for OR-11 two-scorer check. Articles are real items from the live RSS feeds on 2026-10-04 (headline, source, link, RSS snippet). Theme text is written by the Researcher. No scores here.",
+ "themes": [
+  {
+   "id": "theme-a",
+   "title": "Climate-resilient farming services for Indonesian smallholders",
+   "thesis": "El Niño is cutting rice output while the government pushes solar water pumps and crop insurance: sell low-cost irrigation, insurance enrolment help and weather advice to smallholder farmers and co-operatives.",
+   "region": "Indonesia",
+   "sectors": [
+    "agri_food",
+    "renewables_climate"
+   ],
+   "horizon": "6–12 months",
+   "articles": [
+    {
+     "id": "a1",
+     "source": "CNBC Indonesia",
+     "lang": "id",
+     "title": "Dampak El Nino Terhadap Produksi Beras RI Memburuk",
+     "published": "Sun, 04 Oct 2026 06:45:00 +0700",
+     "url": "https://www.cnbcindonesia.com/news/20261003222413-4-773087/dampak-el-nino-terhadap-produksi-beras-ri-memburuk",
+     "snippet": "BPS mencatat, fenomena kekeringan berkepanjangan alias El Nino yang terjadi pada 2026 lebih buruk dibanding periode 2023"
+    },
+    {
+     "id": "a2",
+     "source": "CNBC Indonesia",
+     "lang": "id",
+     "title": "Video: AUTP Kementan, Petani Jateng Berhasil Klaim Asuransi Rp 7,1 M",
+     "published": "Sat, 03 Oct 2026 14:00:29 +0700",
+     "url": "https://www.cnbcindonesia.com/news/20260929091357-8-771653/video-autp-kementan-petani-jateng-berhasil-klaim-asuransi-rp-71-m",
+     "snippet": "Ikut AUTP Kementan, Petani Jawa Tengah Berhasil Klaim Asuransi Kerugian Rp 7,1 Miliar"
+    },
+    {
+     "id": "a3",
+     "source": "Antara",
+     "lang": "id",
+     "title": "Pemerintah meresmikan PATS Samosir guna irigasi 82 hektare sawah",
+     "published": "Sat, 03 Oct 2026 18:52:00 +0700",
+     "url": "https://www.antaranews.com/berita/5770030/pemerintah-meresmikan-pats-samosir-guna-irigasi-82-hektare-sawah",
+     "snippet": "Pemerintah bersama Kedutaan Besar Inggris untuk Indonesia meresmikan operasional Pompa Air Tenaga Surya (PATS) Desa ..."
+    },
+    {
+     "id": "a4",
+     "source": "Antara",
+     "lang": "id",
+     "title": "Bappenas sebut PATS Samosir tekan biaya petani hingga nol rupiah",
+     "published": "Sat, 03 Oct 2026 21:57:39 +0700",
+     "url": "https://www.antaranews.com/berita/5770186/bappenas-sebut-pats-samosir-tekan-biaya-petani-hingga-nol-rupiah",
+     "snippet": "Kementerian PPN/Bappenas menyebut penggunaan Pompa Air Tenaga Surya (PATS) di Desa Sibonor Ompu Ratus, Kabupaten ..."
+    },
+    {
+     "id": "a5",
+     "source": "CNBC Indonesia",
+     "lang": "id",
+     "title": "Tok! G20 Tolak Komoditas Pangan Jadi Alat Ancaman Politik",
+     "published": "Sun, 04 Oct 2026 06:15:00 +0700",
+     "url": "https://www.cnbcindonesia.com/news/20261003211211-4-773085/tok-g20-tolak-komoditas-pangan-jadi-alat-ancaman-politik",
+     "snippet": "Menteri Perdagangan G20 menolak berbagai upaya untuk menjadikan pangan sebagai alat untuk menekan dalam hubungan geopolitik."
+    }
+   ]
+  },
+  {
+   "id": "theme-b",
+   "title": "Fuel-cost and supply-chain resilience services for logistics operators and SMEs",
+   "thesis": "Diesel is above £2 a litre in the UK and the US threatens export bans; Indonesian logistics also reports war-related supply disruption and truck-overload enforcement: sell fuel-saving routing, bonded-warehouse and load-compliance tools to small fleets and exporters.",
+   "region": "Worldwide",
+   "sectors": [
+    "logistics",
+    "energy_mining"
+   ],
+   "horizon": "0–6 months",
+   "articles": [
+    {
+     "id": "b1",
+     "source": "BBC Business",
+     "lang": "en",
+     "title": "G7 to release millions of barrels of oil and diesel after Trump threat",
+     "published": "Sat, 03 Oct 2026 04:38:31 GMT",
+     "url": "https://www.bbc.co.uk/news/articles/ck87zg8jnwngo?at_medium=RSS&at_campaign=rss",
+     "snippet": "The co-ordinated release is aimed at heading off further price spikes and avoiding a ban on US diesel exports."
+    },
+    {
+     "id": "b2",
+     "source": "BBC Business",
+     "lang": "en",
+     "title": "UK diesel prices top £2 a litre for first time, RAC says",
+     "published": "Fri, 02 Oct 2026 15:50:05 GMT",
+     "url": "https://www.bbc.co.uk/news/articles/crn8e86y5n0zo?at_medium=RSS&at_campaign=rss",
+     "snippet": "The rise in global oil prices has been pushing up the pump prices of petrol and diesel in the UK."
+    },
+    {
+     "id": "b3",
+     "source": "BBC Business",
+     "lang": "en",
+     "title": "US pressures Europe to release diesel reserves as Trump threatens export ban",
+     "published": "Fri, 02 Oct 2026 08:54:00 GMT",
+     "url": "https://www.bbc.co.uk/news/articles/c5zjzjgdeneeo?at_medium=RSS&at_campaign=rss",
+     "snippet": "President Donald Trump has threatened to ban diesel exports in a bid to ease prices in the US ahead of the November elections."
+    },
+    {
+     "id": "b4",
+     "source": "CNBC Indonesia",
+     "lang": "id",
+     "title": "Video: Peran Pusat Logistik Saat Rantai Pasok Terganggu Efek Perang",
+     "published": "Sat, 03 Oct 2026 19:00:03 +0700",
+     "url": "https://www.cnbcindonesia.com/news/20260930093517-8-772013/video-peran-pusat-logistik-saat-rantai-pasok-terganggu-efek-perang",
+     "snippet": "Rantai Pasok Terganggu Perang Timur Tengah, Pusat Logistik Berikat (PLB)_ Punya Peran Penting"
+    },
+    {
+     "id": "b5",
+     "source": "Katadata",
+     "lang": "id",
+     "title": "Truk ODOL Ditertibkan, Pendapatan Pengusaha Penyeberangan Naik 9%",
+     "published": "Sat, 03 Oct 2026 11:53:00 +0700",
+     "url": "https://katadata.co.id/berita/industri/6ac08a3165c3b/truk-odol-ditertibkan-pendapatan-pengusaha-penyeberangan-naik-9",
+     "snippet": "Penertiban truk obesitas atau over dimension over loading (ODOL) meningkatkan pendapatan pengusaha penyeberangan hingga 9%."
+    }
+   ]
+  },
+  {
+   "id": "theme-c",
+   "title": "Scam-protection and verification tools for Indonesian consumers and SMEs",
+   "thesis": "OJK says Rp 12 trillion was lost to digital scams in two years and is preparing an anti-scam app: build a licensed-provider checker, scam-report triage and payment-fraud alerts for consumers and marketplace sellers.",
+   "region": "Indonesia",
+   "sectors": [
+    "fintech_finance",
+    "ai_software"
+   ],
+   "horizon": "6–12 months",
+   "articles": [
+    {
+     "id": "c1",
+     "source": "Katadata",
+     "lang": "id",
+     "title": "OJK Sebut Dana Masyarakat RI Hilang Rp12 Triliun dalam 2 Tahun, Ada Apa?",
+     "published": "Sat, 03 Oct 2026 18:10:00 +0700",
+     "url": "https://katadata.co.id/finansial/keuangan/6ac0e2b0bbcff/ojk-sebut-dana-masyarakat-ri-hilang-rp12-triliun-dalam-2-tahun-ada-apa",
+     "snippet": "Otoritas Jasa Keuangan (OJK) mengungkapkan kerugian masyarakat akibat penipuan digital atau scam telah mencapai sekitar Rp 12 triliun dalam dua tahun terakhir."
+    },
+    {
+     "id": "c2",
+     "source": "Katadata",
+     "lang": "id",
+     "title": "Marak Penipuan Keuangan, OJK Perkuat Sistem Penanganan Anti-Scam",
+     "published": "Sat, 03 Oct 2026 19:41:00 +0700",
+     "url": "https://katadata.co.id/finansial/keuangan/6ac0f804d18f6/marak-penipuan-keuangan-ojk-perkuat-sistem-penanganan-anti-scam",
+     "snippet": "OJK menekankan pentingnya meningkatkan literasi keuangan dan perlindungan konsumen untuk mengantisipasi risiko penipuan di era transaksi digital yang semakin masif."
+    },
+    {
+     "id": "c3",
+     "source": "Katadata",
+     "lang": "id",
+     "title": "OJK Siapkan Aplikasi Anti-Scam, Konsepnya Mirip QRIS",
+     "published": "Sat, 03 Oct 2026 18:40:00 +0700",
+     "url": "https://katadata.co.id/finansial/keuangan/6ac0e9a9d593a/ojk-siapkan-aplikasi-anti-scam-konsepnya-mirip-qris",
+     "snippet": "Otoritas Jasa Keuangan (OJK) tengah menyiapkan konsep aplikasi anti-scam yang nantinya dapat digunakan masyarakat untuk mengecek legalitas perusahaan jasa keuangan maupun rekening sebelum transaksi."
+    },
+    {
+     "id": "c4",
+     "source": "Katadata",
+     "lang": "id",
+     "title": "Kemudahan Transaksi Digital Berisiko Buat Anak Muda Belanja Impulsif",
+     "published": "Sat, 03 Oct 2026 19:12:00 +0700",
+     "url": "https://katadata.co.id/finansial/keuangan/6ac0f121d13b9/kemudahan-transaksi-digital-berisiko-buat-anak-muda-belanja-impulsif",
+     "snippet": "Kemudahan transaksi digital membuat masyarakat semakin mudah mengeluarkan uang."
+    },
+    {
+     "id": "c5",
+     "source": "Katadata",
+     "lang": "id",
+     "title": "Pajak Marketplace Berlaku, UMKM Omzet di Bawah Rp500 Juta Harus Dilindung",
+     "published": "Sat, 03 Oct 2026 14:41:00 +0700",
+     "url": "https://katadata.co.id/finansial/keuangan/6ac0b197622a5/pajak-marketplace-berlaku-umkm-omzet-di-bawah-rp500-juta-harus-dilindung",
+     "snippet": "Penerapan pemungutan Pajak Penghasilan (PPh) Pasal 22 melalui marketplace mulai berlaku pada 1 Oktober 2026."
+    }
+   ]
+  }
+ ]
+}

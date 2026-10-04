@@ -4,7 +4,7 @@
 |---|---|
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | `next typegen`, then `tsc --noEmit` |
-| `pnpm test` | Unit tests only (Vitest). Does not start a browser |
+| `pnpm test` | Unit tests and database integration tests (Vitest). Needs the local database (`pnpm db:up`). Does not start a browser |
 | `pnpm test:e2e` | Browser smoke test (Playwright, Chromium) against a production build |
 | `pnpm build` | Production build |
 
@@ -24,6 +24,21 @@ pnpm exec playwright install chromium
 - Limit: unit tests cover plain modules (parsers, formatters, rules, calculators). `async` Server
   Components are not supported by Vitest; they are covered by the browser test.
 
+## Integration tests (`pnpm test`, project `integration`)
+
+- Files: `tests/integration/**/*.test.ts`. Run only these with `pnpm test --project integration`,
+  only the unit tests with `pnpm test --project unit` (no database needed).
+- They need Docker running and the database set up once (`pnpm db:setup`).
+- They use the **test database** (`TEST_DATABASE_URL`) and nothing else: the run starts by
+  emptying and migrating it, and refuses a database whose name does not end in `_test` or that
+  equals `DATABASE_URL`. Development data is never read or changed.
+- The network block of the unit tests does not apply here.
+- Two runs on this machine wait for each other (a Postgres advisory lock), because every worktree
+  shares one database server.
+- `client-import.test.ts` builds a temporary copy of the app (`.tmp-client-import-*`, removed
+  afterwards) with a Client Component that imports `@/server/data`, and asserts that `next build`
+  fails. It takes about 10 seconds.
+
 ## Fixtures
 
 Recorded upstream responses live in `tests/fixtures/<source>/<name>.<ext>`, for example
@@ -33,6 +48,8 @@ and never put a key or token in one.
 
 ## Browser smoke test (`pnpm test:e2e`)
 
+- Needs the local database (`pnpm db:up`): the server checks its database connection when it
+  starts.
 - Builds the app and starts it with `next start` on its own port: **3210**, or `E2E_PORT=<port>`.
   The server is stopped when the run ends, pass or fail.
 - If something already listens on that port, the run stops with "http://localhost:3210 is already
