@@ -328,5 +328,11 @@ describe("opportunity candidates", () => {
 
     process.env.TRIAGE_MIN_RELEVANCE = "50";
     expect((await opportunityCandidates(since)).map((r) => r.article.id)).toEqual([ids[2]]);
+
+    // Empty (as .env.example leaves it) or invalid means the default 30, never 0.
+    for (const value of ["", "  ", "abc", "150"]) {
+      process.env.TRIAGE_MIN_RELEVANCE = value;
+      expect((await opportunityCandidates(since)).map((r) => r.article.id).sort()).toEqual([ids[1], ids[2]].sort());
+    }
   });
 });
