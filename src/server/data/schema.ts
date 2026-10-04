@@ -509,6 +509,9 @@ export const articleTriage = pgTable(
 );
 
 export const ASSET_KINDS = ["index", "stock", "metal", "crypto", "fx"] as const;
+/** Where a stored price is from. "synthetic" is made-up fixtures data: never shown or used as real. */
+export const PRICE_SOURCES = ["yahoo", "synthetic", "frankfurter", "yahoo-futures", "gold-api", "binance", "indodax"] as const;
+export type PriceSource = (typeof PRICE_SOURCES)[number];
 export type AssetKind = (typeof ASSET_KINDS)[number];
 
 // Something with a price (OR-26; OR-27 adds metals and crypto). `slug` is the
@@ -523,7 +526,7 @@ export const assets = pgTable(
     kind: text().$type<AssetKind>().notNull(),
     exchange: text(),
     currency: text().notNull(),
-    // Where its prices come from: "yahoo", "frankfurter" (OR-27 adds more).
+    // Where its prices come from: "yahoo", "frankfurter", "gold-api", "binance", "indodax".
     source: text().notNull(),
     onWatchlist: boolean("on_watchlist").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -556,8 +559,9 @@ export const candles = pgTable(
     primaryKey({ columns: [t.assetId, t.day] }),
     check("candles_prices_check", sql`${t.low} > 0 and ${t.low} <= ${t.open} and ${t.low} <= ${t.close} and ${t.high} >= ${t.open} and ${t.high} >= ${t.close}`),
     check("candles_volume_check", sql`${t.volume} >= 0`),
-    // "synthetic" marks made-up fixtures data, so it can never pass for real prices.
-    check("candles_source_check", sql`${t.source} in ('yahoo', 'synthetic', 'frankfurter')`),
+    // "synthetic" marks made-up fixtures data, so it can never pass for real prices;
+    // "yahoo-futures" is metal history from COMEX futures, never labelled as spot (OR-27).
+    check("candles_source_check", sql`${t.source} in (${sql.raw(PRICE_SOURCES.map((s) => `'${s}'`).join(", "))})`),
   ],
 );
 
@@ -576,6 +580,6 @@ export const quotes = pgTable(
   },
   (t) => [
     check("quotes_price_check", sql`${t.price} > 0`),
-    check("quotes_source_check", sql`${t.source} in ('yahoo', 'synthetic', 'frankfurter')`),
+    check("quotes_source_check", sql`${t.source} in (${sql.raw(PRICE_SOURCES.map((s) => `'${s}'`).join(", "))})`),
   ],
 );

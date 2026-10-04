@@ -8,3 +8,17 @@ export const ASSETS: NewAsset[] = [
   // Not on the watchlist: used to convert USD prices to rupiah, and for the currency check (OR-29).
   { slug: "usd-idr", symbol: "USD/IDR", name: "USD/IDR", kind: "fx", exchange: null, currency: "IDR", source: "frankfurter", onWatchlist: false },
 ];
+
+// OR-27, the `metals` job: spot price converted to IDR per gram (D7); history from futures.
+export const METALS: NewAsset[] = [
+  { slug: "gold", symbol: "XAU", name: "Gold", kind: "metal", exchange: null, currency: "IDR", source: "gold-api" },
+  { slug: "silver", symbol: "XAG", name: "Silver", kind: "metal", exchange: null, currency: "IDR", source: "gold-api" },
+];
+
+// OR-27, the `crypto` job: USD from Binance (USDT treated as USD); the rupiah price from Indodax (quote only).
+export const CRYPTO: NewAsset[] = [
+  { slug: "bitcoin", symbol: "BTCUSDT", name: "Bitcoin", kind: "crypto", exchange: null, currency: "USD", source: "binance" },
+  { slug: "ethereum", symbol: "ETHUSDT", name: "Ethereum", kind: "crypto", exchange: null, currency: "USD", source: "binance" },
+  { slug: "bitcoin-idr", symbol: "btcidr", name: "Bitcoin (IDR)", kind: "crypto", exchange: "Indodax", currency: "IDR", source: "indodax", onWatchlist: false },
+  { slug: "ethereum-idr", symbol: "ethidr", name: "Ethereum (IDR)", kind: "crypto", exchange: "Indodax", currency: "IDR", source: "indodax", onWatchlist: false },
+];

@@ -3,15 +3,13 @@
 // recorded history in ./fixtures, for tests.
 import { readFileSync } from "node:fs";
 import type { Candle } from "@/server/data";
-import { PriceSourceError } from "./yahoo.ts";
+import { priceMode, PriceSourceError } from "./yahoo.ts";
 
 type Rates = { base: string; start_date?: string; end_date?: string; rates: Record<string, { IDR?: number }> };
 
 /** PRICES_FRANKFURTER: "live" (default when unset) or "fixtures". */
 export function frankfurterMode(): "fixtures" | "live" {
-  const mode = process.env.PRICES_FRANKFURTER?.trim() || "live";
-  if (mode !== "fixtures" && mode !== "live") throw new PriceSourceError('PRICES_FRANKFURTER must be "fixtures" or "live"');
-  return mode;
+  return priceMode("PRICES_FRANKFURTER", ["fixtures", "live"], "live");
 }
 
 /** One daily "candle" per reference day: open, high, low and close are the day's rate. */
