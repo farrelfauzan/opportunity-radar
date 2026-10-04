@@ -3,7 +3,7 @@ import { db } from "./client.ts";
 import { articles, CATEGORIES, REGIONS, sources, type Category, type Region } from "./schema.ts";
 
 export type Article = typeof articles.$inferSelect;
-export type ArticleWithSource = Article & { sourceName: string };
+export type ArticleWithSource = Article & { sourceName: string; sourceSlug: string };
 
 export type NewArticle = {
   sourceId: number;
@@ -88,20 +88,31 @@ export type ArticleFilter = {
   category?: Category;
 };
 
+/**
+ * The one rule for which stored articles may be shown, counted, triaged or
+ * matched: those whose source is active. Articles of a switched-off source stay
+ * in the database (deleting them is the Tech Lead's call) but are invisible.
+ * Every read of articles joins `sources` and applies this condition, including
+ * the triage queue (OR-14) and opportunity / venture matching (OR-15, OR-38).
+ */
+export const articleIsVisible = eq(sources.active, true);
+
 /** The News-list query, unexecuted (the tie-break test reads its SQL). */
 export function articlesQuery(filter: ArticleFilter) {
   const day = filter.day ?? wibDay();
   const start = new Date(`${day}T00:00:00+07:00`);
   // The round trip rejects days that do not exist, like 2026-02-30 (which Date rolls into March).
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || Number.isNaN(start.getTime()) || wibDay(start) !== day) {
+  // Days before 1970 are refused too: no article is that old, and year 0 breaks the query.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day < "1970-01-01" || Number.isNaN(start.getTime()) || wibDay(start) !== day) {
     throw new Error("day must be YYYY-MM-DD");
   }
   return db()
-    .select({ article: articles, sourceName: sources.name })
+    .select({ article: articles, sourceName: sources.name, sourceSlug: sources.slug })
     .from(articles)
     .innerJoin(sources, eq(articles.sourceId, sources.id))
     .where(
       and(
+        articleIsVisible,
         gte(articles.publishedAt, start),
         lt(articles.publishedAt, new Date(start.getTime() + DAY_MS)),
         filter.region ? eq(articles.region, filter.region) : undefined,
@@ -117,5 +128,5 @@ export function articlesQuery(filter: ArticleFilter) {
  */
 export async function listArticles(filter: ArticleFilter): Promise<ArticleWithSource[]> {
   const rows = await articlesQuery(filter);
-  return rows.map((row) => ({ ...row.article, sourceName: row.sourceName }));
+  return rows.map((row) => ({ ...row.article, sourceName: row.sourceName, sourceSlug: row.sourceSlug }));
 }

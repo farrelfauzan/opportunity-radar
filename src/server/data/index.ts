@@ -21,6 +21,9 @@ export type {
   Horizon,
   CapitalLevel,
   OpportunityStatus,
+  FactorScores,
+  LlmRole,
+  LlmCallStatus,
 } from "./schema.ts";
 export * from "./articles.ts";
 export * from "./sources.ts";
@@ -28,3 +31,5 @@ export * from "./job-runs.ts";
 export * from "./opportunities.ts";
 export { addDays, computeTrend, daysBetween, TREND_DAYS } from "./trend.ts";
 export type { Trend } from "./trend.ts";
+export * from "./ventures.ts";
+export * from "./llm-usage.ts";

@@ -11,13 +11,13 @@ import type {
   Region,
   Sector,
 } from "../src/server/data/index.ts";
-import { FEEDS } from "../src/server/news/feeds.ts";
+import { FEEDS, sourceOf } from "../src/server/news/feeds.ts";
 
 const MIN = 60_000;
 const HOUR = 60 * MIN;
 
 // The real feed list, so seeded and ingested articles share the same sources.
-export const seedSources: NewSource[] = FEEDS;
+export const seedSources: NewSource[] = FEEDS.map(sourceOf);
 
 export type SeedArticle = {
   source: string;

@@ -19,6 +19,7 @@ Contents: 1 Shell · 2 States (all screens) · 3 News · 4 Calculators · 5 Rada
 | Key | EN | ID |
 |---|---|---|
 | app.name | Opportunity Radar | Opportunity Radar |
+| meta.description | Business opportunities and investment signals from the news. | Peluang bisnis dan sinyal investasi dari berita. |
 | nav.radar | Radar | Radar |
 | nav.opportunities | Opportunities | Peluang |
 | nav.news | News | Berita |
@@ -54,6 +55,10 @@ Contents: 1 Shell · 2 States (all screens) · 3 News · 4 Calculators · 5 Rada
 | Key | EN | ID |
 |---|---|---|
 | state.loading | Loading… | Memuat… |
+| time.justNow | just now | baru saja |
+| time.minutesAgo | {n}m ago | {n} mnt lalu |
+| time.hoursAgo | {n}h ago | {n} jam lalu |
+| time.daysAgo | {n}d ago | {n} hari lalu |
 | state.error.title | Can't load this right now | Tidak dapat memuat sekarang |
 | state.error.body | Try again in a moment. If it keeps happening, the local database may be stopped. | Coba lagi sebentar lagi. Jika terus terjadi, database lokal mungkin berhenti. |
 | state.error.retry | Try again | Coba lagi |
@@ -127,6 +132,7 @@ Exchange holidays come from a small holiday list in config; until it exists, wee
 | news.sources.title | Sources | Sumber |
 | news.sources.indonesia | Indonesia: {names} | Indonesia: {names} |
 | news.sources.global | Global: {names} | Global: {names} |
+| news.sources.notUpdated | not updated | belum diperbarui |
 | news.sources.note | Headlines and links only; the full article opens on the publisher's site. | Hanya judul dan tautan; artikel lengkap dibuka di situs penerbit. |
 | news.onlyLinked | Only news linked to an opportunity | Hanya berita yang terkait peluang |
 | news.impact.opportunity | Opportunity | Peluang |
@@ -136,6 +142,36 @@ Exchange holidays come from a small holiday list in config; until it exists, wee
 | news.linked | Linked opportunity: {title} | Peluang terkait: {title} |
 | news.themes.title | Trending themes, 7 days | Tema populer, 7 hari |
 | news.themes.caption | Number of articles mentioning each theme. | Jumlah artikel yang menyebut setiap tema. |
+
+### 3.1 Source credit for open-licence sources (PR 22)
+
+Four sources are reused under licences that require a credit and a link to the original wherever an item is shown (`licence` field in `src/server/news/feeds.ts`). The headline already links to the original; the credit line adds the publisher and, where there is one, the licence.
+
+| Key | EN | ID |
+|---|---|---|
+| news.credit.line | Source: {publisher} | Sumber: {publisher} |
+| news.credit.lineLicence | Source: {publisher} · {licence} | Sumber: {publisher} · {licence} |
+| news.credit.original | Read the original | Baca artikel asli |
+| news.credit.publisher.conversation-id | The Conversation Indonesia | The Conversation Indonesia |
+| news.credit.publisher.conversation-global | The Conversation | The Conversation |
+| news.credit.publisher.federal-reserve | Federal Reserve Board | Federal Reserve Board |
+| news.credit.publisher.ecb | European Central Bank | Bank Sentral Eropa (ECB) |
+| news.credit.licence.cc-by-nd-4 | CC BY-ND 4.0 | CC BY-ND 4.0 |
+
+| Source slug | Credit line shown (EN) | Licence link |
+|---|---|---|
+| conversation-id | Source: The Conversation Indonesia · CC BY-ND 4.0 | https://creativecommons.org/licenses/by-nd/4.0/ |
+| conversation-global | Source: The Conversation · CC BY-ND 4.0 | https://creativecommons.org/licenses/by-nd/4.0/ |
+| federal-reserve | Source: Federal Reserve Board | — |
+| ecb | Source: European Central Bank | — |
+
+Rules
+- Where: on every surface that shows one of these items: News list (OR-9, OR-21), Radar "News that moves opportunities" (OR-23), opportunity evidence (OR-18), venture related news and wind evidence (OR-51), daily-brief citations if shown. The app has no article detail page: the headline opens the publisher's original in a new tab, which is the required link. `news.credit.original` is used only where a surface shows no clickable headline.
+- How: one line under the snippet (or under the headline where no snippet is shown), muted text, the licence name as a link to the licence deed. Shown in both locales; publisher and licence names are not translated except "European Central Bank" in ID.
+- The Conversation (CC BY-ND, no derivatives): its summary is shown as stored (tags stripped, entities decoded, cut at 500 characters; no other change), never translated, rewritten or summarised by the LLM, also on `/id`. "Why it matters" and other AI text stay visually separate and labelled as ours, so they are commentary, not an altered version.
+- Sources without a reuse licence keep the existing meta line (`news.item.meta`) and no credit line.
+
+Partial state (OR-9 follow-up): when the news is not stale but at least one active source failed on the latest ingestion run (status not ok and not 304), the Sources panel shows `state.partial` at its top and `news.sources.notUpdated` after each affected source name. No page-level banner; the stale banner (§2) takes precedence when both apply.
 
 Region shown on an item uses `news.region.id` / `news.region.global`. Category and region filters live in the URL query. OR-21 adds the impact, why, linked and themes strings; OR-9 uses the rest.
 
@@ -196,8 +232,9 @@ Region shown on an item uses `news.region.id` / `news.region.global`. Category a
 | calc.unit.million | million | juta |
 | calc.unit.billion | billion | miliar |
 | calc.unit.trillion | trillion | triliun |
+| calc.result.beyond | more than Rp 1,000 trillion | lebih dari Rp 1.000 triliun |
 
-`calc.inv.chartLabel`, `calc.inv.presetGroup` and `calc.biz.chartLabel` are accessible names (charts and the preset button group). Large amounts in results use compact form, with the unit words `calc.unit.*`: millions with one decimal, billions and trillions with two. EN `Rp 425.7 million`, `Rp 1.20 billion`, `Rp 2.00 trillion`; ID `Rp 425,7 juta`, `Rp 1,20 miliar`, `Rp 2,00 triliun`. Each result card also shows the exact rupiah amount below the compact form, except above 2^53 (about 9 × 10^15), where only the compact form is shown. Exact values for the defaults are in the AC of OR-24/25.
+`calc.inv.chartLabel`, `calc.inv.presetGroup` and `calc.biz.chartLabel` are accessible names (charts and the preset button group). Large amounts in results use compact form, with the unit words `calc.unit.*`: millions with one decimal, billions and trillions with two. EN `Rp 425.7 million`, `Rp 1.20 billion`, `Rp 2.00 trillion`; ID `Rp 425,7 juta`, `Rp 1,20 miliar`, `Rp 2,00 triliun`. Each result card also shows the exact rupiah amount below the compact form, except above 2^53 (about 9 × 10^15), where only the compact form is shown. From Rp 1.000 trillion (10^15) upwards, results and chart axis labels show `calc.result.beyond` instead of a number; never exponent notation ("3.5e+48") and never a 40-digit amount. Exact values for the defaults are in the AC of OR-24/25.
 
 ## 5. Radar (OR-23, OR-28, OR-34, OR-39)
 

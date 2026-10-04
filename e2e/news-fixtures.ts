@@ -15,6 +15,8 @@ export const fixtureSources: { slug: string; name: string; region: FixtureRegion
   { slug: "katadata", name: "Katadata", region: "indonesia" },
   { slug: "bbc-business", name: "BBC Business", region: "global" },
   { slug: "techcrunch", name: "TechCrunch", region: "global" },
+  { slug: "conversation-id", name: "The Conversation Indonesia", region: "indonesia" },
+  { slug: "ecb", name: "European Central Bank", region: "global" },
 ];
 
 export const headlines = {
@@ -24,6 +26,8 @@ export const headlines = {
   markupSnippet: "<script>window.__pwned=1</script> and <a href=\"javascript:window.__pwned=1\">link</a>",
   long: `Superkalifragilistikekspialidosiusperdagangan${"Mahapanjang".repeat(24)}`,
   yesterday: "Berita kemarin yang tidak dihitung hari ini",
+  conversation: "Mengapa harga beras terus naik di pasar tradisional",
+  ecb: "ECB keeps interest rates unchanged",
 };
 
 export type FixtureArticle = {
@@ -97,6 +101,9 @@ export function fixtureArticles(now = new Date()): FixtureArticle[] {
   add("techcrunch", "global", "markets", "Bond yields rise on strong jobs data", 118);
   add("cnbc-indonesia", "indonesia", "commodities", "Harga nikel naik setelah pembatasan ekspor", 119);
   add("antara", "indonesia", "commodities", "Harga emas Antam cetak rekor baru", 117);
+  // Licensed sources: they carry a credit line (and The Conversation its licence link).
+  add("conversation-id", "indonesia", "politics", headlines.conversation, 121, "Ringkasan yang dipakai apa adanya.");
+  add("ecb", "global", "markets", headlines.ecb, 125, "The Governing Council kept the key rates unchanged.");
   // Yesterday (WIB): stored, but never listed or counted.
   list.push({
     source: "antara",

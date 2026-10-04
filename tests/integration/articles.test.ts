@@ -178,6 +178,7 @@ describe("listArticles: a WIB calendar day, newest first", () => {
     const list = await listArticles({ day: "2026-10-03", region: "global", category: "tech-ai" });
     expect(list.map((a) => a.headline)).toEqual(["global-tech"]);
     expect(list[0].sourceName).toBe("TechCrunch");
+    expect(list[0].sourceSlug).toBe("techcrunch");
 
     const global = await listArticles({ day: "2026-10-03", region: "global" });
     expect(global.map((a) => a.headline)).toEqual(["global-business", "global-tech"]);
@@ -199,10 +200,33 @@ describe("listArticles: a WIB calendar day, newest first", () => {
     );
   });
 
+  test("articles of a switched-off source are kept but not listed; switching it on shows them again", async () => {
+    await at("2026-10-03T03:00:00Z", "from-active");
+    const off = {
+      slug: "switched-off",
+      name: "Switched off",
+      feedUrl: "https://example.com/off.xml",
+      region: "global",
+      category: "tech-ai",
+    } as const;
+    const other = await upsertSource(off);
+    await at("2026-10-03T04:00:00Z", "from-inactive", { sourceId: other.id });
+
+    await upsertSource({ ...off, active: false });
+    expect((await listArticles({ day: "2026-10-03" })).map((a) => a.headline)).toEqual(["from-active"]);
+    expect(await count()).toBe(2); // kept in the database
+
+    await upsertSource({ ...off, active: true });
+    expect((await listArticles({ day: "2026-10-03" })).map((a) => a.headline)).toEqual(["from-inactive", "from-active"]);
+  });
+
   test("an invalid day is rejected", async () => {
     await expect(listArticles({ day: "03-10-2026" })).rejects.toThrow("YYYY-MM-DD");
     await expect(listArticles({ day: "2026-13-40" })).rejects.toThrow("YYYY-MM-DD");
     await expect(listArticles({ day: "2026-02-30" })).rejects.toThrow("YYYY-MM-DD");
+    await expect(listArticles({ day: "0000-01-01" })).rejects.toThrow("day must be YYYY-MM-DD");
+    await expect(listArticles({ day: "1969-12-31" })).rejects.toThrow("day must be YYYY-MM-DD");
+    await expect(listArticles({ day: "1970-01-01" })).resolves.toEqual([]);
     await expect(listArticles({ day: "2026-04-31" })).rejects.toThrow("YYYY-MM-DD");
     await expect(listArticles({ day: "2028-02-29" })).resolves.toEqual([]); // a leap day exists
   });

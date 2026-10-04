@@ -74,6 +74,20 @@
       "indonesia": "Indonesia: {names}",
       "global": "Global: {names}",
       "note": "Hanya judul dan tautan; artikel lengkap dibuka di situs penerbit."
+    },
+    "credit": {
+      "line": "Sumber: {publisher}",
+      "lineLicence": "Sumber: {publisher} · {licence}",
+      "original": "Baca artikel asli",
+      "publisher": {
+        "conversation-id": "The Conversation Indonesia",
+        "conversation-global": "The Conversation",
+        "federal-reserve": "Federal Reserve Board",
+        "ecb": "Bank Sentral Eropa (ECB)"
+      },
+      "licence": {
+        "cc-by-nd-4": "CC BY-ND 4.0"
+      }
     }
   },
   "opp": {

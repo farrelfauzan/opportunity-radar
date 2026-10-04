@@ -11,10 +11,12 @@ import {
   recordSuccessfulRun,
   upsertSource,
   type Region,
+  upsertVenture,
 } from "../src/server/data/index.ts";
 import { databaseUrl, sql } from "../src/server/data/client.ts";
 import { loadEnv, migrate, resetTestDatabase, testDatabaseUrl } from "./db-admin.ts";
 import { seedArticles, seedOpportunities, seedSources } from "./seed-data.ts";
+import { VENTURES } from "../src/server/ventures/config.ts";
 
 const args = process.argv.slice(2).filter((arg) => arg !== "--test");
 const onTest = process.argv.includes("--test");
@@ -59,9 +61,10 @@ async function seed(): Promise<void> {
     stored.push({ id: result.article.id, region: result.article.region });
   }
   const opportunities = await seedOpportunityRows(stored);
+  for (const venture of VENTURES) await upsertVenture(venture);
   console.log(
     `Seed: ${seedSources.length} sources, ${created} new articles (${articles.length - created} already present), ` +
-      `${opportunities} new opportunities.`,
+      `${opportunities} new opportunities, ${VENTURES.length} ventures.`,
   );
 }
 

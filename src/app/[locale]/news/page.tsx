@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CreditLine } from "@/components/credit-line";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { currentLocale, getMessages, getT } from "@/i18n/dictionaries";
@@ -41,14 +42,9 @@ const chip =
 const heading = "text-[26px] font-bold tracking-tight";
 
 async function load({ category, region }: NewsQuery) {
-  const filtered = category !== undefined || region !== undefined;
-  const today = listArticles({});
-  const [all, list, sources, lastRun] = await Promise.all([
-    today,
-    filtered ? listArticles({ category, region }) : today,
-    listSources(),
-    lastSuccessfulRun(INGEST_JOB),
-  ]);
+  // One query for the day; the filter is applied to it, so the header counts and the list agree.
+  const [all, sources, lastRun] = await Promise.all([listArticles({}), listSources(), lastSuccessfulRun(INGEST_JOB)]);
+  const list = all.filter((a) => (!category || a.category === category) && (!region || a.region === region));
   return { all, list, sources, lastRun };
 }
 
@@ -112,7 +108,7 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
       </div>
 
       {banner && (
-        <p role="status" className="rounded-lg border border-destructive px-4 py-3 text-destructive">
+        <p role="status" className="rounded-lg border border-glass-border bg-white/8 px-4 py-3 text-foreground">
           {banner}
         </p>
       )}
@@ -241,6 +237,7 @@ function Item({
           <span className="text-base font-semibold [overflow-wrap:anywhere]">{article.headline}</span>
         )}
         {article.snippet && <p className="text-[#E2DDF0] [overflow-wrap:anywhere]">{article.snippet}</p>}
+        <CreditLine sourceSlug={article.sourceSlug} strings={m.news.credit} />
       </CardContent>
     </Card>
   );

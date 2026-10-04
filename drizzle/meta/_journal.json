@@ -26,8 +26,29 @@
     {
       "idx": 3,
       "version": "7",
-      "when": 1791088007620,
-      "tag": "0003_opportunities",
+      "when": 1791087412065,
+      "tag": "0003_ventures",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791088399815,
+      "tag": "0004_venture_checks",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791088744397,
+      "tag": "0005_llm_usage",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791091038229,
+      "tag": "0006_opportunities",
       "breakpoints": true
     }
   ]
