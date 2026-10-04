@@ -27,7 +27,7 @@ Contents: 1 Shell · 2 States (all screens) · 3 News · 4 Calculators · 5 Rada
 | nav.language | Language | Bahasa |
 | nav.lang.en | EN | EN |
 | nav.lang.id | ID | ID |
-| nav.alerts | Alerts | Peringatan |
+| nav.alerts.label | Alerts | Peringatan |
 | nav.alerts.unread.one | {n} unread alert | {n} peringatan belum dibaca |
 | nav.alerts.unread.other | {n} unread alerts | {n} peringatan belum dibaca |
 | page.title.radar | Radar | Radar |
@@ -44,7 +44,7 @@ Contents: 1 Shell · 2 States (all screens) · 3 News · 4 Calculators · 5 Rada
 | error.title | Something went wrong | Terjadi kesalahan |
 | error.retry | Try again | Coba lagi |
 
-The alert bell (`nav.alerts*`) ships with OR-34. The canvas badge "Sample data" is never shipped.
+The alert bell (`nav.alerts.*`) ships with OR-34. The canvas badge "Sample data" is never shipped.
 
 ## 2. States (all screens)
 
@@ -104,8 +104,11 @@ Exchange holidays come from a small holiday list in config; until it exists, wee
 | Key | EN | ID |
 |---|---|---|
 | news.title | News | Berita |
-| news.summary.one | {articles} article today · {sources} sources · refreshed every 30 minutes | {articles} artikel hari ini · {sources} sumber · diperbarui setiap 30 menit |
-| news.summary.other | {articles} articles today · {sources} sources · refreshed every 30 minutes | {articles} artikel hari ini · {sources} sumber · diperbarui setiap 30 menit |
+| news.summary.line | {articles} · {sources} · refreshed every 30 minutes | {articles} · {sources} · diperbarui setiap 30 menit |
+| news.summary.articles.one | {n} article today | {n} artikel hari ini |
+| news.summary.articles.other | {n} articles today | {n} artikel hari ini |
+| news.summary.sources.one | {n} source | {n} sumber |
+| news.summary.sources.other | {n} sources | {n} sumber |
 | news.cat.all | All | Semua |
 | news.cat.business | Business | Bisnis |
 | news.cat.politics | Politics & policy | Politik & kebijakan |
@@ -153,7 +156,8 @@ Region shown on an item uses `news.region.id` / `news.region.global`. Category a
 | calc.inv.spread | Uncertainty (± % points) | Ketidakpastian (± poin %) |
 | calc.inv.inflation | Inflation (%) | Inflasi (%) |
 | calc.inv.presetNote | The asset-type buttons fill in example assumptions, not forecasts. Higher-risk assets get a wider uncertainty band. | Tombol jenis aset mengisi contoh asumsi, bukan perkiraan. Aset berisiko lebih tinggi mendapat rentang ketidakpastian lebih lebar. |
-| calc.inv.valueAfter | Value after {years} years | Nilai setelah {years} tahun |
+| calc.inv.valueAfter.one | Value after {years} year | Nilai setelah {years} tahun |
+| calc.inv.valueAfter.other | Value after {years} years | Nilai setelah {years} tahun |
 | calc.inv.paid | You paid in | Total setoran Anda |
 | calc.inv.real | In today's money | Dalam nilai uang hari ini |
 | calc.inv.axisNow | Now | Sekarang |
@@ -174,9 +178,11 @@ Region shown on an item uses `news.region.id` / `news.region.global`. Category a
 | calc.biz.breakeven | Monthly break-even | Impas bulanan |
 | calc.biz.payback | Capital paid back | Modal kembali |
 | calc.biz.lowest | Cash needed at the lowest point | Kas yang dibutuhkan di titik terendah |
-| calc.biz.end | Net cash after {months} months | Kas bersih setelah {months} bulan |
+| calc.biz.end.one | Net cash after {months} month | Kas bersih setelah {months} bulan |
+| calc.biz.end.other | Net cash after {months} months | Kas bersih setelah {months} bulan |
 | calc.biz.month | Month {n} | Bulan ke-{n} |
-| calc.biz.notWithin | Not within {months} months | Tidak dalam {months} bulan |
+| calc.biz.notWithin.one | Not within {months} month | Tidak dalam {months} bulan |
+| calc.biz.notWithin.other | Not within {months} months | Tidak dalam {months} bulan |
 | calc.biz.axisStart | Month 0 | Bulan ke-0 |
 | calc.biz.paybackLine | Dashed line = capital fully paid back | Garis putus-putus = modal kembali penuh |
 | calc.disclaimer | Projections are arithmetic on the assumptions you enter. They are not forecasts or financial advice; real returns and revenues vary and can be negative. | Proyeksi ini hanya hitungan dari asumsi yang Anda masukkan. Ini bukan perkiraan atau nasihat keuangan; imbal hasil dan pendapatan nyata bervariasi dan bisa negatif. |
@@ -193,7 +199,11 @@ Large amounts in results use compact form: EN `Rp 425.67 million`, `Rp 1.20 bill
 | radar.title | Today's radar | Radar hari ini |
 | radar.updated | {date} · updated {time} WIB | {date} · diperbarui {time} WIB |
 | radar.brief.title | Daily brief — what changed for business opportunities | Ringkasan harian — apa yang berubah bagi peluang bisnis |
-| radar.brief.source | AI summary of {articles} articles from {sources} sources | Ringkasan AI dari {articles} artikel, {sources} sumber |
+| radar.brief.source | AI summary of {articles} from {sources} | Ringkasan AI dari {articles}, {sources} |
+| radar.brief.articles.one | {n} article | {n} artikel |
+| radar.brief.articles.other | {n} articles | {n} artikel |
+| radar.brief.sources.one | {n} source | {n} sumber |
+| radar.brief.sources.other | {n} sources | {n} sumber |
 | radar.brief.affected.one | {n} opportunity affected | {n} peluang terdampak |
 | radar.brief.affected.other | {n} opportunities affected | {n} peluang terdampak |
 | radar.brief.none | Not enough news yet today | Belum cukup berita hari ini |
@@ -223,6 +233,8 @@ Large amounts in results use compact form: EN `Rp 425.67 million`, `Rp 1.20 bill
 | radar.news.title | News that moves opportunities | Berita yang menggerakkan peluang |
 | radar.news.all | All news | Semua berita |
 
+Brief line labels ("Policy:", "Tech & AI:", "Markets:" in the canvas) are not free text: OR-22 tags each line with one of the News categories and the UI shows `news.cat.*` (Politics & policy, Tech & AI, Markets, Business, Commodities) followed by a colon.
+
 Section order (desktop and phone): brief → My ventures → Top opportunities → News that moves opportunities → Investment alerts → Market snapshot. Investments never come before opportunities.
 
 ## 6. Opportunities (OR-17, OR-18, OR-41, OR-40)
@@ -234,7 +246,7 @@ Section order (desktop and phone): brief → My ventures → Top opportunities �
 | opp.filter.region.all | All regions | Semua wilayah |
 | opp.filter.region.id | Indonesia | Indonesia |
 | opp.filter.region.global | Global | Global |
-| opp.filter.sector | Sector | Sektor |
+| opp.filter.sector.label | Sector | Sektor |
 | opp.filter.sector.all | All sectors | Semua sektor |
 | opp.filter.horizon | Horizon | Horizon |
 | opp.filter.any | Any | Semua |
@@ -272,10 +284,13 @@ Section order (desktop and phone): brief → My ventures → Top opportunities �
 | opp.detail.save | Save to my shortlist | Simpan ke daftar pendek |
 | opp.detail.saved | Saved to shortlist | Tersimpan di daftar pendek |
 | opp.detail.calculator | Model this in the calculator | Hitung di kalkulator |
+| opp.detail.print | Print / save as PDF | Cetak / simpan sebagai PDF |
 | opp.detail.related | Related market exposure: {text} | Eksposur pasar terkait: {text} |
 | opp.detail.closed | This opportunity is closed or no longer exists | Peluang ini sudah ditutup atau tidak ada lagi |
 | opp.detail.closedTag | Closed | Ditutup |
 | opp.detail.back | Back to opportunities | Kembali ke peluang |
+
+Not shipped in v1: `opp.detail.print` (OR-45; replaces the canvas "Full report (PDF)").
 
 Sector labels come from the fixed sector list in `docs/opportunities/scoring-v1.md` (OR-11), which carries EN and ID labels.
 
@@ -284,13 +299,13 @@ Sector labels come from the fixed sector list in `docs/opportunities/scoring-v1.
 | Key | EN | ID |
 |---|---|---|
 | inv.title | Investments | Investasi |
-| inv.intro | Know the risk of each asset type first, then follow the signals. | Pahami risiko tiap jenis aset dulu, lalu ikuti sinyalnya. |
+| inv.intro | Compare the risk of each asset type, then see what the rules say. | Bandingkan risiko tiap jenis aset, lalu lihat apa kata aturannya. |
 | inv.term.short | Short term (days–weeks) | Jangka pendek (hari–minggu) |
 | inv.term.long | Long term (1 year+) | Jangka panjang (1 tahun+) |
 | inv.term.shortLabel | Short term | Jangka pendek |
 | inv.term.longLabel | Long term | Jangka panjang |
 | inv.classes.title | Asset types and their risk | Jenis aset dan risikonya |
-| inv.risk | Risk {n}/5 · {label} | Risiko {n}/5 · {label} |
+| inv.risk.label | Risk {n}/5 · {label} | Risiko {n}/5 · {label} |
 | inv.risk.1 | Low | Rendah |
 | inv.risk.2 | Low–medium | Rendah–sedang |
 | inv.risk.3 | Medium | Sedang |
@@ -314,7 +329,14 @@ Sector labels come from the fixed sector list in `docs/opportunities/scoring-v1.
 | inv.alerts.title | Alerts | Peringatan |
 | inv.alerts.report | Read the full report | Baca laporan lengkap |
 | inv.alerts.empty | No signal changes yet | Belum ada perubahan sinyal |
+| inv.addAsset | Add asset | Tambah aset |
+| inv.alertsTo.label | Send alerts to | Kirim peringatan ke |
+| inv.alertsTo.app | In the app | Di aplikasi |
+| inv.alertsTo.telegram | Telegram | Telegram |
+| inv.alertsTo.email | Email | Email |
 | inv.disclaimer | Signals are produced by fixed, published rules on price data. They are information for your own decision, not financial advice, and past behaviour does not guarantee future results. | Sinyal dihasilkan oleh aturan tetap yang dipublikasikan atas data harga. Ini informasi untuk keputusan Anda sendiri, bukan nasihat keuangan, dan perilaku masa lalu tidak menjamin hasil di masa depan. |
+
+Not shipped in v1: `inv.addAsset` (OR-44 decides), `inv.alertsTo.*` (alerts are in-app only, D4; Telegram OR-42, email OR-43). Keys exist so the dictionaries stay complete.
 
 The disclaimer drops "plus a news check" from the canvas: in rules v1 the news check is context and never moves the verdict (OR-10, D10).
 
@@ -349,7 +371,8 @@ The disclaimer drops "plus a news check" from the canvas: in rules v1 the news c
 | asset.range.3m | 3M | 3B |
 | asset.range.1y | 1Y | 1T |
 | asset.range.5y | 5Y | 5T |
-| asset.chart.short | Only {n} months of data | Hanya {n} bulan data |
+| asset.chart.short.one | Only {n} month of data | Hanya {n} bulan data |
+| asset.chart.short.other | Only {n} months of data | Hanya {n} bulan data |
 | asset.card.changedToday | changed today {time} | berubah hari ini {time} |
 | asset.card.unchanged.one | unchanged {n} day | tidak berubah {n} hari |
 | asset.card.unchanged.other | unchanged {n} days | tidak berubah {n} hari |
@@ -377,7 +400,9 @@ The disclaimer drops "plus a news check" from the canvas: in rules v1 the news c
 | asset.history.open | open | berjalan |
 | asset.related | Related business opportunities | Peluang bisnis terkait |
 | asset.print | Print / save as PDF | Cetak / simpan sebagai PDF |
-| asset.disclaimer | (same text as `inv.disclaimer`) | (sama dengan `inv.disclaimer`) |
+| asset.alertMe | Alert me when this changes | Beri tahu saya saat ini berubah |
+
+The asset report reuses `inv.disclaimer` (no separate key). The canvas tab title "Asset signal report" is `page.title.asset`. Not shipped in v1: `asset.alertMe` (every signal change already raises an in-app alert, OR-34), `asset.print` (OR-45; replaces the canvas "Download report (PDF)").
 
 The canvas line "Suggested approach: buy in 3 parts over 6 weeks rather than all at once" is removed (D10: instruction, not information). The history column shows "price change since signal" instead of "avoided −6.2%".
 
@@ -389,7 +414,8 @@ The canvas line "Suggested approach: buy in 3 parts over 6 weeks rather than all
 | login.password | Password | Kata sandi |
 | login.submit | Log in | Masuk |
 | login.wrong | Wrong password | Kata sandi salah |
-| login.tooMany | Too many attempts. Try again in {minutes} minutes. | Terlalu banyak percobaan. Coba lagi dalam {minutes} menit. |
+| login.tooMany.one | Too many attempts. Try again in {minutes} minute. | Terlalu banyak percobaan. Coba lagi dalam {minutes} menit. |
+| login.tooMany.other | Too many attempts. Try again in {minutes} minutes. | Terlalu banyak percobaan. Coba lagi dalam {minutes} menit. |
 | login.logout | Log out | Keluar |
 
 ## 10. Mappings and rules
