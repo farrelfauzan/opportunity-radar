@@ -89,8 +89,9 @@ export default async function RadarPage() {
 
   // Nothing has ever run: one card in place of the brief; the other sections keep their own empty texts.
   const neverRun = isNeverScored(lastRun, total) && !brief && news.length === 0;
+  // The date of the run, not today's: after a missed morning, today's date next to yesterday's time would mislead.
   const updated = updatedText(
-    formatDateLongWib(now, locale),
+    formatDateLongWib(lastRun ?? now, locale),
     lastRun && formatTimeWib(lastRun, locale),
     m.radar.updated,
   );
