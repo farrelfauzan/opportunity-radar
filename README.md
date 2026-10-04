@@ -59,6 +59,10 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
 - Every run is recorded in `job_runs` when it starts and updated when it ends. Exit code 0 for
   `ok`, `partial` and `skipped`; non-zero for `failed`.
 - A job that is already running is not started twice: the second start is recorded as `skipped`.
+- `pnpm job news` is the command to run every 30 minutes: `ingest-news`, then `triage` (the AI
+  reads each new article once: category, region, relevance, impact, "why it matters" in EN and ID,
+  themes). `pnpm job triage` alone triages whatever is waiting. With `LLM_PROVIDER` unset the LLM
+  is a local mock: its replies say "[mock]" and nothing leaves the machine.
 - `pnpm job morning` runs triage → opportunities → scores → brief and stops at the first failing
   step; later steps are recorded as `skipped`.
 - `--test` runs against the test database; `--timeout <seconds>` overrides the job's own time

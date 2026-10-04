@@ -2,6 +2,7 @@
 // Server only: the key is read from server env, never logged, never bundled.
 import "server-only";
 import { liveUsageThisMonth, recordLlmUsage, type LlmCallStatus, type LlmRole } from "@/server/data";
+import { isPrivateHost } from "@/server/net";
 import { InvalidOutputError, parseModelJson } from "./json.ts";
 import { mockProvider } from "./mock/fetch.ts";
 
@@ -11,8 +12,10 @@ export { InvalidOutputError } from "./json.ts";
 export class LlmConfigError extends Error {}
 /** The monthly cap is reached; no request was made (`budget_exhausted`). */
 export class BudgetExhaustedError extends Error {}
-/** The provider could not be reached or kept answering with an error. */
+/** The provider could not be reached, kept answering with an error, or sent an unusable reply. */
 export class LlmRequestError extends Error {}
+/** The call's input is larger than one request may send; no request was made. */
+export class LlmInputError extends Error {}
 
 export type Message = { role: "system" | "user" | "assistant"; content: string };
 
@@ -31,6 +34,8 @@ export type LlmCall<T> = {
 
 const REQUEST_TIMEOUT_MS = 60_000;
 const MAX_BACKOFF_MS = 10_000;
+const MAX_INPUT_CHARS = 200_000; // about 50k tokens: far above any prompt we build
+const MAX_REPLY_BYTES = 2 * 1024 * 1024;
 
 type Settings = {
   provider: "mock" | "live";
@@ -65,12 +70,25 @@ function settings(role: LlmRole): Settings {
     return { provider, url: "mock:", key: "", model: process.env[`LLM_MODEL_${upper}`]?.trim() || "mock", prices: null, budgetUsd: null, tokenCap: null };
   }
   const base = required("LLM_BASE_URL");
-  if (!/^https?:\/\//.test(base)) throw new LlmConfigError("LLM_BASE_URL must start with http:// or https://.");
+  let baseUrl: URL;
+  try {
+    baseUrl = new URL(base);
+  } catch {
+    throw new LlmConfigError("LLM_BASE_URL is not a valid URL.");
+  }
+  // The key travels in a header: plain http only to this machine or a private network.
+  if (baseUrl.protocol !== "https:" && !(baseUrl.protocol === "http:" && isPrivateHost(baseUrl.hostname))) {
+    throw new LlmConfigError("LLM_BASE_URL must use https (plain http only for this machine or a private network).");
+  }
   const priceIn = number(`LLM_PRICE_${upper}_IN`);
   const priceOut = number(`LLM_PRICE_${upper}_OUT`);
   const budgetUsd = number("LLM_MONTHLY_BUDGET_USD");
   const tokenCap = number("LLM_MONTHLY_TOKEN_CAP");
   const prices = priceIn !== null && priceOut !== null ? { in: priceIn, out: priceOut } : null;
+  // Under a USD budget every live call must have a known cost, or it would slip past the budget.
+  if (budgetUsd !== null && !prices) {
+    throw new LlmConfigError(`LLM_MONTHLY_BUDGET_USD needs LLM_PRICE_${upper}_IN and LLM_PRICE_${upper}_OUT.`);
+  }
   // Fail closed: a live call without a cap that can be checked is never made.
   if (!(budgetUsd !== null && prices) && tokenCap === null) {
     throw new LlmConfigError(
@@ -88,16 +106,38 @@ function settings(role: LlmRole): Settings {
   };
 }
 
-/** Checked before every live request, so a cap reached in the middle of a job stops it. */
-async function checkCap(s: Settings): Promise<void> {
-  if (s.provider !== "live") return;
+type Reservation = { tokens: number; costUsd: number };
+
+// Live calls in flight in this process. Usage is recorded only after a call
+// returns, so calls made in parallel reserve their estimate here first.
+const inFlight: Reservation = { tokens: 0, costUsd: 0 };
+
+/**
+ * Checked before every live request, so a cap reached in the middle of a job
+ * stops it. A call goes ahead only if this month's usage, the calls in flight
+ * and its own estimate (input, plus maxTokens of output when given) fit the
+ * cap; it then reserves that estimate until it is recorded. Separate processes
+ * do not see each other's reservations: each can overshoot by one call.
+ */
+async function reserve(s: Settings, estimate: Reservation): Promise<Reservation | null> {
+  if (s.provider !== "live") return null;
   const used = await liveUsageThisMonth();
-  if (s.budgetUsd !== null && s.prices && used.costUsd >= s.budgetUsd) {
+  // No await between this check and the reservation: parallel calls see each other.
+  if (s.budgetUsd !== null && (used.costUsd >= s.budgetUsd || used.costUsd + inFlight.costUsd + estimate.costUsd > s.budgetUsd)) {
     throw new BudgetExhaustedError(`budget_exhausted: ${used.costUsd.toFixed(2)} of ${s.budgetUsd} USD used this month`);
   }
-  if (s.tokenCap !== null && used.tokens >= s.tokenCap) {
+  if (s.tokenCap !== null && (used.tokens >= s.tokenCap || used.tokens + inFlight.tokens + estimate.tokens > s.tokenCap)) {
     throw new BudgetExhaustedError(`budget_exhausted: ${used.tokens} of ${s.tokenCap} tokens used this month`);
   }
+  inFlight.tokens += estimate.tokens;
+  inFlight.costUsd += estimate.costUsd;
+  return estimate;
+}
+
+function release(reservation: Reservation | null): void {
+  if (!reservation) return;
+  inFlight.tokens -= reservation.tokens;
+  inFlight.costUsd -= reservation.costUsd;
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -137,7 +177,15 @@ async function request(s: Settings, transport: typeof fetch, body: object): Prom
       throw new LlmRequestError(timedOut ? "LLM request timed out" : "LLM provider could not be reached");
     }
     if (response.ok) {
-      const json = (await response.json()) as { choices?: { message?: { content?: unknown } }[]; usage?: Completion["usage"] };
+      if (Number(response.headers.get("content-length")) > MAX_REPLY_BYTES) throw new LlmRequestError("LLM reply too large");
+      const text = await response.text();
+      if (text.length > MAX_REPLY_BYTES) throw new LlmRequestError("LLM reply too large");
+      let json: { choices?: { message?: { content?: unknown } }[]; usage?: Completion["usage"] };
+      try {
+        json = JSON.parse(text);
+      } catch {
+        throw new LlmRequestError("LLM provider sent a reply that is not JSON");
+      }
       const content = json.choices?.[0]?.message?.content;
       return { content: typeof content === "string" ? content : "", usage: json.usage };
     }
@@ -159,6 +207,10 @@ const estimateTokens = (text: string) => Math.ceil(text.length / 4);
  * recorded in llm_usage. With LLM_PROVIDER unset the in-process mock answers.
  */
 export async function callLlm<T>(call: LlmCall<T>): Promise<T> {
+  const inputChars = call.messages.reduce((sum, m) => sum + m.content.length, 0);
+  if (inputChars > MAX_INPUT_CHARS) {
+    throw new LlmInputError(`LLM input too large: ${inputChars} characters (limit ${MAX_INPUT_CHARS})`);
+  }
   const s = settings(call.role);
   const transport = call.fetch ?? (s.provider === "mock" ? mockProvider(call.job) : fetch);
   const body = {
@@ -186,9 +238,17 @@ export async function callLlm<T>(call: LlmCall<T>): Promise<T> {
     });
   };
 
+  const inputEstimate = estimateTokens(call.messages.map((m) => m.content).join("\n"));
+  const outputEstimate = call.maxTokens ?? 0;
+  const estimate: Reservation = {
+    tokens: inputEstimate + outputEstimate,
+    costUsd: s.prices ? (inputEstimate * s.prices.in + outputEstimate * s.prices.out) / 1_000_000 : 0,
+  };
+
   for (let attempt = 1; ; attempt++) {
+    let reservation: Reservation | null;
     try {
-      await checkCap(s);
+      reservation = await reserve(s, estimate);
     } catch (error) {
       if (error instanceof BudgetExhaustedError) await record("budget_exhausted");
       throw error;
@@ -199,6 +259,7 @@ export async function callLlm<T>(call: LlmCall<T>): Promise<T> {
       completion = await request(s, transport, body);
     } catch (error) {
       await record("error");
+      release(reservation);
       throw error;
     }
 
@@ -213,15 +274,20 @@ export async function callLlm<T>(call: LlmCall<T>): Promise<T> {
         }
       : { inputTokens: reported!.prompt_tokens!, outputTokens: reported!.completion_tokens! };
 
+    let value: T;
     try {
-      const value = call.parse(parseModelJson(completion.content));
-      await record("ok", tokens);
-      return value;
+      value = call.parse(parseModelJson(completion.content));
     } catch (error) {
       await record("invalid_output", tokens);
+      release(reservation);
       if (attempt === 2) {
         throw new InvalidOutputError(`invalid output twice: ${(error as Error).message}`.slice(0, 300));
       }
+      continue;
     }
+    // Recorded before the reservation is released, so the cap never loses sight of the call.
+    await record("ok", tokens);
+    release(reservation);
+    return value;
   }
 }

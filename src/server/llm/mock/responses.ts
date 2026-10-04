@@ -10,11 +10,38 @@
 export type MockCase = {
   name: string;
   match?: string[];
-  content: string;
+  /** The reply, or a function building it from the request's text (for replies that echo ids). */
+  content: string | ((requestText: string) => string);
   usage?: { prompt_tokens: number; completion_tokens: number };
 };
 
+/** The JSON inside a fenced data block (see fenceUntrusted) of the request. */
+function fencedData(requestText: string, label: string): unknown {
+  const block = new RegExp(`<<<${label}-([0-9a-f]+)\\n([\\s\\S]*?)\\n${label}-\\1>>>`).exec(requestText);
+  return block ? JSON.parse(block[2]) : [];
+}
+
 export const MOCK_RESPONSES: Record<string, MockCase[]> = {
+  // OR-14: one well-formed item per article, so the News screen has data offline.
+  // Every text says it is a mock reply; the category and region stay the feed's.
+  triage: [
+    {
+      name: "echo-articles",
+      content: (requestText) =>
+        JSON.stringify({
+          items: (fencedData(requestText, "ARTICLES") as { id: number; region: string; feedCategory: string }[]).map((a) => ({
+            id: a.id,
+            category: a.feedCategory,
+            region: a.region,
+            relevance: 50,
+            impact: "context",
+            why: { en: "[mock] Recorded reply: AI triage is not live yet.", id: "[mock] Jawaban rekaman: triase AI belum aktif." },
+            themes: ["other"],
+          })),
+        }),
+      usage: { prompt_tokens: 900, completion_tokens: 600 },
+    },
+  ],
   // pnpm job llm-smoke: one tiny call that proves the client end to end.
   "llm-smoke": [
     {
