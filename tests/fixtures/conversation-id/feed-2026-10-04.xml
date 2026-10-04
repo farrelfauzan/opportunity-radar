@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xml:lang="en-US" xmlns="http://www.w3.org/2005/Atom" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+  <id>tag:theconversation.com,2011:/id/articles</id>
+  <link rel="alternate" type="text/html" href="https://theconversation.com"/>
+  <link rel="self" type="application/atom+xml" href="https://theconversation.com/id/articles.atom"/>
+  <title>The Conversation – Articles (ID)</title>
+  <updated>2026-10-03T01:00:13Z</updated>
+  <entry>
+    <id>tag:theconversation.com,2011:article/290205</id>
+    <published>2026-10-03T01:00:13Z</published>
+    <updated>2026-10-03T01:00:13Z</updated>
+    <link rel="alternate" type="text/html" href="https://theconversation.com/attention-cant-be-bought-so-brands-turn-to-memes-290205"/>
+    <title>Attention can’t be bought, so brands turn to memes</title>
+    <content type="html">&lt;p&gt;Full article text removed from this fixture.&lt;/p&gt;</content>
+    <summary>It is important to knowing what a community finds funny, what it finds tired, and when a brand has no business speaking at all.</summary>
+    <author>
+      <name>Farhan Mutaqin, PhD Researcher, University of Edinburgh</name>
+      <foaf:homepage rdf:resource="https://theconversation.com/profiles/farhan-mutaqin-2285427"/>
+    </author>
+    <author>
+      <name>Almukantar Fikriansyah, MSc Marketing (cand.) at The University of Edinburgh</name>
+      <foaf:homepage rdf:resource="https://theconversation.com/profiles/almukantar-fikriansyah-2657574"/>
+    </author>
+    <rights>Licensed as Creative Commons – attribution, no derivatives.</rights>
+  </entry>
+  <entry>
+    <id>tag:theconversation.com,2011:article/293302</id>
+    <published>2026-10-02T09:00:06Z</published>
+    <updated>2026-10-02T09:00:06Z</updated>
+    <link rel="alternate" type="text/html" href="https://theconversation.com/pusat-ai-terbesar-se-asean-di-batang-bisa-memicu-tragedi-permanen-di-pantura-293302"/>
+    <title>Pusat AI terbesar se-ASEAN di Batang bisa memicu tragedi permanen di pantura</title>
+    <content type="html">&lt;p&gt;Full article text removed from this fixture.&lt;/p&gt;</content>
+    <summary>Pesisir utara Jawa termasuk wilayah Batang sedang mengalami laju degradasi daerah resapan air yang cukup tinggi. Namun, pusat AI berkebutuhan air tinggi justru akan dibangun di sana.</summary>
+    <author>
+      <name>Usman Arief, Dosen dan Peneliti Manajemen, Universitas Gadjah Mada </name>
+      <foaf:homepage rdf:resource="https://theconversation.com/profiles/usman-arief-2612475"/>
+    </author>
+    <author>
+      <name>Imam Salehudin, Associate professor, Universitas Indonesia</name>
+      <foaf:homepage rdf:resource="https://theconversation.com/profiles/imam-salehudin-382505"/>
+    </author>
+    <rights>Licensed as Creative Commons – attribution, no derivatives.</rights>
+  </entry>
+  <entry>
+    <id>tag:theconversation.com,2011:article/292616</id>
+    <published>2026-10-02T04:03:34Z</published>
+    <updated>2026-10-02T04:03:34Z</updated>
+    <link rel="alternate" type="text/html" href="https://theconversation.com/musik-tidak-lahir-satanik-kita-yang-memaknainya-sebagai-kejahatan-292616"/>
+    <title>Musik tidak lahir ‘satanik’: Kita yang memaknainya sebagai kejahatan</title>
+    <content type="html">&lt;p&gt;Full article text removed from this fixture.&lt;/p&gt;</content>
+    <summary>Pembacaan ‘satanik’ sering kali tidak berasal dari isi lagu, melainkan dari cara sebagian khalayak menafsirkan judul, simbol, dan atmosfer visual video musiknya.</summary>
+    <author>
+      <name>Muhammad Rayhan Sudrajat, PhD Researcher, Asia Institute, The University of Melbourne</name>
+      <foaf:homepage rdf:resource="https://theconversation.com/profiles/muhammad-rayhan-sudrajat-803197"/>
+    </author>
+    <rights>Licensed as Creative Commons – attribution, no derivatives.</rights>
+  </entry>
+</feed>
