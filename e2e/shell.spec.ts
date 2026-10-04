@@ -40,8 +40,8 @@ for (const locale of ["en", "id"] as const) {
       await page.goto(`/${locale}${path}`);
       // The Radar's heading is its own text (its title stays "Radar" in the tab and the nav).
       await expect(page.getByRole("heading", { level: 1 }), path).toHaveText(path === "" ? copy[locale].radar : title);
-      // The radar, calculators, news and opportunities screens have content; the others still show the empty frame.
-      if (path !== "" && path !== "/calculators" && path !== "/news" && path !== "/opportunities") {
+      // The radar, calculators, news, opportunities and investments screens have content; the others still show the empty frame.
+      if (path !== "" && path !== "/calculators" && path !== "/news" && path !== "/opportunities" && path !== "/invest") {
         await expect(page.locator("main"), path).toContainText(copy[locale].empty);
       }
       await expect(page, path).toHaveTitle(`${title} · Opportunity Radar`);

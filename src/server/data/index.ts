@@ -56,4 +56,5 @@ export * from "./news.ts";
 export * from "./prices.ts";
 export * from "./signals.ts";
 export * from "./market.ts";
+export * from "./watchlist.ts";
 export * from "./venture-cards.ts";

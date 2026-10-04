@@ -404,10 +404,119 @@
       "ihsg": "IHSG",
       "usdidr": "USD/IDR",
       "goldGram": "Emas / gram",
-      "bitcoin": "Bitcoin"
+      "bitcoin": "Bitcoin",
+      "bbca": "BBCA",
+      "sp500": "S&P 500",
+      "gold": "Emas",
+      "silver": "Perak",
+      "ethereum": "Ethereum"
+    },
+    "kind": {
+      "idx": "Saham · BEI",
+      "index": "Indeks · {exchange}",
+      "crypto": "Kripto · USD",
+      "metalShort": "IDR per gram"
     }
   },
   "sample": {
-    "badge": "Contoh"
+    "badge": "Contoh",
+    "label": "Data contoh, bukan harga nyata",
+    "explain": "Harga ini dibuat untuk menguji aplikasi. Harga nyata dipakai setelah sumber data langsung diaktifkan."
+  },
+  "inv": {
+    "intro": "Bandingkan risiko tiap jenis aset, lalu lihat apa kata aturannya.",
+    "term": {
+      "short": "Jangka pendek (hari–minggu)",
+      "long": "Jangka panjang (1 tahun+)",
+      "shortLabel": "Jangka pendek",
+      "longLabel": "Jangka panjang"
+    },
+    "classes": {
+      "title": "Jenis aset dan risikonya",
+      "items": {
+        "cash": {
+          "name": "Kas & obligasi negara",
+          "eg": "Money market, SBN",
+          "drop": "Beberapa persen",
+          "long": "Stabil dan memberi pendapatan; sering dipakai untuk dana darurat",
+          "short": "Tempat kas yang tenang di antara transaksi",
+          "risks": "Inflasi, perubahan suku bunga"
+        },
+        "gold": {
+          "name": "Emas",
+          "eg": "XAU, Antam",
+          "drop": "10–20% dalam setahun",
+          "long": "Penyimpan nilai; cenderung bertahan saat rupiah melemah",
+          "short": "Bergerak lambat; selisih jual-beli memakan sebagian besar gerakan singkat",
+          "risks": "Tanpa pendapatan, USD dan suku bunga, selisih dealer"
+        },
+        "silver": {
+          "name": "Perak",
+          "eg": "XAG",
+          "drop": "20–35%",
+          "long": "Sering dipegang sebagai lindung nilai kecil di samping emas",
+          "short": "Berayun lebih besar dari emas; gerakan singkat bisa besar ke dua arah",
+          "risks": "Siklus permintaan industri, pasar ritel tipis"
+        },
+        "idStocks": {
+          "name": "Saham Indonesia",
+          "eg": "IDX: BBCA, TLKM",
+          "drop": "30–50% saat krisis",
+          "long": "Pertumbuhan dan dividen dalam 5 tahun atau lebih",
+          "short": "Gerakan jangka pendek sebagian besar pada saham unggulan yang likuid",
+          "risks": "Kinerja emiten, aliran dana asing, rupiah"
+        },
+        "globalStocks": {
+          "name": "Saham global",
+          "eg": "S&P 500, Nasdaq",
+          "drop": "30–50% saat krisis",
+          "long": "Diversifikasi di luar Indonesia",
+          "short": "Digerakkan jadwal laporan laba dan suku bunga AS",
+          "risks": "Kurs USD/IDR, valuasi, akses dan pajak"
+        },
+        "crypto": {
+          "name": "Kripto",
+          "eg": "BTC, ETH",
+          "drop": "50–80%",
+          "long": "Sangat spekulatif; banyak pemegang menjaganya sebagai bagian kecil dari tabungan",
+          "short": "Gerakan cepat, 24/7; kerugian bisa besar dan cepat",
+          "risks": "Volatilitas ekstrem, regulasi, kegagalan bursa"
+        }
+      }
+    },
+    "risk": {
+      "label": "Risiko {n}/5 · {label}",
+      "1": "Rendah",
+      "2": "Rendah–sedang",
+      "3": "Sedang",
+      "4": "Tinggi",
+      "5": "Sangat tinggi"
+    },
+    "drop": "Penurunan umum",
+    "mainRisks": "Risiko utama",
+    "watchlist": {
+      "title": {
+        "short": "Daftar pantau — sinyal jangka pendek",
+        "long": "Daftar pantau — sinyal jangka panjang"
+      }
+    },
+    "col": {
+      "asset": "Aset",
+      "price": "Harga",
+      "day": "1 hari",
+      "month": "30 hari",
+      "signal": "Sinyal",
+      "risk": "Risiko"
+    },
+    "disclaimer": "Sinyal dihasilkan oleh aturan tetap yang dipublikasikan atas data harga. Ini informasi untuk keputusan Anda sendiri, bukan nasihat keuangan, dan perilaku masa lalu tidak menjamin hasil di masa depan."
+  },
+  "signal": {
+    "buy": "BELI",
+    "sell": "JUAL",
+    "hold": "TAHAN",
+    "none": "Riwayat belum cukup",
+    "stale": "Tanpa sinyal: harga belum diperbarui",
+    "invalid": "Tanpa sinyal: data harga bermasalah",
+    "sample": "Tanpa sinyal: data contoh"
   }
 }

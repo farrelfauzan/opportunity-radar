@@ -69,15 +69,17 @@ and never put a key or token in one.
   reset it to the fixtures when they end.
 - Tests change the data with `runDb(...)` from `e2e/db.ts` (`scripts/e2e-db.ts`: `fixtures
   --last-run=<minutes ago | ISO time | never> --no-articles --scores-run=<minutes ago | ISO time | never>
-  --no-opportunities --no-market --prices-run=<...> --metals-run=<...> --crypto-run=<...>`, `add <headline>`).
+  --no-opportunities --no-market --real-prices --prices-run=<...> --metals-run=<...> --crypto-run=<...>`, `add <headline>`).
   The market snapshot's fixtures (`e2e/market-fixtures.ts`: four assets, 10 daily closes and a quote each) are stored
   with the others; the three `--*-run` options set the last successful run of the jobs behind them (default 5 minutes ago).
+  The same assets are the Investments watchlist's (`e2e/invest.spec.ts`; four more rows and the signals are in the same file):
+  Bitcoin and Ethereum have made-up (sample) prices by default, `--real-prices` stores everything as real data.
 - Fixtures depend on "today" (the WIB day). A run started in the first minutes after WIB midnight
   (00:00 to about 02:00) can miss "today" fixtures: times before midnight are moved to 00:01, so
   the order of the news items is then by id, and the stale test (3 hours ago) can fall on
   yesterday (the test expects the date form then).
 - The "store unreachable" tests (`e2e/news.spec.ts`, `e2e/opportunities.spec.ts`) start nothing: the
-  test renames the table the page reads (`runDb("break", "articles")` / `"opportunities"`) in its own
+  test renames the table the page reads (`runDb("break", "articles")` / `"opportunities"` / `"assets"`) in its own
   e2e database, so the page's query fails the way it does when the store is down, and renames it back
   (`runDb("restore", ...)`, in a `finally`). Earlier they started a second server behind a TCP proxy,
   which was too slow and fragile on a busy machine.

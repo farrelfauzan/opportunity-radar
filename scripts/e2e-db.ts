@@ -9,11 +9,14 @@
 //            [--no-ventures] [--no-venture-market] [--ventures-run=<minutes ago | ISO time | never>]
 //                                         (the ventures behind the Radar's "My ventures"; --no-venture-market stores them unscored)
 //            [--prices-run=<...>] [--metals-run=<...>] [--crypto-run=<...>]   (the jobs behind the market snapshot, default 5)
+//            [--real-prices]               store every quote, candle and signal as real data (the default has made-up Bitcoin and
+//                                         Ethereum prices, and USD/IDR, so the Sample rules show)
 //                                         empty the tables, then store the News fixtures, the
-//                                         Opportunities fixtures, today's daily brief and the market snapshot's prices
+//                                         Opportunities fixtures, today's daily brief, the market snapshot's and the watchlist's
+//                                         prices and the watchlist's signals
 //                                         (default: a successful ingestion and a successful scoring run 5 minutes ago)
 //   add <headline>                        store one more article, published now
-//   break <table> | restore <table>       rename a table away and back (articles, opportunities): the page's
+//   break <table> | restore <table>       rename a table away and back (articles, opportunities, assets): the page's
 //                                         queries fail like a store that is down, with no second server
 //   deactivate <slug>                     switch a source off (its articles are hidden)
 //   source-status <slug> <status>         set a source's status on the latest ingestion run (e.g. 403, 304)
@@ -26,6 +29,7 @@ import {
   recordOpportunityScore,
   recordSuccessfulRun,
   saveBrief,
+  saveSignal,
   saveVentureView,
   saveTriage,
   SCORING_JOB,
@@ -42,7 +46,7 @@ import {
 import { sql } from "../src/server/data/client.ts";
 import { detailOf, evidenceArticles, factorsOf, fixtureOpportunities } from "../e2e/opportunity-fixtures.ts";
 import { fixtureArticles, fixtureSources, todayStats } from "../e2e/news-fixtures.ts";
-import { fixtureMarket } from "../e2e/market-fixtures.ts";
+import { fixtureMarket, fixtureSignals, type FixtureSignalState } from "../e2e/market-fixtures.ts";
 import { fixtureBriefLines } from "../e2e/radar-fixtures.ts";
 import { fixtureVentures } from "../e2e/venture-fixtures.ts";
 import { dropTestDatabase, resetTestDatabase } from "./db-admin.ts";
@@ -161,7 +165,7 @@ async function storeBrief(opportunityIds: Map<string, number>, evidence: Map<str
 }
 
 /**
- * The market snapshot's assets: 10 daily closes on the 10 days up to the day before the quotes (UTC) and a quote that is newer.
+ * The market snapshot's and the watchlist's assets: 10 or 30 daily closes on the 10 days up to the day before the quotes (UTC) and a quote that is newer.
  * The quote of a timed asset is from 5 minutes ago; a daily rate (USD/IDR) is stored at 00:00 UTC of the same UTC day.
  * Returns the as-of time of the timed quotes.
  */
@@ -171,17 +175,27 @@ async function storeMarket(): Promise<Date> {
   // The UTC day of the quotes (not of "now", which can be the next day for a moment): the candles end the day before.
   const today = new Date(`${timed.toISOString().slice(0, 10)}T00:00:00Z`).getTime();
   for (const f of fixtureMarket) {
-    const { id } = await upsertAsset({ slug: f.slug, symbol: f.symbol, name: f.name, kind: f.kind, exchange: f.exchange, currency: f.currency, source: f.source });
+    const { id } = await upsertAsset({ slug: f.slug, symbol: f.symbol, name: f.name, kind: f.kind, exchange: f.exchange, currency: f.currency, source: f.source, onWatchlist: f.onWatchlist ?? true });
+    // --real-prices: no made-up data anywhere, so no Sample rule shows.
+    const real = args.includes("--real-prices");
+    const synthetic = !real && f.quoteSource === "synthetic";
     await upsertCandles(
       id,
-      // A made-up price comes with made-up candles (a change against real ones is hidden, see getMarketSnapshot).
-      f.quoteSource === "synthetic" ? "synthetic" : f.source,
+      // A made-up price comes with made-up candles (a change against real ones is hidden, see marketRow).
+      real ? f.source : (f.candleSource ?? (f.quoteSource === "synthetic" ? "synthetic" : f.source)),
       f.closes.map((close, i) => {
         const day = new Date(today - (f.closes.length - i) * DAY_MS).toISOString().slice(0, 10);
         return { day, open: close, high: close, low: close, close, volume: null };
       }),
     );
-    await setQuote(id, { price: f.price, asOf: f.daily ? new Date(today) : timed, source: f.quoteSource });
+    await setQuote(id, { price: f.price, asOf: f.daily ? new Date(today) : timed, source: real ? f.source : f.quoteSource });
+    for (const [term, state] of Object.entries(fixtureSignals[f.slug] ?? {}) as ["short" | "long", FixtureSignalState][]) {
+      const verdict = state === "BUY" || state === "HOLD" || state === "SELL" ? state : state === "STALE" ? "BUY" : null; // a stale signal keeps its last verdict
+      await saveSignal(
+        { assetId: id, term, state, verdict, since: wibDay(new Date(now)), asOfDay: wibDay(new Date(now)), indicators: null, checks: [], agree: null, reversals: [], currency: null, rulesVersion: "rules v1", synthetic },
+        null,
+      );
+    }
   }
   return timed;
 }
@@ -325,7 +339,7 @@ async function sourceStatus(slug: string, status: string) {
   if (rows.length === 0) throw new Error(`No source with slug ${slug}`);
 }
 
-const BREAKABLE = ["articles", "opportunities"];
+const BREAKABLE = ["articles", "opportunities", "assets"];
 
 /** Renames the table away, so every query on it fails. The server keeps running and its connections stay up. */
 async function breakTable(table: string) {
