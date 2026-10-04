@@ -4,11 +4,12 @@
 // must skip `initial` and `synthetic` rows).
 import { closesForSignals, getAssetBySlug, getSignal, listAssets, saveSignal, wibDay, type Asset, type Signal } from "@/server/data";
 import type { JobOutcome } from "@/server/jobs/runner";
-import { dayIn, evaluate, marketZone, RULES_VERSION, type AssetClass, type Evaluation, type Term, type TermResult, type Verdict } from "./rules.ts";
+import { dayIn, evaluate, marketZone, RULES_VERSION, stretched as stretchedRsi, type AssetClass, type Evaluation, type Term, type TermResult, type Verdict } from "./rules.ts";
 
 const VERDICTS = new Set(["BUY", "HOLD", "SELL"]);
 const isVerdict = (state: string): state is Verdict => VERDICTS.has(state);
-const stretched = (rsi: number | null | undefined) => rsi != null && (rsi < 30 || rsi > 70);
+// The rules' own tolerant definition, so the trigger key never disagrees with the verdict.
+const stretched = (rsi: number | null | undefined) => rsi != null && stretchedRsi(rsi);
 const position = (a: number, b: number) => (a > b ? "above" : a < b ? "below" : "equal");
 
 const classOf = (asset: Asset): AssetClass | null =>
