@@ -5,6 +5,7 @@ import { assessVentures } from "@/server/ventures/market";
 import { ingestPrices } from "@/server/prices/ingest";
 import { ingestMetals } from "@/server/prices/metals";
 import { ingestCrypto } from "@/server/prices/crypto";
+import { computeSignals } from "@/server/signals/job";
 import { generateOpportunities } from "@/server/opportunities/generate";
 import { scoreOpportunities } from "@/server/opportunities/score";
 import { triageNews } from "@/server/news/triage";
@@ -82,6 +83,8 @@ export const jobs: Registry = {
   // OR-27: gold and silver in rupiah per gram (every 10 minutes) and crypto (every 15), as their own jobs.
   metals: { timeoutSeconds: 300, run: () => ingestMetals() },
   crypto: { timeoutSeconds: 300, run: () => ingestCrypto() },
+  // OR-29: rules v1 on every asset's closes, after the price jobs (scheduled after them, OR-20).
+  signals: { timeoutSeconds: 300, after: ["prices", "metals", "crypto"], run: () => computeSignals() },
   // Morning pipeline: triage → opportunities → scores → ventures → brief.
   // OR-14. Also the second step of `news` (ingest, then triage), the command to run every 30 minutes.
   triage: step("triage", { timeoutSeconds: 600, after: ["ingest-news"], run: () => triageNews() }),
