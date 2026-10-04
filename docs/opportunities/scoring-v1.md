@@ -25,12 +25,12 @@ Factor scores are integers 0–100; higher is always better on every factor.
 | Demand | no sign anyone wants it; only supply-side news | clear need in one segment, mixed signals | documented unmet demand at scale in several sources (shortages, queues, government targets) |
 | Timing | window closed, or more than 3 years away | trend emerging; window 12–24 months | trigger event in the last 90 days; window opens within 6 months |
 | Low competition | dominated by funded incumbents or free substitutes | several players, none dominant locally | no local player, or only informal sellers |
+| Capital efficiency | more than Rp 5 bn or 24 months before first revenue | about Rp 500 m, 6–12 months to first revenue | under Rp 50 m, first revenue within 3 months |
+| Low regulatory risk | a licence or ban is likely to block it | a licence is needed but obtainable (e.g. OJK, BPOM) | unregulated, or explicitly supported by government |
 
 Competition rule (added before round 3): government programmes, NGO services and free public tools count as substitutes when they serve the same buyer at no cost.
 
 The rupiah figures in the Capital efficiency row and in §3 are the Researcher's proposal (R-2); the Tech Lead confirms or changes them at merge.
-| Capital efficiency | more than Rp 5 bn or 24 months before first revenue | about Rp 500 m, 6–12 months to first revenue | under Rp 50 m, first revenue within 3 months |
-| Low regulatory risk | a licence or ban is likely to block it | a licence is needed but obtainable (e.g. OJK, BPOM) | unregulated, or explicitly supported by government |
 
 Timing rule added after the round-1 check (§6): if authorities are already acting to **reverse** the trigger (a release of reserves, a price cap), timing is at most 60; if they are acting to **reinforce** it (subsidy, mandate, deadline), timing is at least 60.
 
@@ -81,11 +81,11 @@ Code rules:
 - Response that is not valid JSON: strip exactly one surrounding ```` ```json ```` fence, nothing else; if still invalid, retry once, then mark the item failed.
 - Text is rendered as text, never as markup.
 
-`docs/opportunities/contract-examples.json` holds one valid example and one invalid example for each rule (11 invalid cases) plus three raw-response cases for the fence rule; OR-15/16 tests load them. Checked on 2026-10-04 with a JSON Schema validator: the valid example passes, every invalid one is rejected by the schema or the code rules.
+`docs/opportunities/contract-examples.json` holds one valid example and 11 invalid examples covering the citation, score, text, sector, theme, length, list-size and horizon rules (not every enum and max-length has its own case) plus three raw-response cases for the fence rule; OR-15/16 tests load them. Checked on 2026-10-04 with a JSON Schema validator: the valid example passes, every invalid one is rejected by the schema or the code rules.
 
 ## 6. Two-scorer check (OR-11 AC1)
 
-Scorers are two agent sessions, not two people: Designer = A, Researcher = B. Each scored blind, timestamped, before seeing the other. Themes and articles: `docs/research/R-2-samples/themes.json` (branch `research/r-2`).
+Scorers are two agent sessions, not two people: Designer = A, Researcher = B. Each scored blind, timestamped, before seeing the other. Themes and articles: `docs/opportunities/samples/themes.json` (copied from the Researcher's branch `research/r-2`).
 
 Round 1 (anchors of §2 without the timing rule). Order: demand, timing, low competition, capital efficiency, low regulatory risk.
 
@@ -107,7 +107,7 @@ Round 2 (timing rule added; themes in `samples/themes-round2.json`). **Scorer B 
 
 All 15 differences ≤ 15, and both scorers kept timing on the right side of the new rule. B scored competition lower in every theme, which led to the competition rule in §2.
 
-Round 3 (competition rule added; themes in `samples/themes-round3.json`). B scored and committed first (2026-10-04T01:28:02Z, commits fb777a7 / dc571a8 on `research/r-2`); A scored from the themes file without opening B's file and committed (2026-10-04T01:28:46Z, commit 1a57825 on `or-11-scoring`); only then were B's scores read. Both blind.
+Round 3 (competition rule added; themes in `samples/themes-round3.json`). B scored at 2026-10-04T01:28:02Z and committed at 01:28:11Z (fb777a7 holds the themes and B's scores; dc571a8 fills one empty field; both on `research/r-2`); A read only `themes-round3.json` (from dc571a8; A's score file names that commit) and scored without opening B's file and committed (2026-10-04T01:28:46Z, commit 1a57825 on `or-11-scoring`); only then were B's scores read. Both blind.
 
 | Theme | A | B | Differences | Overall A / B |
 |---|---|---|---|---|
