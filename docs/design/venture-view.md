@@ -15,7 +15,7 @@ For one of the owner's own ventures: how far the build is, and whether the marke
 | Block | Content | Source |
 |---|---|---|
 | Header | Venture name, one-line description (EN/ID) | `ventures` (OR-36) |
-| Progress | Progress bar with %, progress text (e.g. "Sprint 3 delivered · Sprint 4 next · 4 tickets in QA"), source and as-of time | `venture_progress`, latest row (OR-37) |
+| Progress | Progress bar with %, progress text (e.g. "Sprint 3 delivered · Next: sprint 4 · 4 tickets in QA"), source and as-of time | `venture_progress`, latest row (OR-37) |
 | Market view | Two cards, Indonesia and Worldwide: overall score / 100 with signed change vs yesterday (▲/▼/—), five factor bars with numbers (same factors as Opportunities), 30-day score line; labelled as AI-scored from the news | `venture_market` (OR-38), one row per region per day |
 | Tailwind and headwind | **One pair per venture** (not per region), the same pair the Radar card shows (OR-39, as in `Main.dc.html`): one tailwind and one headwind sentence, each with its cited articles (headline links to the publisher, source, relative time) | `venture_market` (OR-38 stores one pair per venture per day) + `articles` |
 | Related news | Articles matched to the venture in the last 30 days, newest first, 20 at a time with `news.loadMore`: category, impact word, headline (link), why it matters, source · time | `venture_articles` + `articles` + `article_triage` |
@@ -30,7 +30,7 @@ For one of the owner's own ventures: how far the build is, and whether the marke
 | venture.progress.source | From {source} · updated {time} WIB | Dari {source} · diperbarui {time} WIB |
 | venture.progress.notConnectedBody | Connect this venture's project board to show build progress. | Hubungkan papan proyek usaha ini untuk menampilkan progres pengembangan. |
 | venture.progress.delivered | Sprint {n} delivered | Sprint {n} selesai |
-| venture.progress.next | Sprint {n} next | Sprint {n} berikutnya |
+| venture.progress.next | Next: sprint {n} | Berikutnya: sprint {n} |
 | venture.progress.inQa.one | {n} ticket in QA | {n} tiket di QA |
 | venture.progress.inQa.other | {n} tickets in QA | {n} tiket di QA |
 | venture.market.title | Market view from the news | Pandangan pasar dari berita |
