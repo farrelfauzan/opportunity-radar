@@ -203,6 +203,7 @@ describe("failures", () => {
     ["https://192.168.1.1/feed", "redirect to a private address"],
     ["http://[::1]/feed", "redirect to a private address"],
     ["http://feeds.test/plain.xml", "redirect from https to http"],
+    ["http://[fd00::1]/feed", "redirect to a private address"],
     ["file:///etc/passwd", "redirect to a non-http address"],
   ])("a redirect to %s is refused", async (location, status) => {
     const { fetcher, requests } = fakeFetch({
@@ -231,6 +232,15 @@ describe("failures", () => {
     await expect(ingestNews({ feeds: [], fetch: fakeFetch({}).fetcher, now })).rejects.toThrow("No feeds configured");
     await expect(deactivateSourcesExcept([])).rejects.toThrow("at least one slug");
     expect((await listSources()).map((s) => s.active)).toEqual([true]);
+  });
+
+  test("a public host whose name starts like an IPv6 prefix is not private (fda.gov)", async () => {
+    const { fetcher } = fakeFetch({
+      "https://feeds.test/a.xml": { status: 301, headers: { location: "https://fda.gov/feed.xml" } },
+      "https://fda.gov/feed.xml": good,
+    });
+    const outcome = await ingestNews({ feeds: [feed("a")], fetch: fetcher, now });
+    expect(outcome).toMatchObject({ status: "ok", counts: { stored: 2 } });
   });
 
   test("a redirect is followed to the feed", async () => {
