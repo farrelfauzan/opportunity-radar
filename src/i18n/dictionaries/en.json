@@ -90,6 +90,68 @@
       }
     }
   },
+  "opp": {
+    "summary": "{n} open · re-scored every morning from the news",
+    "filter": {
+      "region": {
+        "label": "Region",
+        "all": "All regions",
+        "id": "Indonesia",
+        "global": "Global"
+      },
+      "sector": {
+        "label": "Sector",
+        "all": "All sectors"
+      },
+      "horizon": "Horizon",
+      "any": "Any",
+      "capital": "Capital"
+    },
+    "horizon": {
+      "short": "0–6 months",
+      "mid": "6–12 months",
+      "long": "1–3 years"
+    },
+    "capital": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "sector": {
+      "agri_food": "Agriculture & Food",
+      "fisheries_maritime": "Fisheries & Maritime",
+      "energy_mining": "Energy & Mining",
+      "renewables_climate": "Renewables & Climate",
+      "manufacturing": "Manufacturing & Industry",
+      "logistics": "Logistics & Supply Chain",
+      "retail_ecommerce": "Retail & E-commerce",
+      "fintech_finance": "Fintech & Financial Services",
+      "health_biotech": "Healthcare & Biotech",
+      "education": "Education & Skills",
+      "property_construction": "Property & Construction",
+      "tourism_hospitality": "Tourism & Hospitality",
+      "media_creative": "Media & Creative",
+      "telecom_infra": "Telecom & Digital Infrastructure",
+      "ai_software": "AI & Software",
+      "hardware_electronics": "Hardware & Electronics",
+      "govtech_public": "GovTech & Public Services",
+      "consumer_services": "Consumer Services"
+    },
+    "trend": {
+      "new": "New",
+      "up": "▲ {n}",
+      "down": "▼ {n}",
+      "flat": "— 0"
+    },
+    "empty": "No opportunities match these filters",
+    "never": "No opportunities yet — the first run is at 07:00 WIB",
+    "detail": {
+      "meta": "{region} · {sector} · Horizon {horizon}",
+      "score": "opportunity score / 100",
+      "closed": "This opportunity is closed or no longer exists",
+      "back": "Back to opportunities"
+    }
+  },
   "state": {
     "loading": "Loading…",
     "error": {
@@ -105,7 +167,8 @@
       "today": "{what} last updated {time} WIB",
       "earlier": "{what} last updated {date}, {time} WIB",
       "what": {
-        "news": "News"
+        "news": "News",
+        "opportunities": "Opportunities"
       }
     }
   },
