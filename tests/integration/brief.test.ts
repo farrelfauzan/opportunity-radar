@@ -215,3 +215,14 @@ describe("wording guard (OR-63)", () => {
     expect(requests).toHaveLength(0); // only 9 left in 24 h
   });
 });
+
+describe("OR-65: an imperative brief line", () => {
+  test("\"Buy a small batch of stock to test demand.\" in a brief line is rejected (twice → no brief)", async () => {
+    await relevantArticles(12);
+    const { transport } = provider((d) => ({
+      lines: [{ ...line([d.articles[0].id]), en: "Buy a small batch of stock to test demand." }, line([d.articles[1].id]), line([d.articles[2].id])],
+    }));
+    await expect(writeBrief({ transport })).rejects.toThrow(/rule "imperative"/);
+    expect(await getBrief(today)).toBeNull();
+  });
+});

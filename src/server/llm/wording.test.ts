@@ -241,3 +241,85 @@ describe("OR-64: normalisation, clause breaks, forecast forms, the authority exc
     expect(performance.now() - started).toBeLessThan(1000);
   });
 });
+
+describe("OR-65: suggest, certainty, ratings, sentence-initial imperatives", () => {
+  test.each([
+    "Kami merekomendasikan saham BBCA.",
+    "Saham ini direkomendasikan.",
+    "Kami menyarankan membeli emas.",
+    "Analis menyarankan untuk menjual saham.",
+    "Lebih baik beli emas sekarang.",
+    "We suggest buying gold.",
+    "I suggest selling now.",
+    "Analysts suggested investing early.",
+    "Gold is sure to rise.",
+    "Silver is certain to fall.",
+    "We guarantee returns.",
+    "A guaranteed winner.",
+    "A surefire way to profit.",
+    "You can't go wrong with gold.",
+    "It's a no-brainer.",
+    "Harga emas pasti akan naik.",
+    "Tidak mungkin rugi.",
+    "Pasti untung.",
+    "Strong buy rating on BBCA.",
+    "BBCA was rated a sell.",
+    "Peringkat beli untuk BBCA.",
+    "Rekomendasi beli untuk emas.",
+    "Buy gold today.",
+    "Belilah emas hari ini.",
+    "Demand is rising. Sell your stocks.",
+    "Hold the shares until March.",
+    "Invest in gold.",
+    "Jual saham sekarang.",
+  ])("rejects %s", (line) => {
+    expect(bannedWording(line)).not.toBeNull();
+  });
+
+  test.each([
+    "The data suggest demand is rising.",
+    "Kementerian menyarankan agar platform memverifikasi penjual.",
+    "Make sure to register on OSS first.",
+    "Be sure to compare three suppliers.",
+    "Sellers hold most of the stock in Java.", // "hold" mid-sentence describes
+    "Clinic owners buy software once a year.",
+  ])("passes %s", (line) => {
+    expect(bannedWording(line)).toBeNull();
+  });
+
+  test("opportunity first steps may start with an imperative; the same line elsewhere is rejected", () => {
+    for (const step of ["Buy a small batch of stock to test demand.", "Interview five clinic owners this week.", "Wawancarai lima pemilik klinik minggu ini."]) {
+      expect(wordingHit(step, "general", { firstStep: true })).toBeNull();
+    }
+    expect(wordingHit("Buy a small batch of stock to test demand.")).toMatchObject({ id: "imperative" });
+    // Other advice is still rejected in a first step.
+    expect(wordingHit("We suggest buying gold.", "general", { firstStep: true })).not.toBeNull();
+  });
+
+  test("the first-reply scan treats a firstSteps key as first steps", () => {
+    const item = { thesis: { en: "Fine.", id: "Baik." }, firstSteps: { en: ["Buy a small batch of stock to test demand."], id: ["Beli sedikit stok."] } };
+    expect(adviceIn(item)).toBeNull();
+    expect(adviceIn({ ...item, thesis: { en: "Buy a small batch of stock.", id: "Baik." } })).toMatchObject({ id: "imperative" });
+  });
+
+  test("static copy is never checked: only the AI jobs and the LLM module use the guard", () => {
+    const root = fileURLToPath(new URL("../../", import.meta.url));
+    const users: string[] = [];
+    const walk = (dir: string) => {
+      for (const name of readdirSync(dir)) {
+        const path = join(dir, name);
+        if (statSync(path).isDirectory()) walk(path);
+        else if (/\.tsx?$/.test(name) && !name.endsWith(".test.ts") && /llm\/wording/.test(readFileSync(path, "utf8"))) users.push(path.slice(root.length));
+      }
+    };
+    walk(root);
+    expect(users.sort()).toEqual([
+      "server/news/triage.ts",
+      "server/opportunities/brief.ts",
+      "server/opportunities/contract.ts",
+      "server/opportunities/generate.ts",
+      "server/opportunities/score.ts",
+      "server/ventures/market.ts",
+    ]);
+  });
+});

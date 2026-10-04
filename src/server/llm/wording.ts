@@ -51,8 +51,14 @@ const GENERAL = [
   // EN: advice addressed to the reader, instructions, promises.
   "you should", "you must", "you need to", "we recommend", "recommend(?:s|ed|ing)?", "advis(?:e|es|ed)", "advised to",
   "buy now", "sell now", "act now", "follow the signals?", "good time to", "take profit", "taking profit", "stop loss",
-  "your portfolio", "guaranteed", "target price", "don't miss", "consider (?:buying|selling)", "ought to",
+  "your portfolio", "target price", "don't miss", "consider (?:buying|selling)", "ought to",
   "time to (?:buy|sell)", "now is the time", "buy the dip", "risk free", "(?:can't|cannot) lose",
+  // OR-65 (QA's OR-63 report). Suggest: only advice ("we suggest", "suggest buying"); "the data suggest" describes.
+  "we suggest", "I suggest", "suggest(?:s|ed)? (?:buying|selling|investing)",
+  // Certainty: "make / be sure to" are instructions for a task, not certainty about a price.
+  "(?<!(?:make|be)\\s)sure to", "certain to", "guarantee(?:s|d|ing)?", "surefire", "(?:can't|cannot) go wrong", "no brainer",
+  // Analyst ratings.
+  "strong (?:buy|sell)", "(?:buy|sell) rating", "rated a (?:buy|sell)",
   // should / need to (EN and ID) followed within two words by a buy/sell verb ("Investors should buy bank stocks").
   // "must / harus / wajib" + verb is the mandate check below.
   `(?:should|need to|sebaiknya|perlu)(?: \\S+){0,2}? (?:${ACTIONS})`,
@@ -61,7 +67,15 @@ const GENERAL = [
   "beli sekarang", "jual sekarang", "segera beli", "segera jual", "ikuti sinyal", "waktu yang tepat untuk",
   "ambil untung", "dijamin", "pasti naik", "pasti turun", "target harga", "jangan lewatkan", "portofolio Anda",
   "layak dibeli", "layak dijual", "saatnya (?:membeli|menjual|beli|jual)", "tanpa risiko",
+  // OR-65: ID recommend in every form (as EN "recommend"), suggest as advice, certainty, ratings.
+  "merekomendasikan", "direkomendasikan", "rekomendasikan(?:lah)?", "rekomendasi (?:beli|jual)",
+  "kami menyarankan", "saya menyarankan", "menyarankan(?: untuk)? (?:membeli|menjual|beli|jual)",
+  "lebih baik (?:beli|jual|membeli|menjual)", "pasti akan", "tidak mungkin rugi", "pasti untung", "peringkat (?:beli|jual)",
 ];
+
+// OR-65: a buy / sell imperative as the first word of a sentence, in every AI text except opportunity
+// first steps (business validation: "Buy a small batch of stock to test demand").
+const IMPERATIVES = "buy|sell|hold|invest in|beli|belilah|jual|juallah|tahan|investasikan";
 
 const SIGNAL_ONLY = [
   // rules-v1 §7.4, EN
@@ -187,6 +201,18 @@ function hasAuthority(text: string, hitStart: number, hitEnd: number): boolean {
   return false;
 }
 
+const IMPERATIVE_RE = new RegExp(wholeWords(IMPERATIVES), "giu");
+
+/** A buy / sell imperative that starts a sentence (the text's start, or after a sentence end), or null. */
+function imperativeStart(text: string): string | null {
+  for (const hit of text.matchAll(IMPERATIVE_RE)) {
+    let i = hit.index - 1;
+    while (i >= 0 && text[i] === " ") i--;
+    if (i < 0 || sentenceEndAt(text, i)) return hit[0];
+  }
+  return null;
+}
+
 /** A mandate without an authority word near it, or null. */
 function unmandated(text: string): string | null {
   for (const hit of text.matchAll(MANDATE_RE)) if (!hasAuthority(text, hit.index, hit.index + hit[0].length)) return hit[0];
@@ -197,11 +223,18 @@ function unmandated(text: string): string | null {
 export type WordingHit = { id: string; match: string };
 
 /** The first banned wording in `text` (after `normalise`), or null. */
-export function wordingHit(text: string, list: WordingList = "general"): WordingHit | null {
+/** Where a text sits: opportunity first steps may start with an imperative (OR-65). */
+export type WordingContext = { firstStep?: boolean };
+
+export function wordingHit(text: string, list: WordingList = "general", context: WordingContext = {}): WordingHit | null {
   const normal = normalise(text);
   for (const { id, pattern } of LISTS[list]) {
     const hit = pattern.exec(normal);
     if (hit) return { id, match: hit[0] };
+  }
+  if (!context.firstStep) {
+    const imperative = imperativeStart(normal);
+    if (imperative) return { id: "imperative", match: imperative };
   }
   if (list === "signal") return null; // the signal list already rejects every mandate and every forecast
   const mandate = unmandated(normal);
@@ -229,9 +262,9 @@ export class AdviceError extends Error {
 }
 
 /** Throws an AdviceError when any of the texts has banned wording; `what` names the field. */
-export function assertDescriptive(texts: Record<string, string>, list: WordingList = "general"): void {
+export function assertDescriptive(texts: Record<string, string>, list: WordingList = "general", context: WordingContext = {}): void {
   for (const [what, text] of Object.entries(texts)) {
-    const hit = wordingHit(text, list);
+    const hit = wordingHit(text, list, context);
     if (hit) throw new AdviceError(wordingReason(what, hit), hit.id);
   }
 }
@@ -258,17 +291,25 @@ export function countingAdvice<T, C>(parse: (value: unknown, context: C) => T, c
   };
 }
 
-/** The first banned wording in any string inside `value` (a reply item, scanned deeply), or null. */
-export function adviceIn(value: unknown, list: WordingList = "general"): WordingHit | null {
-  if (typeof value === "string") return wordingHit(value, list);
+/**
+ * The first banned wording in any string inside `value` (a reply item, scanned deeply), or null.
+ * Strings under a `firstSteps` key are opportunity first steps (imperatives allowed).
+ */
+export function adviceIn(value: unknown, list: WordingList = "general", context: WordingContext = {}): WordingHit | null {
+  if (typeof value === "string") return wordingHit(value, list, context);
   if (Array.isArray(value)) {
     for (const v of value) {
-      const hit = adviceIn(v, list);
+      const hit = adviceIn(v, list, context);
       if (hit) return hit;
     }
     return null;
   }
-  if (value && typeof value === "object") return adviceIn(Object.values(value), list);
+  if (value && typeof value === "object") {
+    for (const [key, v] of Object.entries(value)) {
+      const hit = adviceIn(v, list, key === "firstSteps" ? { firstStep: true } : context);
+      if (hit) return hit;
+    }
+  }
   return null;
 }
 
