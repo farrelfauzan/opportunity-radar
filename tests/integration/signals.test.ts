@@ -212,6 +212,16 @@ describe("sample data (synthetic series, AC5-AC7)", () => {
 });
 
 describe("tables", () => {
+  test("the database refuses a verdict state whose verdict is missing or different (null-safe)", async () => {
+    const asset = await stock(fixture("rising_noisy"));
+    for (const verdict of [sql`null`, sql`'BUY'`]) {
+      await expect(
+        db().execute(sql`insert into signals (asset_id, term, state, verdict, checks, reversals, rules_version) values (${asset.id}, 'short', 'HOLD', ${verdict}, '[]', '[]', 'rules v1')`),
+      ).rejects.toThrow();
+    }
+    await db().execute(sql`insert into signals (asset_id, term, state, verdict, checks, reversals, rules_version) values (${asset.id}, 'long', 'STALE', null, '[]', '[]', 'rules v1')`);
+  });
+
   test("the database refuses an unknown term, state or verdict, and a history row whose from equals its to", async () => {
     const asset = await stock(fixture("rising_noisy"));
     await expect(db().execute(sql`insert into signals (asset_id, term, state, verdict, checks, reversals, rules_version) values (${asset.id}, 'medium', 'BUY', 'BUY', '[]', '[]', 'rules v1')`)).rejects.toThrow();
