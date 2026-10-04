@@ -32,6 +32,27 @@ export function staleBanner(
     : fill(strings.earlier, { ...values, date: formatDateShortWib(lastRun, locale) });
 }
 
+/** Latest-run statuses that count as updated: a fetched feed ("200") and an unchanged one ("304", a successful check). */
+const UPDATED_STATUSES = ["200", "304", "ok"];
+
+type SourceStatus = { slug: string; name: string; lastStatus: string | null };
+
+/**
+ * The partial state: the news is not stale, yet at least one active source did not update on the
+ * latest run (its status is not 200 / 304). A source with no run on record is not counted: nothing
+ * says it failed. `health` holds active sources only. Null when everything is fine or the news is
+ * stale (the stale banner speaks then).
+ */
+export function partialState(
+  health: SourceStatus[],
+  stale: boolean,
+): { ok: number; total: number; failed: SourceStatus[] } | null {
+  if (stale) return null;
+  const failed = health.filter((s) => s.lastStatus !== null && !UPDATED_STATUSES.includes(s.lastStatus));
+  if (failed.length === 0) return null;
+  return { ok: health.length - failed.length, total: health.length, failed };
+}
+
 /** The link as an absolute http(s) URL, or null (javascript:, data:, relative or malformed links). */
 export function safeHref(link: string): string | null {
   try {
