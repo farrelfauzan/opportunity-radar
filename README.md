@@ -63,6 +63,11 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
   reads each new article once: category, region, relevance, impact, "why it matters" in EN and ID,
   themes). `pnpm job triage` alone triages whatever is waiting. With `LLM_PROVIDER` unset the LLM
   is a local mock: its replies say "[mock]" and nothing leaves the machine.
+- `pnpm job prices` stores daily candles and the latest quote of IHSG, BBCA and the S&P 500, and
+  USD/IDR (ECB reference rates from Frankfurter, fetched at most every 6 hours). The first run
+  backfills 6 years. Yahoo is **off** unless `PRICES_YAHOO=live` (Yahoo's terms are decision D9):
+  by default a synthetic history in Yahoo's response shape is used, which is not market data.
+  `PRICES_FRANKFURTER=fixtures` uses a recorded USD/IDR history instead of the live API.
 - `pnpm job morning` runs triage → opportunities → scores → brief and stops at the first failing
   step; later steps are recorded as `skipped`.
 - `--test` runs against the test database; `--timeout <seconds>` overrides the job's own time

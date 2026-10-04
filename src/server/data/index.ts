@@ -4,11 +4,12 @@
 import "server-only";
 
 export { checkConnection, closeDb } from "./client.ts";
-export { REGIONS, CATEGORIES, JOB_STATUSES, SECTORS, THEMES, IMPACTS } from "./schema.ts";
-export type { Region, Category, JobStatus, Sector, FactorScores, LlmRole, LlmCallStatus, Theme, Impact } from "./schema.ts";
+export { REGIONS, CATEGORIES, JOB_STATUSES, SECTORS, THEMES, IMPACTS, ASSET_KINDS } from "./schema.ts";
+export type { Region, Category, JobStatus, Sector, FactorScores, LlmRole, LlmCallStatus, Theme, Impact, AssetKind } from "./schema.ts";
 export * from "./articles.ts";
 export * from "./sources.ts";
 export * from "./job-runs.ts";
 export * from "./ventures.ts";
 export * from "./llm-usage.ts";
 export * from "./triage.ts";
+export * from "./prices.ts";

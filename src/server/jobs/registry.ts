@@ -1,5 +1,6 @@
 import { callLlm } from "@/server/llm/client";
 import { ingestNews } from "@/server/news/ingest";
+import { ingestPrices } from "@/server/prices/ingest";
 import { triageNews } from "@/server/news/triage";
 import type { Job, Registry } from "./runner.ts";
 
@@ -70,6 +71,8 @@ export const jobs: Registry = {
   // RSS ingestion, meant to run every 30 minutes. active feeds in parallel, 10 s each.
   "ingest-news": { timeoutSeconds: 60, run: () => ingestNews() },
   "llm-smoke": llmSmoke,
+  // OR-26: stocks and indices (Yahoo; synthetic unless PRICES_YAHOO=live) and USD/IDR.
+  prices: { timeoutSeconds: 300, run: () => ingestPrices() },
   // Morning pipeline: triage → opportunities → scores → brief. Each stub is
   // replaced by the real job when its ticket lands (OR-14, OR-15/OR-50, OR-16, OR-22).
   // OR-14. Also the second step of `news` (ingest, then triage), the command to run every 30 minutes.

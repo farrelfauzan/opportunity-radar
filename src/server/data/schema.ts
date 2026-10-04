@@ -347,3 +347,70 @@ export const articleTriage = pgTable(
     ),
   ],
 );
+
+export const ASSET_KINDS = ["index", "stock", "metal", "crypto", "fx"] as const;
+export type AssetKind = (typeof ASSET_KINDS)[number];
+
+// Something with a price (OR-26; OR-27 adds metals and crypto). `slug` is the
+// /invest/[asset] URL. Configured in src/server/prices/assets.ts.
+export const assets = pgTable(
+  "assets",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    slug: text().notNull().unique(),
+    symbol: text().notNull(),
+    name: text().notNull(),
+    kind: text().$type<AssetKind>().notNull(),
+    exchange: text(),
+    currency: text().notNull(),
+    // Where its prices come from: "yahoo", "frankfurter" (OR-27 adds more).
+    source: text().notNull(),
+    onWatchlist: boolean("on_watchlist").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check("assets_kind_check", sql`${t.kind} in ('index', 'stock', 'metal', 'crypto', 'fx')`),
+    check("assets_slug_check", sql`${t.slug} ~ '^[a-z0-9-]+$'`),
+    check("assets_currency_check", sql`${t.currency} ~ '^[A-Z]{3}$'`),
+  ],
+);
+
+// One daily candle per asset and trading day (the exchange's calendar day).
+// Written by the price jobs; a later fetch of the same day replaces it.
+export const candles = pgTable(
+  "candles",
+  {
+    assetId: integer("asset_id")
+      .notNull()
+      .references(() => assets.id, { onDelete: "cascade" }),
+    day: date({ mode: "string" }).notNull(),
+    open: doublePrecision().notNull(),
+    high: doublePrecision().notNull(),
+    low: doublePrecision().notNull(),
+    close: doublePrecision().notNull(),
+    volume: bigint({ mode: "number" }),
+    source: text().notNull(),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.assetId, t.day] }),
+    check("candles_prices_check", sql`${t.low} > 0 and ${t.low} <= ${t.open} and ${t.low} <= ${t.close} and ${t.high} >= ${t.open} and ${t.high} >= ${t.close}`),
+    check("candles_volume_check", sql`${t.volume} >= 0`),
+  ],
+);
+
+// The latest price of each asset, with where and when it is from.
+// An upstream failure leaves it as it was (same price, same as-of time).
+export const quotes = pgTable(
+  "quotes",
+  {
+    assetId: integer("asset_id")
+      .primaryKey()
+      .references(() => assets.id, { onDelete: "cascade" }),
+    price: doublePrecision().notNull(),
+    asOf: timestamp("as_of", { withTimezone: true }).notNull(),
+    source: text().notNull(),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [check("quotes_price_check", sql`${t.price} > 0`)],
+);
