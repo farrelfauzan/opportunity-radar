@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
-import { currencyChange, dayIn, evaluate, longVerdict, marketZone, rsi14, shortVerdict, type Row, type TermResult } from "./rules.ts";
+import { currencyChange, dayIn, evaluate, longVerdict, marketZone, momentumCheck, rsi14, shortVerdict, type Row, type TermResult } from "./rules.ts";
+import { triggerFor } from "./job.ts";
 
 // The Researcher's fixtures and expected values (docs/signals/fixtures, generated with exact arithmetic).
 const dir = new URL("../../../docs/signals/fixtures/", import.meta.url);
@@ -272,5 +273,21 @@ describe("RSI of exactly 70 through evaluate (Reviewer, PR 80)", () => {
     expect(result.indicators!.rsi).toBeGreaterThan(70); // the float noise this test is about
     expect(result.short.checks[0].key).not.toBe("signal.check.rsiHigh");
     expect(result.short.state).not.toBe("HOLD"); // close is above the 50-day average, RSI is in range
+  });
+});
+
+describe("the exact bounds everywhere: momentum key and trigger key (Reviewer, PR 90)", () => {
+  test("momentum words at 30, 50 and 70 with float noise", () => {
+    expect(momentumCheck(29.999999999998877)).toMatchObject({ key: "signal.check.rsiBelow50", verdict: "supportsSell" }); // exactly 30: in range
+    expect(momentumCheck(70.00000000000007)).toMatchObject({ key: "signal.check.rsiAbove50", verdict: "supportsBuy" }); // exactly 70: in range
+    expect(momentumCheck(50.00000000000001)).toMatchObject({ key: "signal.check.rsiInRange", verdict: "neutral" }); // exactly 50
+    expect(momentumCheck(29.9)).toMatchObject({ key: "signal.check.rsiLow", verdict: "neutral" });
+    expect(momentumCheck(50.1)).toMatchObject({ key: "signal.check.rsiAbove50" });
+  });
+
+  test("a change caused by the 50-day average at RSI exactly 30 is close50, not rsiOut", () => {
+    const previous = { verdict: "BUY", indicators: { close: 110, sma50: 100, sma200: null, rsi: 45 } } as never;
+    const evaluation = { indicators: { close: 90, sma50: 100, sma200: null, rsi: 29.999999999998877 } } as never;
+    expect(triggerFor("short", previous, evaluation, "SELL")).toBe("signal.trigger.close50.below");
   });
 });

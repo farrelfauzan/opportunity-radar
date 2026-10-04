@@ -123,7 +123,8 @@ const EPS = 1e-9;
 export function cmp(a: number, b: number): -1 | 0 | 1 {
   return Math.abs(a - b) <= EPS * Math.max(Math.abs(a), Math.abs(b), 1) ? 0 : a > b ? 1 : -1;
 }
-const stretched = (rsi: number) => cmp(rsi, 30) < 0 || cmp(rsi, 70) > 0;
+/** RSI outside 30-70 (the short-term HOLD rule), with the tolerant comparison: the one definition. */
+export const stretched = (rsi: number) => cmp(rsi, 30) < 0 || cmp(rsi, 70) > 0;
 
 /** Short-term table (§3.1). */
 export function shortVerdict(close: number, sma50: number, rsi: number): Verdict {
@@ -146,7 +147,7 @@ const position = (a: number, b: number) => (cmp(a, b) > 0 ? "above" : cmp(a, b) 
  * Momentum check (Designer, rules-v1 §3.3; a display word only): RSI between 30 and 70 supports buy
  * above 50 and sell below 50, exactly 50 is neutral; a stretched RSI (the short-term HOLD rule) is neutral.
  */
-function momentumCheck(rsi: number): Check {
+export function momentumCheck(rsi: number): Check {
   const key =
     // The same tolerant comparisons as the verdict, so the words never disagree with it.
     cmp(rsi, 70) > 0 ? "signal.check.rsiHigh" : cmp(rsi, 30) < 0 ? "signal.check.rsiLow" : cmp(rsi, 50) > 0 ? "signal.check.rsiAbove50" : cmp(rsi, 50) < 0 ? "signal.check.rsiBelow50" : "signal.check.rsiInRange";
