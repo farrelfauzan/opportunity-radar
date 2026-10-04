@@ -94,20 +94,15 @@ const DROPPABLE_PREFIX = "opportunity_radar_e2e_";
 /**
  * Drops a browser-test database (`opportunity_radar_e2e_<port>_test`, on this machine) with any connections still
  * open to it, so a run leaves nothing on the shared Postgres server. Nothing happens when it does not exist.
- * Refuses every other name, in particular the shared test database (`opportunity_radar_test`, TEST_DATABASE_URL)
- * and the development one (DATABASE_URL), whoever calls it.
+ * Refuses every other name, in particular the shared test database (`opportunity_radar_test`, the default of
+ * TEST_DATABASE_URL) and the development one (`opportunity_radar`), whoever calls it. (It does not compare with
+ * DATABASE_URL: scripts/e2e-db.ts points that at the e2e database itself.)
  */
 export async function dropTestDatabase(url: string): Promise<void> {
   requireTestName(url);
   const name = new URL(url).pathname.slice(1);
   if (!name.startsWith(DROPPABLE_PREFIX)) {
     throw new Error(`Refusing to drop "${name}": only databases named ${DROPPABLE_PREFIX}<port>_test are dropped.`);
-  }
-  for (const variable of ["DATABASE_URL", "TEST_DATABASE_URL"]) {
-    const other = process.env[variable];
-    if (other && new URL(other).pathname.slice(1) === name) {
-      throw new Error(`Refusing to drop "${name}": it is the database of ${variable}.`);
-    }
   }
   const admin = new URL(url);
   admin.pathname = "/postgres";
