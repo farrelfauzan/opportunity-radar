@@ -190,6 +190,11 @@ export const opportunities = pgTable(
     check("opportunities_thesis_check", sql`${textCheck(t.thesisEn, 400)} and ${textCheck(t.thesisId, 400)}`),
     check("opportunities_region_check", regionCheck(t.region)),
     check("opportunities_theme_check", sql`${t.theme} ~ '^[a-z_]+$'`),
+    // QA (OR-15): the database refuses "other" and ids outside scoring-v1 §8, as the code does.
+    check(
+      "opportunities_theme_vocabulary_check",
+      sql`${t.theme} <> 'other' and ${t.theme} in (${sql.raw(THEMES.map((x) => `'${x}'`).join(", "))})`,
+    ),
     check(
       "opportunities_sectors_check",
       sql`cardinality(${t.sectors}) between 1 and 3 and ${t.sectors} <@ array[${sql.join(
@@ -230,6 +235,8 @@ export const opportunityArticles = pgTable(
     articleId: bigint("article_id", { mode: "number" })
       .notNull()
       .references(() => articles.id),
+    // When the citation was added (OR-50: closed after 30 days without a new one).
+    citedAt: timestamp("cited_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     primaryKey({ columns: [t.opportunityId, t.articleId] }),
