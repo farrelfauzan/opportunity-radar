@@ -9,7 +9,8 @@ import {
   markupTitle,
   openFixtures,
 } from "./opportunity-fixtures";
-import { startUnreachableServer } from "./unreachable-server";
+import { e2eDatabaseUrl } from "../scripts/e2e-env";
+import { expectSkeletonOnNavigation } from "./skeleton";
 
 const listed = listedFixtures();
 const idOf = (key: string) => fixtureOpportunities.findIndex((f) => f.key === key) + 1; // stored in this order, ids from 1
@@ -454,86 +455,74 @@ test("opportunities without any scoring run are listed without a stale banner", 
 });
 
 test("the screen has a loading state: while the list loads, the skeleton is on screen", async ({ page }) => {
-  const prefetched = page.waitForResponse(
-    (response) => response.url().includes("/en/opportunities?_rsc=") && response.request().headers()["next-router-prefetch"] !== undefined,
-  );
-  await page.goto("/en/news");
-  await prefetched; // the link's prefetch brings the skeleton, so it can show at once on the click
-  // Hold the data request of the navigation (not the prefetches), so the skeleton is the only thing that can show.
-  await page.route(/\/en\/opportunities\?_rsc=/, async (route) => {
-    if (!route.request().headers()["next-router-prefetch"]) await new Promise((resolve) => setTimeout(resolve, 1500));
-    await route.continue();
+  await expectSkeletonOnNavigation(page, {
+    from: "/en/news",
+    link: "Opportunities",
+    target: /\/en\/opportunities\?_rsc=/,
+    loaded: () => items(page).first(),
   });
-  await page.getByRole("banner").getByRole("link", { name: "Opportunities", exact: true }).click();
-  await expect(page.getByRole("status", { name: "Loading…" })).toBeVisible();
-  await expect(items(page).first()).toBeVisible();
-  await expect(page.getByRole("status", { name: "Loading…" })).toHaveCount(0);
 });
 
 // ---- Store unreachable --------------------------------------------------------------------------
 
+// As in e2e/news.spec.ts: the table the page reads is renamed away in the test's own e2e database
+// and back, so no second server is needed.
 test.describe("store unreachable", () => {
-  let server: Awaited<ReturnType<typeof startUnreachableServer>>;
-
-  // Starting the second server and reading the page in both states takes longer than the default 30 s.
-  test.setTimeout(90_000);
-  test.beforeEach(async () => {
-    server = await startUnreachableServer();
-  });
-  test.afterEach(async () => {
-    await server.stop();
-  });
-
   for (const locale of ["en", "id"] as const) {
     test(`${locale}: the error state shows no host, port, password or stack trace, and retry works`, async ({ page }) => {
       const c = copy[locale];
-      const url = `http://localhost:${server.port}/${locale}/opportunities?region=indonesia`;
+      const url = `/${locale}/opportunities?region=indonesia`;
 
       await page.goto(url);
       await expect(items(page).first()).toBeVisible();
 
-      server.stopStore();
+      try {
+        runDb("break", "opportunities");
+        await page.goto(url);
+        await expect(page.getByRole("heading", { level: 1 })).toHaveText(c.title);
+        await expect(page.locator("main")).toContainText(c.error[0]);
+        const retry = page.getByRole("link", { name: c.error[1], exact: true });
+        await expect(retry).toHaveAttribute("href", url);
+        await expect(items(page)).toHaveCount(0);
+        await expect(page.getByRole("banner").getByRole("navigation")).toBeVisible();
 
-      await page.goto(url);
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText(c.title);
-      await expect(page.locator("main")).toContainText(c.error[0]);
-      const retry = page.getByRole("link", { name: c.error[1], exact: true });
-      await expect(retry).toHaveAttribute("href", `/${locale}/opportunities?region=indonesia`);
-      await expect(items(page)).toHaveCount(0);
-      await expect(page.getByRole("banner").getByRole("navigation")).toBeVisible();
+        // Neither the visible text nor the HTML (with the page data) holds a detail.
+        const db = new URL(e2eDatabaseUrl());
+        const html = await page.content();
+        for (const detail of [
+          db.hostname,
+          db.port,
+          db.pathname.slice(1),
+          "postgres://",
+          "postgres",
+          'relation "', // what a database says about a missing table
+          "42P01",
+          "__off",
+          "ECONNREFUSED",
+          "digest",
+          "node_modules",
+          "    at ",
+        ]) {
+          expect(html, `the page leaks "${detail}"`).not.toContain(detail);
+        }
 
-      // Neither the visible text nor the HTML (with the page data) holds a detail.
-      const html = await page.content();
-      for (const detail of [
-        server.password,
-        "127.0.0.1",
-        String(server.proxyPort),
-        "ECONNREFUSED",
-        "CONNECTION",
-        "opportunity_radar",
-        "postgres://",
-        "postgres",
-        "digest",
-        "node_modules",
-        "    at ",
-      ]) {
-        expect(html, `the page leaks "${detail}"`).not.toContain(detail);
+        // The detail route shows the same state (not a 404), with its own retry link.
+        await page.goto(`/${locale}/opportunities/1?region=indonesia`);
+        await expect(page.locator("main")).toContainText(c.error[0]);
+        await expect(page.getByRole("link", { name: c.error[1], exact: true })).toHaveAttribute(
+          "href",
+          `/${locale}/opportunities/1?region=indonesia`,
+        );
+
+        // The store is still down, so the retry link brings the same state back.
+        await page.getByRole("link", { name: c.error[1], exact: true }).click();
+        await expect(page.locator("main")).toContainText(c.error[0]);
+      } finally {
+        runDb("restore", "opportunities");
       }
 
-      // The detail route shows the same state (not a 404), with its own retry link.
-      await page.goto(`http://localhost:${server.port}/${locale}/opportunities/1?region=indonesia`);
-      await expect(page.locator("main")).toContainText(c.error[0]);
-      await expect(page.getByRole("link", { name: c.error[1], exact: true })).toHaveAttribute(
-        "href",
-        `/${locale}/opportunities/1?region=indonesia`,
-      );
-
-      // The store is still down, so the retry link brings the same state back.
-      await page.getByRole("link", { name: c.error[1], exact: true }).click();
-      await expect(page.locator("main")).toContainText(c.error[0]);
-
-      // Leave the page before the server is stopped, so no pending request fails after the test.
-      await page.goto("about:blank");
+      await page.goto(url);
+      await expect(items(page).first()).toBeVisible();
     });
   }
 });

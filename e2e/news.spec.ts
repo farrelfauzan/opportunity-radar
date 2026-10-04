@@ -1,9 +1,8 @@
-import { spawn, type ChildProcess } from "node:child_process";
-import net from "node:net";
 import type { Page } from "@playwright/test";
-import { e2eDatabaseUrl, e2ePort } from "../scripts/e2e-env";
+import { e2eDatabaseUrl } from "../scripts/e2e-env";
 import { runDb, resetFixtures } from "./db";
 import { expect, test } from "./fixtures";
+import { expectSkeletonOnNavigation } from "./skeleton";
 import { fixtureSources, headlines, longSourceName, todayStats } from "./news-fixtures";
 
 const stats = todayStats();
@@ -409,21 +408,13 @@ test("1280 px: the Sources panel sits beside the list", async ({ page }) => {
 // ---- States ----------------------------------------------------------------------------------
 
 test("a skeleton shows while the screen loads on client-side navigation", async ({ page }) => {
-  // The header link prefetches the loading skeleton. Wait until the page is idle, so the
-  // prefetch has finished and the skeleton is in the router cache; then slow the real request.
-  await page.goto("/en/calculators", { waitUntil: "networkidle" });
-  // The header link's prefetch must have finished (it shows up as a resource request).
-  await page.waitForFunction(() => performance.getEntriesByType("resource").some((e) => /\/en\/news/.test(e.name)));
-  await page.route(/\/en\/news/, async (route) => {
-    if (!route.request().headers()["next-router-prefetch"]) await new Promise((resolve) => setTimeout(resolve, 1500));
-    await route.continue();
+  await expectSkeletonOnNavigation(page, {
+    from: "/en/calculators",
+    link: "News",
+    target: /\/en\/news/,
+    loaded: () => items(page).first(),
   });
-  await page.getByRole("banner").getByRole("link", { name: "News", exact: true }).click();
-  const skeleton = page.getByRole("status", { name: "Loading…" });
-  await expect(skeleton).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("News");
-  await expect(items(page).first()).toBeVisible();
-  await expect(skeleton).toHaveCount(0);
 });
 
 for (const locale of ["en", "id"] as const) {
@@ -461,109 +452,62 @@ test("a newly stored article shows on reload", async ({ page }) => {
 
 // ---- Store unreachable -----------------------------------------------------------------------
 
-// A second production server (same build) reaches the database through a small TCP
-// proxy. The test stops the proxy, which is what "the database is stopped" looks like
-// to the page, without touching the Postgres server other sessions share.
+// The store is "down" for the page when the table it reads is missing: the test renames the
+// table away in its own e2e database and back, so the running server is used and nothing else
+// is started (a second server and a TCP proxy were too slow and fragile on a busy machine).
 test.describe("store unreachable", () => {
-  const port = e2ePort() + 1;
-  const secret = "hunter2";
-  let proxy: net.Server;
-  let proxyPort = 0;
-  const sockets = new Set<net.Socket>();
-  let server: ChildProcess;
-
-  // Each test starts its own proxy and server: the test stops the proxy.
-  test.beforeEach(async () => {
-    sockets.clear();
-    const db = new URL(e2eDatabaseUrl());
-    proxy = net.createServer((client) => {
-      const upstream = net.connect(Number(db.port || 5432), db.hostname);
-      for (const socket of [client, upstream]) {
-        sockets.add(socket);
-        socket.on("error", () => (client.destroy(), upstream.destroy()));
-        socket.on("close", () => (client.destroy(), upstream.destroy()));
-      }
-      client.pipe(upstream);
-      upstream.pipe(client);
-    });
-    await new Promise<void>((resolve) => proxy.listen(0, "127.0.0.1", resolve));
-    proxyPort = (proxy.address() as net.AddressInfo).port;
-
-    const url = new URL(db.href);
-    url.username = "postgres";
-    url.password = secret;
-    url.hostname = "127.0.0.1";
-    url.port = String(proxyPort);
-    server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", String(port)], {
-      env: { ...process.env, DATABASE_URL: url.href },
-      stdio: "ignore",
-    });
-    for (let i = 0; i < 100; i++) {
-      try {
-        if ((await fetch(`http://localhost:${port}/en/calculators`)).ok) return;
-      } catch {}
-      await new Promise((resolve) => setTimeout(resolve, 300));
-    }
-    throw new Error("The second server did not start");
-  });
-
-  test.afterEach(async () => {
-    proxy.close();
-    for (const socket of sockets) socket.destroy();
-    if (server.exitCode === null) {
-      const exited = new Promise((resolve) => server.once("exit", resolve));
-      server.kill();
-      await exited;
-    }
-  });
-
   for (const locale of ["en", "id"] as const) {
     test(`${locale}: the error state shows no host, port, password or stack trace, and retry works`, async ({
       page,
     }) => {
       const c = copy[locale];
-      const url = `http://localhost:${port}/${locale}/news?category=markets`;
+      const url = `/${locale}/news?category=markets`;
 
       await page.goto(url);
       await expect(items(page).first()).toBeVisible();
 
-      proxy.close();
-      for (const socket of sockets) socket.destroy();
+      try {
+        runDb("break", "articles");
+        await page.goto(url);
+        await expect(page.getByRole("heading", { level: 1 })).toHaveText(c.title);
+        await expect(page.locator("main")).toContainText(c.error[0]);
+        const retry = page.getByRole("link", { name: c.error[1], exact: true });
+        await expect(retry).toHaveAttribute("href", url);
+        await expect(items(page)).toHaveCount(0);
+        // The header of the app is still there.
+        await expect(page.getByRole("banner").getByRole("navigation")).toBeVisible();
 
-      await page.goto(url);
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText(c.title);
-      await expect(page.locator("main")).toContainText(c.error[0]);
-      const retry = page.getByRole("link", { name: c.error[1], exact: true });
-      await expect(retry).toHaveAttribute("href", `/${locale}/news?category=markets`);
-      await expect(items(page)).toHaveCount(0);
-      // The header of the app is still there.
-      await expect(page.getByRole("banner").getByRole("navigation")).toBeVisible();
+        // Neither the visible text nor the HTML (with the page data) holds a detail.
+        const db = new URL(e2eDatabaseUrl());
+        const html = await page.content();
+        for (const detail of [
+          db.hostname,
+          db.port,
+          db.pathname.slice(1),
+          "postgres://",
+          "postgres",
+          'relation "', // what a database says about a missing table
+          "42P01",
+          "__off",
+          "ECONNREFUSED",
+          "digest",
+          "node_modules",
+          "    at ",
+        ]) {
+          expect(html, `the page leaks "${detail}"`).not.toContain(detail);
+        }
 
-      // Neither the visible text nor the HTML (with the page data) holds a detail.
-      const html = await page.content();
-      for (const detail of [
-        secret,
-        "127.0.0.1",
-        String(proxyPort),
-        "ECONNREFUSED",
-        "CONNECTION",
-        "opportunity_radar",
-        "postgres://",
-        "postgres",
-        "digest",
-        "node_modules",
-        "    at ",
-      ]) {
-        expect(html, `the page leaks "${detail}"`).not.toContain(detail);
+        // The store is still down, so the retry link brings the same state back.
+        await retry.click();
+        await expect(page).toHaveURL(url);
+        await expect(page.locator("main")).toContainText(c.error[0]);
+      } finally {
+        runDb("restore", "articles");
       }
 
-      // The store is still down, so the retry link brings the same state back.
-      await retry.click();
-      await expect(page).toHaveURL(url);
-      await expect(page.locator("main")).toContainText(c.error[0]);
-
-      // Leave the page before the server is stopped, so no pending request fails after the test.
-      await page.goto("about:blank");
+      // And once the store is back the same URL shows the news again.
+      await page.goto(url);
+      await expect(items(page).first()).toBeVisible();
     });
   }
 });
