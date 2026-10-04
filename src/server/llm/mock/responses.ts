@@ -64,6 +64,40 @@ export const MOCK_RESPONSES: Record<string, MockCase[]> = {
       usage: { prompt_tokens: 3000, completion_tokens: 400 },
     },
   ],
+  // OR-38: every matched article rated relevant, middle scores, a "[mock]" wind pair.
+  ventures: [
+    {
+      name: "middle-view",
+      content: (requestText) => {
+        const data = fencedData(requestText, "VENTURE") as { articles: { id: number }[] };
+        const ids = data.articles.map((a) => a.id);
+        const scores = { demand: 50, timing: 50, competition: 50, capital: 50, regulatory: 50 };
+        const wind = (en: string, id: string) => ({ en: `[mock] ${en}`, id: `[mock] ${id}`, articleIds: ids.slice(0, 1) });
+        return JSON.stringify({
+          articles: ids.map((id) => ({ id, relevance: 60 })),
+          markets: { indonesia: scores, global: scores },
+          tailwind: wind("Recorded reply: the AI market view is not live yet.", "Jawaban rekaman: pandangan pasar AI belum aktif."),
+          headwind: wind("Recorded reply: no real assessment.", "Jawaban rekaman: belum ada penilaian sebenarnya."),
+        });
+      },
+      usage: { prompt_tokens: 2500, completion_tokens: 500 },
+    },
+  ],
+  // OR-16: the same middle score on every factor, marked "[mock]".
+  scores: [
+    {
+      name: "middle-scores",
+      content: JSON.stringify({
+        factors: Object.fromEntries(
+          ["demand", "timing", "competition", "capital", "regulatory"].map((k) => [
+            k,
+            { score: 50, reason: { en: "[mock] Recorded reply: AI scoring is not live yet.", id: "[mock] Jawaban rekaman: penilaian AI belum aktif." } },
+          ]),
+        ),
+      }),
+      usage: { prompt_tokens: 1500, completion_tokens: 400 },
+    },
+  ],
   // OR-15: one opportunity citing the first two articles, so the Opportunities screen has data offline.
   opportunities: [
     {

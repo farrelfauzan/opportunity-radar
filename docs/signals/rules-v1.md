@@ -84,6 +84,8 @@ Show at most two reversal conditions, as prices formatted per locale. These pric
 
 ## 6. History and alerts
 
+- **Sample data:** a series whose source is `synthetic` (made-up prices until live sources are on) still goes through the rules, for the engine's tests, and its signal and history rows are stored with `synthetic = true`. In normal use no screen shows a verdict for it (the no-verdict state `signal.sample` is shown instead), no chart marker is drawn and no explanation is shown; no alert is raised in any mode. For development and QA only, the server env switch `SHOW_SAMPLE_SIGNALS=1` (off by default, never set in production) shows these verdicts with the sample labels (`docs/design/copy.md` §8.2).
+
 - `signal_history` gets a row only when a verdict (BUY / HOLD / SELL) changes. `STALE`, `INSUFFICIENT` and `INVALID_DATA` are states, not verdicts: they write no history row and raise no alert; the last verdict stays in history unchanged. The first verdict computed for an asset and term is an `initial` baseline: no alert, no chart marker (OR-29, OR-31, OR-34).
 - The history column shows "Price change since signal: {pct}" (`asset.history.change`), never "avoided" or "gained" language.
 - Every stored and shown signal carries the version string `rules v1`.

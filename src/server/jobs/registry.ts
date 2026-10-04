@@ -1,21 +1,24 @@
 import { callLlm } from "@/server/llm/client";
 import { ingestNews } from "@/server/news/ingest";
 import { writeBrief } from "@/server/opportunities/brief";
+import { assessVentures } from "@/server/ventures/market";
+import { ingestPrices } from "@/server/prices/ingest";
 import { generateOpportunities } from "@/server/opportunities/generate";
+import { scoreOpportunities } from "@/server/opportunities/score";
 import { triageNews } from "@/server/news/triage";
 import type { Job, Registry } from "./runner.ts";
 
 const production = process.env.NODE_ENV === "production";
 
 /**
- * A pipeline step whose real job has not landed yet. Outside production,
- * STUB_FAIL=<step> makes that step fail, to test the pipeline.
+ * A morning step that, outside production, fails on request with STUB_FAIL=<step>,
+ * so the pipeline's stop-on-failure can be shown from the command line (OR-7 AC).
  */
-const stub = (name: string, after?: string[]): Job => ({
-  timeoutSeconds: 60,
-  after,
-  async run() {
-    if (!production && process.env.STUB_FAIL === name) throw new Error(`stub step "${name}" failed on request`);
+const step = (name: string, job: Job): Job => ({
+  ...job,
+  async run(context) {
+    if (!production && process.env.STUB_FAIL === name) throw new Error("failed on request (STUB_FAIL)");
+    return job.run(context);
   },
 });
 
@@ -72,16 +75,20 @@ export const jobs: Registry = {
   // RSS ingestion, meant to run every 30 minutes. active feeds in parallel, 10 s each.
   "ingest-news": { timeoutSeconds: 60, run: () => ingestNews() },
   "llm-smoke": llmSmoke,
-  // Morning pipeline: triage → opportunities → scores → brief. Each stub is
-  // replaced by the real job when its ticket lands (OR-14, OR-15/OR-50, OR-16, OR-22).
+  // OR-26: stocks and indices (Yahoo; synthetic unless PRICES_YAHOO=live) and USD/IDR.
+  prices: { timeoutSeconds: 300, run: () => ingestPrices() },
+  // Morning pipeline: triage → opportunities → scores → ventures → brief.
   // OR-14. Also the second step of `news` (ingest, then triage), the command to run every 30 minutes.
-  triage: { timeoutSeconds: 600, after: ["ingest-news"], run: () => triageNews() },
+  triage: step("triage", { timeoutSeconds: 600, after: ["ingest-news"], run: () => triageNews() }),
   news: { steps: ["ingest-news", "triage"] },
   // OR-15 (matching, update and close come with OR-50).
-  opportunities: { timeoutSeconds: 600, after: ["triage"], run: () => generateOpportunities() },
-  scores: stub("scores", ["opportunities"]),
+  opportunities: step("opportunities", { timeoutSeconds: 600, after: ["triage"], run: () => generateOpportunities() }),
+  // OR-16: re-score open opportunities with new evidence.
+  scores: step("scores", { timeoutSeconds: 900, after: ["opportunities"], run: () => scoreOpportunities() }),
+  // OR-38: the market view of each venture (before the brief, which may mention it).
+  ventures: step("ventures", { timeoutSeconds: 600, after: ["scores"], run: () => assessVentures() }),
   // OR-22: the daily brief, the last morning step.
-  brief: { timeoutSeconds: 300, after: ["scores"], run: () => writeBrief() },
-  morning: { steps: ["triage", "opportunities", "scores", "brief"] },
+  brief: step("brief", { timeoutSeconds: 300, after: ["ventures"], run: () => writeBrief() }),
+  morning: { steps: ["triage", "opportunities", "scores", "ventures", "brief"] },
   ...(production ? {} : testJobs),
 };

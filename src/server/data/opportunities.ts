@@ -1,12 +1,14 @@
-import { and, arrayContains, asc, desc, eq, inArray, lte, min, sql as sqlTag } from "drizzle-orm";
-import { wibDay } from "./articles.ts";
+import { and, arrayContains, asc, count, desc, eq, inArray, lte, min, sql as sqlTag } from "drizzle-orm";
+import { articleIsVisible, wibDay, type ArticleWithSource } from "./articles.ts";
 import { db } from "./client.ts";
 import { lastSuccessfulRun } from "./job-runs.ts";
 import {
+  articles,
   opportunities,
   opportunityArticles,
   opportunityScores,
   SECTORS,
+  sources,
   type CapitalLevel,
   type Horizon,
   type Region,
@@ -122,6 +124,27 @@ export async function getOpportunity(id: number, now: Date = new Date()): Promis
   return { ...row, trend: trends.get(id)!, latestScore: latestScore ?? null };
 }
 
+/** An opportunity cites at most this many articles, and the detail shows at most this many. */
+export const MAX_CITATIONS = 50;
+
+/**
+ * The articles an opportunity cites that may be shown (the source is switched on, see
+ * `articleIsVisible`), newest first, ties by article id (newest id first), at most MAX_CITATIONS.
+ * A citation of a switched-off source is stored but never read here, so a count of this list
+ * never includes it.
+ */
+export async function listOpportunityEvidence(opportunityId: number): Promise<ArticleWithSource[]> {
+  const rows = await db()
+    .select({ article: articles, sourceName: sources.name, sourceSlug: sources.slug })
+    .from(opportunityArticles)
+    .innerJoin(articles, eq(opportunityArticles.articleId, articles.id))
+    .innerJoin(sources, eq(articles.sourceId, sources.id))
+    .where(and(eq(opportunityArticles.opportunityId, opportunityId), articleIsVisible))
+    .orderBy(desc(articles.publishedAt), desc(articles.id))
+    .limit(MAX_CITATIONS);
+  return rows.map(({ article, sourceName, sourceSlug }) => ({ ...article, sourceName, sourceSlug }));
+}
+
 // ---- Writes: the seed, the tests and (later) the opportunity and scoring jobs ----------------
 
 export type NewOpportunity = Omit<
@@ -154,6 +177,8 @@ export async function insertOpportunity(
   checkScore(firstScore);
   if (new Set(input.sectors).size !== input.sectors.length) throw new Error("Opportunity sectors must not repeat");
   if (!input.sectors.every((sector) => SECTORS.includes(sector))) throw new Error("Unknown sector");
+  const cited = [...new Set(articleIds)];
+  if (cited.length > MAX_CITATIONS) throw new Error(`An opportunity cites at most ${MAX_CITATIONS} articles`);
   return db().transaction(async (tx) => {
     const { closedAt, ...rest } = input;
     const [row] = await tx
@@ -161,10 +186,8 @@ export async function insertOpportunity(
       .values({ ...rest, closedAt, status: closedAt ? "closed" : "open", currentScore: firstScore.overall })
       .returning();
     await tx.insert(opportunityScores).values({ ...firstScore, opportunityId: row.id });
-    if (articleIds.length > 0) {
-      await tx
-        .insert(opportunityArticles)
-        .values([...new Set(articleIds)].map((articleId) => ({ opportunityId: row.id, articleId })));
+    if (cited.length > 0) {
+      await tx.insert(opportunityArticles).values(cited.map((articleId) => ({ opportunityId: row.id, articleId })));
     }
     return row;
   });
@@ -201,11 +224,84 @@ export async function recordOpportunityScore(opportunityId: number, score: NewSc
   });
 }
 
-/** Records that the opportunity cites these articles as evidence. Citing twice changes nothing. */
+/**
+ * Records that the opportunity cites these articles as evidence. Citing twice changes nothing.
+ * An opportunity never exceeds MAX_CITATIONS citations in total: otherwise nothing is stored.
+ */
 export async function citeArticles(opportunityId: number, articleIds: number[]): Promise<void> {
-  if (articleIds.length === 0) return;
-  await db()
-    .insert(opportunityArticles)
-    .values(articleIds.map((articleId) => ({ opportunityId, articleId })))
-    .onConflictDoNothing();
+  const ids = [...new Set(articleIds)];
+  if (ids.length === 0) return;
+  if (ids.length > MAX_CITATIONS) throw new Error(`An opportunity cites at most ${MAX_CITATIONS} articles`);
+  await db().transaction(async (tx) => {
+    // The row lock makes two concurrent writers take turns, so both cannot pass the count.
+    await tx.select({ id: opportunities.id }).from(opportunities).where(eq(opportunities.id, opportunityId)).for("update");
+    await tx
+      .insert(opportunityArticles)
+      .values(ids.map((articleId) => ({ opportunityId, articleId })))
+      .onConflictDoNothing();
+    const [{ total }] = await tx
+      .select({ total: count() })
+      .from(opportunityArticles)
+      .where(eq(opportunityArticles.opportunityId, opportunityId));
+    if (total > MAX_CITATIONS) throw new Error(`An opportunity cites at most ${MAX_CITATIONS} articles`);
+  });
+}
+
+export type RescoreInput = {
+  id: number;
+  titleEn: string;
+  thesisEn: string;
+  theme: string;
+  region: string;
+  sectors: string[];
+  horizon: string;
+  capitalLevel: string;
+  articles: { id: number; headline: string; snippet: string; why: string | null }[];
+};
+
+/**
+ * Open opportunities to re-score on `today` (a WIB day): last scored before
+ * today, with at least one cited article fetched on or after the day of that
+ * score (new evidence; scoring-v1 §4). Until OR-50's cited_at exists this uses
+ * the article's fetch time, which may re-score once too often but never misses
+ * new evidence. Each comes with its cited articles, newest first (at most 30).
+ */
+export async function opportunitiesToRescore(today: string, limit: number): Promise<RescoreInput[]> {
+  const rows = (await db().execute(sqlTag`
+    select o.id, o.title_en, o.thesis_en, o.theme, o.region, o.sectors, o.horizon, o.capital_level,
+      (select coalesce(json_agg(x order by x.published_at desc), '[]') from (
+         select a.id, a.headline, a.snippet, t.why_en as why, a.published_at
+         from opportunity_articles oa
+         join articles a on a.id = oa.article_id
+         join sources s on s.id = a.source_id and s.active
+         left join article_triage t on t.article_id = a.id and t.status = 'ok'
+         where oa.opportunity_id = o.id
+         order by a.published_at desc limit 30) x) as articles
+    from opportunities o
+    join lateral (select max(day) as last_day from opportunity_scores where opportunity_id = o.id) s on true
+    where o.status = 'open'
+      and s.last_day < ${today}::date
+      and exists (
+        -- Only articles of active sources count (articleIsVisible), here as in the evidence list.
+        select 1 from opportunity_articles oa
+        join articles a on a.id = oa.article_id
+        join sources src on src.id = a.source_id and src.active
+        where oa.opportunity_id = o.id
+          and a.fetched_at >= (s.last_day::timestamp at time zone 'Asia/Jakarta'))
+    order by o.id
+    limit ${limit}`)) as unknown as {
+    id: number; title_en: string; thesis_en: string; theme: string; region: string; sectors: string[];
+    horizon: string; capital_level: string; articles: RescoreInput["articles"];
+  }[];
+  return rows.map((r) => ({
+    id: Number(r.id),
+    titleEn: r.title_en,
+    thesisEn: r.thesis_en,
+    theme: r.theme,
+    region: r.region,
+    sectors: r.sectors,
+    horizon: r.horizon,
+    capitalLevel: r.capital_level,
+    articles: r.articles.map((a) => ({ ...a, id: Number(a.id) })),
+  }));
 }

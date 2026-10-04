@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { focusRing } from "@/components/focus-ring";
+import { OpportunityPanel } from "@/components/opportunity-detail";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { currentLocale, getMessages } from "@/i18n/dictionaries";
@@ -12,36 +13,45 @@ import {
   opportunitiesHref,
   type OpportunityQuery,
 } from "@/lib/opportunities/query";
-import { horizonKey, isNeverScored, staleBanner, trendText } from "@/lib/opportunities/view";
+import {
+  horizonKey,
+  inLocale,
+  isNeverScored,
+  opportunityMeta,
+  staleBanner,
+  trendText,
+} from "@/lib/opportunities/view";
 import {
   CAPITAL_LEVELS,
   getOpportunity,
   HORIZONS,
   lastScoringRun,
   listOpportunities,
+  listOpportunityEvidence,
   SECTORS,
   type ListedOpportunity,
-  type Opportunity,
 } from "@/server/data";
 import { FilterSelect } from "./filter-select";
 
 const heading = "text-[26px] font-bold tracking-tight";
-const regionLabel = (m: Messages, region: Opportunity["region"]) =>
-  region === "indonesia" ? m.opp.filter.region.id : m.opp.filter.region.global;
-
-/** The text of a bilingual pair of columns, in the language of the page. */
-const inLocale = (locale: Locale, en: string, id: string) => (locale === "id" ? id : en);
 
 async function load(query: OpportunityQuery, selectedId: number | undefined) {
   const filtered = isFiltered(query);
   const open = listOpportunities({});
-  const [all, list, lastRun, picked] = await Promise.all([
+  const [all, list, lastRun, named, namedEvidence] = await Promise.all([
     open,
     filtered ? listOpportunities(query) : open,
     lastScoringRun(),
     selectedId === undefined ? null : getOpportunity(selectedId),
+    selectedId === undefined ? [] : listOpportunityEvidence(selectedId),
   ]);
-  return { all, list, lastRun, picked };
+  if (selectedId !== undefined) return { all, list, lastRun, picked: named, evidence: namedEvidence };
+  // On the list route the first of the list is shown beside it: read its detail and evidence.
+  const first = list[0];
+  const [picked, evidence] = first
+    ? await Promise.all([getOpportunity(first.id), listOpportunityEvidence(first.id)])
+    : [null, []];
+  return { all, list, lastRun, picked, evidence };
 }
 
 /**
@@ -83,10 +93,10 @@ export async function OpportunitiesScreen({
     );
   }
 
-  const { all, list, lastRun, picked } = data;
+  const { all, list, lastRun, picked, evidence } = data;
   // An unknown or closed id is a 404 (the page is not streamed, so the status is real).
   if (detail && (!picked || picked.status !== "open")) notFound();
-  const selected: ListedOpportunity | null = detail ? picked : (list[0] ?? null);
+  const selected = picked;
 
   if (isNeverScored(lastRun, all.length)) {
     return (
@@ -200,7 +210,7 @@ export async function OpportunitiesScreen({
                 >
                   {m.opp.detail.back}
                 </Link>
-                <Panel item={selected} locale={locale} m={m} />
+                <OpportunityPanel item={selected} evidence={evidence} locale={locale} m={m} now={now} />
               </CardContent>
             </Card>
           </article>
@@ -208,15 +218,6 @@ export async function OpportunitiesScreen({
       </div>
     </>
   );
-}
-
-/** "Indonesia · Logistics & Supply Chain, Fisheries & Maritime · Horizon 6–12 months". */
-function meta(item: Opportunity, m: Messages): string {
-  return fill(m.opp.detail.meta, {
-    region: regionLabel(m, item.region),
-    sector: item.sectors.map((sector) => m.opp.sector[sector]).join(", "),
-    horizon: m.opp.horizon[horizonKey[item.horizon]],
-  });
 }
 
 // Every opportunity text below is rendered as text, never as markup.
@@ -252,7 +253,7 @@ function Item({
       <span className="w-10 shrink-0 font-mono text-xl font-medium text-primary">{item.currentScore}</span>
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="font-semibold [overflow-wrap:anywhere]">{inLocale(locale, item.titleEn, item.titleId)}</span>
-        <span className="text-xs text-muted-foreground [overflow-wrap:anywhere]">{meta(item, m)}</span>
+        <span className="text-xs text-muted-foreground [overflow-wrap:anywhere]">{opportunityMeta(item, m)}</span>
       </span>
       <span
         data-trend={trend.direction}
@@ -266,26 +267,5 @@ function Item({
         {trend.text}
       </span>
     </Link>
-  );
-}
-
-/** The minimal detail: title, score and thesis. OR-18 adds the breakdown, facts, evidence, risks and steps. */
-function Panel({ item, locale, m }: { item: ListedOpportunity; locale: Locale; m: Messages }) {
-  return (
-    <>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0 flex-[1_1_320px]">
-          <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">{meta(item, m)}</p>
-          <h2 className="mt-1 text-[22px] font-bold tracking-tight [overflow-wrap:anywhere]">
-            {inLocale(locale, item.titleEn, item.titleId)}
-          </h2>
-        </div>
-        <div className="shrink-0">
-          <p className="font-mono text-[34px] leading-none font-medium text-primary">{item.currentScore}</p>
-          <p className="text-xs text-muted-foreground">{m.opp.detail.score}</p>
-        </div>
-      </div>
-      <p className="text-[15px] [overflow-wrap:anywhere]">{inLocale(locale, item.thesisEn, item.thesisId)}</p>
-    </>
   );
 }

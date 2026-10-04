@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import en from "@/i18n/dictionaries/en.json";
 import id from "@/i18n/dictionaries/id.json";
-import { isNeverScored, isStale, staleBanner, STALE_AFTER_MS, trendText } from "./view";
+import { barPercent, factorRows, FACTORS, inLocale, isNeverScored, isStale, opportunityMeta, staleBanner, STALE_AFTER_MS, trendText } from "./view";
 
 const now = new Date("2026-10-03T12:00:00Z"); // 19:00 WIB
 const ago = (ms: number) => new Date(now.getTime() - ms);
@@ -53,5 +53,49 @@ describe("trendText", () => {
     expect(trendText({ kind: "change", delta: 0 }, en.opp.trend)).toEqual({ text: "— 0", direction: "flat" });
     expect(trendText({ kind: "new" }, en.opp.trend)).toEqual({ text: "New", direction: "new" });
     expect(trendText({ kind: "new" }, id.opp.trend).text).toBe("Baru");
+  });
+});
+
+describe("score breakdown", () => {
+  test("a bar is the score as whole percent, kept within 0 to 100", () => {
+    expect([0, 1, 49.6, 100].map(barPercent)).toEqual([0, 1, 50, 100]);
+    expect([-5, 130].map(barPercent)).toEqual([0, 100]);
+  });
+
+  test("the rows come in display order with the stored number of each factor", () => {
+    expect(FACTORS).toEqual(["demand", "timing", "competition", "capital", "regulatory"]);
+    expect(factorRows({ demand: 80, timing: 70, competition: 60, capital: 50, regulatory: 40 })).toEqual([
+      { factor: "demand", value: 80 },
+      { factor: "timing", value: 70 },
+      { factor: "competition", value: 60 },
+      { factor: "capital", value: 50 },
+      { factor: "regulatory", value: 40 },
+    ]);
+  });
+
+  test("no score row gives no rows (never invented numbers)", () => {
+    expect(factorRows(null)).toEqual([]);
+  });
+
+  test("every factor has a label in both languages", () => {
+    for (const factor of FACTORS) {
+      expect(en.opp.factor[factor]).toBeTruthy();
+      expect(id.opp.factor[factor]).toBeTruthy();
+    }
+  });
+});
+
+describe("text helpers", () => {
+  test("inLocale picks the column of the page language", () => {
+    expect(inLocale("en", "a", "b")).toBe("a");
+    expect(inLocale("id", "a", "b")).toBe("b");
+  });
+
+  test("opportunityMeta is region, sectors and horizon in the page language", () => {
+    const item = { region: "indonesia", sectors: ["logistics", "fisheries_maritime"], horizon: "6-12m" } as Parameters<
+      typeof opportunityMeta
+    >[0];
+    expect(opportunityMeta(item, en)).toBe("Indonesia · Logistics & Supply Chain, Fisheries & Maritime · Horizon 6–12 months");
+    expect(opportunityMeta({ ...item, region: "global" }, id)).toContain("Global · Logistik & Rantai Pasok");
   });
 });
