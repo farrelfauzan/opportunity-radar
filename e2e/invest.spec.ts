@@ -79,6 +79,9 @@ const cards = [
   { key: "crypto", risk: 5, en: {"name": "Crypto", "eg": "BTC, ETH", "drop": "50–80%", "long": "Highly speculative; many holders keep it to a small part of their savings", "short": "Fast moves, 24/7; losses can be large and quick", "risks": "Extreme volatility, regulation, exchange failure"}, id: {"name": "Kripto", "eg": "BTC, ETH", "drop": "50–80%", "long": "Sangat spekulatif; banyak pemegang menjaganya sebagai bagian kecil dari tabungan", "short": "Gerakan cepat, 24/7; kerugian bisa besar dan cepat", "risks": "Volatilitas ekstrem, regulasi, kegagalan bursa"} },
 ] as const;
 
+/** A row without a change ("none") has no sparkline either; no fixture row is like that now, the checks below keep it covered. */
+type Dir = "up" | "down" | "flat" | "none";
+
 /** What the fixtures show per watchlist row, in display order (see e2e/market-fixtures.ts for the numbers and signals). */
 const rows = [
   { slug: "ihsg", name: { en: "IHSG", id: "IHSG" }, kind: { en: "Index · IDX", id: "Indeks · IDX" }, price: { en: "7,412", id: "7.412" }, dir: "up", pct: { en: "0.6%", id: "0,6%" }, points: 10, risk: 4, sample: false, signal: { short: "BUY", long: "HOLD" } },
@@ -86,8 +89,9 @@ const rows = [
   { slug: "sp500", name: { en: "S&P 500", id: "S&P 500" }, kind: { en: "Index · US", id: "Indeks · US" }, price: { en: "6,820", id: "6.820" }, dir: "up", pct: { en: "0.4%", id: "0,4%" }, points: 30, risk: 4, sample: false, signal: { short: "none", long: "BUY" } },
   { slug: "gold", name: { en: "Gold", id: "Emas" }, kind: { en: "IDR per gram", id: "IDR per gram" }, price: { en: `Rp${NBSP}1,935,100`, id: `Rp${NBSP}1.935.100` }, dir: "flat", pct: { en: "0.0%", id: "0,0%" }, points: 10, risk: 2, sample: false, signal: { short: "HOLD", long: "BUY" } },
   { slug: "silver", name: { en: "Silver", id: "Perak" }, kind: { en: "IDR per gram", id: "IDR per gram" }, price: { en: `Rp${NBSP}22,400`, id: `Rp${NBSP}22.400` }, dir: "up", pct: { en: "0.8%", id: "0,8%" }, points: 30, risk: 3, sample: false, signal: { short: "BUY", long: "stale" } },
-  // A made-up quote over real closes: mixed provenance, so no change and no sparkline.
-  { slug: "bitcoin", name: { en: "Bitcoin", id: "Bitcoin" }, kind: { en: "Crypto · USD", id: "Kripto · USD" }, price: { en: "$98,400", id: "US$98.400" }, dir: "none", pct: { en: "", id: "" }, points: 0, risk: 5, sample: true, signal: { short: "sample", long: "sample" } },
+  // A made-up quote over made-up closes (the fixtures store candles of the price's own kind: mixed provenance is
+  // covered by tests/integration/market.test.ts and watchlist.test.ts).
+  { slug: "bitcoin", name: { en: "Bitcoin", id: "Bitcoin" }, kind: { en: "Crypto · USD", id: "Kripto · USD" }, price: { en: "$98,400", id: "US$98.400" }, dir: "down" as Dir, pct: { en: "2.3%", id: "2,3%" }, points: 10 as number, risk: 5, sample: true, signal: { short: "sample", long: "sample" } },
   { slug: "ethereum", name: { en: "Ethereum", id: "Ethereum" }, kind: { en: "Crypto · USD", id: "Kripto · USD" }, price: { en: "$3,120", id: "US$3.120" }, dir: "down", pct: { en: "3.1%", id: "3,1%" }, points: 30, risk: 5, sample: true, signal: { short: "sample", long: "sample" } },
 ] as const;
 

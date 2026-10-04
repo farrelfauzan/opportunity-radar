@@ -128,10 +128,10 @@ describe("getWatchlist: sample data and mixed provenance", () => {
     expect((await getWatchlist())[0].price).toMatchObject({ synthetic: true, previousClose: null, closes: [] });
   });
 
-  test("a series that is partly of the other kind (the last close synthetic, earlier ones real) is mixed too", async () => {
+  test("candles of the other kind than the price are ignored (the last close synthetic, earlier ones real): the change uses the real ones", async () => {
     const id = await store(IHSG, { candles: series("2026-10-01", 4), quote: quote(7412) });
     await upsertCandles(id, "synthetic", [candle("2026-10-02", 104)]);
-    expect((await getWatchlist())[0].price).toMatchObject({ previousClose: null, closes: [] });
+    expect((await getWatchlist())[0].price).toMatchObject({ synthetic: false, previousClose: 103, closes: [100, 101, 102, 103] });
   });
 });
 
