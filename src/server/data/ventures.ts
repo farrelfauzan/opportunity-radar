@@ -1,6 +1,17 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { articleIsVisible } from "./articles.ts";
 import { db } from "./client.ts";
-import { ventures } from "./schema.ts";
+import {
+  articles,
+  articleTriage,
+  sources,
+  ventureArticles,
+  ventureMarket,
+  ventures,
+  ventureWinds,
+  type FactorScores,
+  type Region,
+} from "./schema.ts";
 
 export type Venture = typeof ventures.$inferSelect;
 export type NewVenture = Omit<typeof ventures.$inferInsert, "id" | "createdAt">;
@@ -23,4 +34,103 @@ export async function listVentures(): Promise<Venture[]> {
 export async function getVenture(slug: string): Promise<Venture | null> {
   const [row] = await db().select().from(ventures).where(eq(ventures.slug, slug));
   return row ?? null;
+}
+
+// ---- Market view (OR-38) ----------------------------------------------------------------
+
+export type VentureMarketInput = {
+  /** Every article this run looked at (keyword matches); their old matches are rewritten. */
+  candidateIds: number[];
+  /** The ones rated relevant (stored as matches). */
+  articles: { id: number; relevance: number }[];
+  /** Per region: the overall score and factors, or null when there is no related news. */
+  markets: Record<Region, { score: number; factors: FactorScores } | null>;
+  relatedArticles: number;
+  winds: {
+    tailwind: { en: string; id: string; articleIds: number[] } | null;
+    headwind: { en: string; id: string; articleIds: number[] } | null;
+  };
+};
+
+/** Visible, ok-triaged articles published since `since`, for keyword matching. */
+export async function ventureNewsCandidates(since: Date) {
+  return db()
+    .select({ id: articles.id, headline: articles.headline, snippet: articles.snippet, region: articles.region, why: articleTriage.whyEn })
+    .from(articles)
+    .innerJoin(sources, eq(articles.sourceId, sources.id))
+    .innerJoin(articleTriage, and(eq(articleTriage.articleId, articles.id), eq(articleTriage.status, "ok")))
+    .where(and(articleIsVisible, gte(articles.publishedAt, since)))
+    .orderBy(desc(articles.publishedAt), desc(articles.id));
+}
+
+/**
+ * Stores one venture's market view for a WIB day in one transaction: the
+ * article matches, a market row per region and the tailwind/headwind pair. A
+ * second run on the same day replaces that day's rows, and the matches of every
+ * article it looked at are rewritten: one no longer rated relevant is removed,
+ * so the stored count and the list of related news always agree.
+ */
+export async function saveVentureView(ventureId: number, day: string, view: VentureMarketInput): Promise<void> {
+  await db().transaction(async (tx) => {
+    const relevant = view.articles.map((a) => a.id);
+    const dropped = view.candidateIds.filter((id) => !relevant.includes(id));
+    if (dropped.length) {
+      await tx.delete(ventureArticles).where(and(eq(ventureArticles.ventureId, ventureId), inArray(ventureArticles.articleId, dropped)));
+    }
+    if (view.articles.length) {
+      await tx
+        .insert(ventureArticles)
+        .values(view.articles.map((a) => ({ ventureId, articleId: a.id, relevance: a.relevance })))
+        .onConflictDoUpdate({ target: [ventureArticles.ventureId, ventureArticles.articleId], set: { relevance: sql`excluded.relevance` } });
+    }
+    for (const region of ["indonesia", "global"] as const) {
+      const market = view.markets[region];
+      const row = { ventureId, day, region, score: market?.score ?? null, factors: market?.factors ?? null, relatedArticles: view.relatedArticles };
+      await tx
+        .insert(ventureMarket)
+        .values(row)
+        .onConflictDoUpdate({
+          target: [ventureMarket.ventureId, ventureMarket.day, ventureMarket.region],
+          set: { score: row.score, factors: row.factors, relatedArticles: row.relatedArticles },
+        });
+    }
+    const { tailwind, headwind } = view.winds;
+    const winds = {
+      ventureId,
+      day,
+      tailwindEn: tailwind?.en ?? null,
+      tailwindId: tailwind?.id ?? null,
+      tailwindArticleIds: tailwind?.articleIds ?? [],
+      headwindEn: headwind?.en ?? null,
+      headwindId: headwind?.id ?? null,
+      headwindArticleIds: headwind?.articleIds ?? [],
+    };
+    const { ventureId: _v, day: _d, ...set } = winds;
+    void [_v, _d];
+    await tx.insert(ventureWinds).values(winds).onConflictDoUpdate({ target: [ventureWinds.ventureId, ventureWinds.day], set });
+  });
+}
+
+export type RegionView = { score: number | null; factors: FactorScores | null; relatedArticles: number; delta: number | null; day: string };
+
+/**
+ * The newest market row per region on or before `day`, with the change vs the
+ * calendar day before it (null when that day has no row or either score is missing).
+ */
+export async function ventureMarketView(ventureId: number, day: string): Promise<Record<Region, RegionView | null>> {
+  const rows = await db()
+    .select()
+    .from(ventureMarket)
+    .where(and(eq(ventureMarket.ventureId, ventureId), lte(ventureMarket.day, day)))
+    .orderBy(desc(ventureMarket.day));
+  const view = { indonesia: null, global: null } as Record<Region, RegionView | null>;
+  for (const region of ["indonesia", "global"] as const) {
+    const [latest, previous] = rows.filter((r) => r.region === region);
+    if (!latest) continue;
+    const dayBefore = new Date(Date.parse(`${latest.day}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
+    const yesterday = previous?.day === dayBefore ? previous : null;
+    const delta = latest.score !== null && yesterday?.score != null ? latest.score - yesterday.score : null;
+    view[region] = { score: latest.score, factors: latest.factors, relatedArticles: latest.relatedArticles, delta, day: latest.day };
+  }
+  return view;
 }
