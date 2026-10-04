@@ -1,0 +1,13 @@
+{
+  "same": "Same",
+  "onlyInEn": "Only in English",
+  "nav": {
+    "news": "News",
+    "deep": {
+      "onlyInEnNested": "Nested, only in English"
+    }
+  },
+  "news": {
+    "count": "{count} articles"
+  }
+}
