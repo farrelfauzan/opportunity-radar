@@ -100,6 +100,14 @@ describe("toArticle", () => {
     expect(future).toMatchObject({ publishedAt: fetchedAt, publishedAtEstimated: false });
   });
 
+  test("an item still escaped after 20 levels of cleaning is skipped", () => {
+    let title = "<b>deep</b>";
+    for (let i = 0; i < 25; i++) title = title.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const item = { title, link: "https://example.com/deep", description: "", date: "" };
+    expect(toArticle(item, feed, 1, fetchedAt)).toBeNull();
+    expect(toArticle({ ...item, title: "R&D; spending & growth" }, feed, 1, fetchedAt)!.headline).toBe("R&D; spending & growth");
+  });
+
   test("a javascript: link, no link or no title means the item is skipped", () => {
     expect(articles("synthetic/rss.xml").slice(5)).toEqual([null, null, null]);
   });
@@ -126,10 +134,35 @@ describe("toArticle", () => {
 });
 
 describe("recorded feeds (one per source, 2026-10-04)", () => {
-  test("there are 12 feeds from 11 publishers", () => {
-    expect(FEEDS).toHaveLength(12);
-    expect(new Set(FEEDS.map((f) => f.slug)).size).toBe(12);
-    expect(new Set(FEEDS.map((f) => f.name.replace(/^BBC .*/, "BBC"))).size).toBe(11);
+  test("BBC, The Guardian and Wired are listed but switched off (terms, R-1 Addendum)", () => {
+    expect(FEEDS.filter((f) => f.active === false).map((f) => f.slug)).toEqual([
+      "bbc-business",
+      "bbc-technology",
+      "the-guardian",
+      "wired",
+    ]);
+    expect(FEEDS.filter((f) => f.active !== false)).toHaveLength(12);
+  });
+
+  test("feeds whose terms require it carry a licence note with credit and link", () => {
+    const licensed = FEEDS.filter((f) => f.licence).map((f) => f.slug);
+    expect(licensed).toEqual(["conversation-id", "conversation-global", "federal-reserve", "ecb"]);
+    for (const feed of FEEDS.filter((f) => f.licence)) expect(feed.licence).toMatch(/credit and a link/);
+  });
+
+  test("there are 16 feeds from 14 publishers", () => {
+    expect(FEEDS).toHaveLength(16);
+    expect(new Set(FEEDS.map((f) => f.slug)).size).toBe(16);
+    const publisher = (name: string) => name.replace(/^BBC .*/, "BBC").replace(/^The Conversation.*/, "The Conversation");
+    expect(new Set(FEEDS.map((f) => publisher(f.name))).size).toBe(14);
+  });
+
+  test("The Conversation stores the summary, never the full article in <content>", () => {
+    const conversation = FEEDS.find((f) => f.slug === "conversation-global")!;
+    const [item] = parseFeed(readFixture("conversation-global/feed-2026-10-04.xml"));
+    const article = toArticle(item, conversation, 1, fetchedAt)!;
+    expect(article.snippet).not.toBe("");
+    expect(article.snippet).not.toContain("Full article text");
   });
 
   test.each(FEEDS)("$slug parses into clean articles", (source) => {

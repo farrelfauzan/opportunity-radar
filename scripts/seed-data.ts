@@ -1,13 +1,13 @@
 // Seed set for development and QA (OR-9): 66 articles with times relative to
 // now, covering every category and both regions, with the edge cases QA asked for.
 import type { Category, NewSource, Region } from "../src/server/data/index.ts";
-import { FEEDS } from "../src/server/news/feeds.ts";
+import { FEEDS, sourceOf } from "../src/server/news/feeds.ts";
 
 const MIN = 60_000;
 const HOUR = 60 * MIN;
 
 // The real feed list, so seeded and ingested articles share the same sources.
-export const seedSources: NewSource[] = FEEDS;
+export const seedSources: NewSource[] = FEEDS.map(sourceOf);
 
 export type SeedArticle = {
   source: string;

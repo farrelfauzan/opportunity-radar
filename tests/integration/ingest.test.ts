@@ -203,6 +203,7 @@ describe("failures", () => {
     ["https://192.168.1.1/feed", "redirect to a private address"],
     ["http://[::1]/feed", "redirect to a private address"],
     ["http://feeds.test/plain.xml", "redirect from https to http"],
+    ["http://[fd00::1]/feed", "redirect to a private address"],
     ["file:///etc/passwd", "redirect to a non-http address"],
   ])("a redirect to %s is refused", async (location, status) => {
     const { fetcher, requests } = fakeFetch({
@@ -231,6 +232,15 @@ describe("failures", () => {
     await expect(ingestNews({ feeds: [], fetch: fakeFetch({}).fetcher, now })).rejects.toThrow("No feeds configured");
     await expect(deactivateSourcesExcept([])).rejects.toThrow("at least one slug");
     expect((await listSources()).map((s) => s.active)).toEqual([true]);
+  });
+
+  test("a public host whose name starts like an IPv6 prefix is not private (fda.gov)", async () => {
+    const { fetcher } = fakeFetch({
+      "https://feeds.test/a.xml": { status: 301, headers: { location: "https://fda.gov/feed.xml" } },
+      "https://fda.gov/feed.xml": good,
+    });
+    const outcome = await ingestNews({ feeds: [feed("a")], fetch: fetcher, now });
+    expect(outcome).toMatchObject({ status: "ok", counts: { stored: 2 } });
   });
 
   test("a redirect is followed to the feed", async () => {
@@ -277,7 +287,7 @@ describe("the fixture run: all 12 recorded feeds plus the synthetic ones", () =>
     expect(await db().execute(sql.raw(query))).toEqual([]);
 
     const sources = await db().execute(sql`select count(distinct source_id) as n from articles`);
-    expect(Number(sources[0].n)).toBe(17);
+    expect(Number(sources[0].n)).toBe(17); // 12 active feeds + 5 synthetic; 4 feeds are off
     const latin = await db().execute(sql`select headline from articles where link = 'https://example.com/latin1'`);
     expect(latin[0].headline).toBe("Café société: crédit à la hausse");
   });
@@ -296,6 +306,19 @@ describe("removing a feed from the config", () => {
     expect((await listSources()).map((s) => [s.slug, s.active])).toEqual([["dropped", false], ["kept", true]]);
     expect((await sourceHealth()).map((s) => s.slug)).toEqual(["kept"]);
     expect(await articleCount()).toBe(7);
+  });
+});
+
+describe("a feed switched off in the config", () => {
+  test("is never requested, and its existing source is switched off", async () => {
+    const replies = { "https://feeds.test/on.xml": { body: readFixture("synthetic/atom.xml") }, "https://feeds.test/off.xml": { body: readFixture("synthetic/rss.xml") } };
+    await ingestNews({ feeds: [feed("on"), feed("off")], fetch: fakeFetch(replies).fetcher, now });
+
+    const { fetcher, requests } = fakeFetch(replies);
+    await ingestNews({ feeds: [feed("on"), feed("off", { active: false })], fetch: fetcher, now });
+
+    expect(requests.map((r) => r.url)).toEqual(["https://feeds.test/on.xml"]);
+    expect((await listSources()).map((s) => [s.slug, s.active])).toEqual([["off", false], ["on", true]]);
   });
 });
 

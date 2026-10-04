@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xml:lang="en-US" xmlns="http://www.w3.org/2005/Atom" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+  <id>tag:theconversation.com,2011:/global/articles</id>
+  <link rel="alternate" type="text/html" href="https://theconversation.com"/>
+  <link rel="self" type="application/atom+xml" href="https://theconversation.com/global/articles.atom"/>
+  <title>The Conversation – Articles (GLOBAL)</title>
+  <updated>2026-10-02T06:27:13Z</updated>
+  <entry>
+    <id>tag:theconversation.com,2011:article/293432</id>
+    <published>2026-10-02T06:27:13Z</published>
+    <updated>2026-10-02T06:27:13Z</updated>
+    <link rel="alternate" type="text/html" href="https://theconversation.com/christa-pikes-botched-execution-exposes-the-deep-contradictions-of-a-painless-state-imposed-death-293432"/>
+    <title>Christa Pike’s botched execution exposes the deep contradictions of a ‘painless’ state-imposed death</title>
+    <content type="html">&lt;p&gt;Full article text removed from this fixture.&lt;/p&gt;</content>
+    <summary>Lethal injections are not typically administered by doctors, given executions are incompatible with their oath to protect lives.</summary>
+    <author>
+      <name>Julian Koplin, Lecturer in Bioethics, Monash University; The University of Melbourne</name>
+      <foaf:homepage rdf:resource="https://theconversation.com/profiles/julian-koplin-545025"/>
+    </author>
+    <rights>Licensed as Creative Commons – attribution, no derivatives.</rights>
+  </entry>
+  <entry>
+    <id>tag:theconversation.com,2011:article/293321</id>
+    <published>2026-10-01T19:05:51Z</published>
+    <updated>2026-10-01T19:05:51Z</updated>
+    <link rel="alternate" type="text/html" href="https://theconversation.com/dozens-of-men-failed-to-stop-an-alleged-gang-rape-at-cornell-heres-the-misperception-that-keeps-bystanders-from-intervening-and-how-to-short-circuit-it-293321"/>
+    <title>Dozens of men failed to stop an alleged gang rape at Cornell – here’s the misperception that keeps bystanders from intervening and how to short-circuit it</title>
+    <content type="html">&lt;p&gt;Full article text removed from this fixture.&lt;/p&gt;</content>
+    <summary>People may accept bad behavior – even sexual assault – when they overestimate how acceptable their peers think it is. But there are ways to undermine this thinking and make intervention more likely.</summary>
+    <author>
+      <name>Catherine A. Sanderson, Poler Family Professor of Psychology, Amherst College</name>
+      <foaf:homepage rdf:resource="https://theconversation.com/profiles/catherine-a-sanderson-1126074"/>
+    </author>
+    <rights>Licensed as Creative Commons – attribution, no derivatives.</rights>
+  </entry>
+  <entry>
+    <id>tag:theconversation.com,2011:article/292483</id>
+    <published>2026-10-01T15:29:53Z</published>
+    <updated>2026-10-01T15:29:53Z</updated>
+    <link rel="alternate" type="text/html" href="https://theconversation.com/social-media-hasnt-killed-personal-style-its-killed-how-we-communicate-it-292483"/>
+    <title>Social media hasn’t killed personal style, it’s killed how we communicate it</title>
+    <content type="html">&lt;p&gt;Full article text removed from this fixture.&lt;/p&gt;</content>
+    <summary>Put down the coffee, walk away from the zebra crossing, think beyond chic and get more creative.</summary>
+    <author>
+      <name>Catherine Greenwood, Lecturer in Digital Marketing, University of Lancashire</name>
+      <foaf:homepage rdf:resource="https://theconversation.com/profiles/catherine-greenwood-2765174"/>
+    </author>
+    <rights>Licensed as Creative Commons – attribution, no derivatives.</rights>
+  </entry>
+</feed>

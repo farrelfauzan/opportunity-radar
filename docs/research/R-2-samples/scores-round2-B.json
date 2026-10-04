@@ -1,0 +1,4 @@
+{"scorer":"Researcher (agent session, B)","round":2,"scored_at":"2026-10-04T01:25:03Z","seen_other_scores":true,
+ "note":"NOT blind: scorer A's round-2 scores had already arrived in the Researcher's inbox before this scoring. Scores were derived from the anchors and timing line, but independence cannot be shown.",
+ "factors_order":["demand","timing","competition_low_is_high","capital_efficiency","regulatory_low_risk_is_high"],
+ "theme-d":[65,80,35,70,55],"theme-e":[55,55,45,35,50],"theme-f":[50,55,25,70,60]}
