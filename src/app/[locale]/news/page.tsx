@@ -8,12 +8,13 @@ import { formatRelativeTime } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { fill, type Messages } from "@/i18n/t";
 import { newsHref, PAGE_SIZE, parseNewsQuery, type NewsQuery } from "@/lib/news/query";
-import { INGEST_JOB, isNeverIngested, safeHref, staleBanner } from "@/lib/news/view";
+import { INGEST_JOB, isNeverIngested, isStale, partialState, safeHref, staleBanner } from "@/lib/news/view";
 import {
   CATEGORIES,
   lastSuccessfulRun,
   listArticles,
   listSources,
+  sourceHealth,
   REGIONS,
   type ArticleWithSource,
   type Category,
@@ -43,9 +44,14 @@ const heading = "text-[26px] font-bold tracking-tight";
 
 async function load({ category, region }: NewsQuery) {
   // One query for the day; the filter is applied to it, so the header counts and the list agree.
-  const [all, sources, lastRun] = await Promise.all([listArticles({}), listSources(), lastSuccessfulRun(INGEST_JOB)]);
+  const [all, sources, health, lastRun] = await Promise.all([
+    listArticles({}),
+    listSources(),
+    sourceHealth(),
+    lastSuccessfulRun(INGEST_JOB),
+  ]);
   const list = all.filter((a) => (!category || a.category === category) && (!region || a.region === region));
-  return { all, list, sources, lastRun };
+  return { all, list, sources, health, lastRun };
 }
 
 export default async function NewsPage({ searchParams }: PageProps<"/[locale]/news">) {
@@ -76,7 +82,7 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
     );
   }
 
-  const { all, list, sources, lastRun } = data;
+  const { all, list, sources, health, lastRun } = data;
 
   if (isNeverIngested(lastRun, all.length)) {
     return (
@@ -93,6 +99,8 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
   }
 
   const banner = staleBanner(lastRun, now, locale, m.state.stale);
+  const partial = partialState(health, isStale(lastRun, now));
+  const failedSlugs = new Set(partial?.failed.map((s) => s.slug));
   const visible = list.slice(0, query.shown);
   const regionOptions = [
     { value: "all", label: m.news.region.all, region: undefined },
@@ -114,7 +122,7 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
       )}
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-        <div className="flex flex-wrap gap-1">
+        <div role="group" aria-label={m.news.cat.label} className="flex flex-wrap gap-1">
           {[undefined, ...CATEGORIES].map((category) => (
             <Link
               key={category ?? "all"}
@@ -166,8 +174,20 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
         <Card className="min-w-0 flex-[1_1_300px]">
           <CardContent className="flex flex-col gap-2">
             <h2 className="text-base font-semibold">{m.news.sources.title}</h2>
+            {partial && (
+              <p className="text-xs font-semibold text-foreground [overflow-wrap:anywhere]">
+                {fill(m.state.partial, {
+                  ok: partial.ok,
+                  total: partial.total,
+                  names: partial.failed.map((s) => s.name).join(", "),
+                })}
+              </p>
+            )}
             {REGIONS.map((region) => {
-              const names = sources.filter((s) => s.active && s.region === region).map((s) => s.name);
+              // A source that did not update is marked with a word, not only with colour.
+              const names = sources
+                .filter((s) => s.active && s.region === region)
+                .map((s) => (failedSlugs.has(s.slug) ? `${s.name} — ${m.news.sources.notUpdated}` : s.name));
               if (names.length === 0) return null;
               return (
                 <p key={region} className="text-[#E2DDF0] [overflow-wrap:anywhere]">

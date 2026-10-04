@@ -55,7 +55,8 @@
       "politics": "Politics & policy",
       "tech": "Tech & AI",
       "markets": "Markets",
-      "commodities": "Commodities"
+      "commodities": "Commodities",
+      "label": "Category"
     },
     "region": {
       "label": "Region",
@@ -73,7 +74,8 @@
       "title": "Sources",
       "indonesia": "Indonesia: {names}",
       "global": "Global: {names}",
-      "note": "Headlines and links only; the full article opens on the publisher's site."
+      "note": "Headlines and links only; the full article opens on the publisher's site.",
+      "notUpdated": "not updated"
     },
     "credit": {
       "line": "Source: {publisher}",
@@ -107,7 +109,8 @@
       "what": {
         "news": "News"
       }
-    }
+    },
+    "partial": "{ok} of {total} sources updated · not updated: {names}"
   },
   "calc": {
     "title": "Calculators",
