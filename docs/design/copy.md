@@ -338,6 +338,8 @@ Section order (desktop and phone): brief → My ventures → Top opportunities �
 | opp.detail.closedTag | Closed | Ditutup |
 | opp.detail.back | Back to opportunities | Kembali ke peluang |
 
+Quick facts, starting capital: the level word, then the model's reason in brackets: "Medium (equipment and certified engineers)" / "Sedang (…)"; the reason is shown as stored. A closed or unknown opportunity id answers HTTP 404 with `opp.detail.closed` and `opp.detail.back` (the 404 page cannot tell closed from unknown); `opp.detail.closedTag` is the tag on shortlisted closed items in the list (OR-41).
+
 Evidence items under "Why now" show the headline (link to the original), then `opp.detail.evidenceMeta`; items from open-licence sources add the credit line (§3.1). `opp.detail.aiNote` sits under the score breakdown in muted text.
 
 Not shipped in v1: `opp.detail.print` (OR-45; replaces the canvas "Full report (PDF)").
