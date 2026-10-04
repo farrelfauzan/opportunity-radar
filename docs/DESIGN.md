@@ -20,6 +20,7 @@ Single user (the owner). Bilingual: English and Bahasa Indonesia.
 | 4 | Investments | `/[locale]/invest` | Risk of each asset type (1–5, typical drop, main risks, fit for short vs long term), watchlist with signals, alerts. |
 | 5 | Asset report | `/[locale]/invest/[asset]` | Price chart with averages and signal markers, short- and long-term signal, the report: why buy/sell, risks, what would reverse the signal, signal history. |
 | 6 | Calculators | `/[locale]/calculators` | Provisional projections from the user's own assumptions. Investment: start amount, monthly top-up, years, return ± uncertainty, inflation → pessimistic/base/optimistic value and value in today's money. Business: capital, fixed cost, revenue, growth, margin → break-even month, payback month, lowest cash point, net cash. Runs in the browser; no data source. |
+| 7 | Venture view | `/[locale]/ventures/[slug]` | For one of the owner's ventures: build progress from its project board, and the Indonesia / worldwide market view from the news (scores, factor breakdown, tailwinds and headwinds with evidence, related news). Spec: [design/venture-view.md](design/venture-view.md). |
 
 ## How it works (no separate backend)
 - A scheduled server job fetches RSS and price data, stores it, and page views only ever read the store. API keys stay in server env vars.
