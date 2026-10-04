@@ -33,7 +33,12 @@ export function decodeFeed(body: ArrayBuffer, contentType: string | null): strin
 export function parseFeed(xml: string): FeedItem[] {
   if (/^\s*<(!doctype\s+html|html[\s>])/i.test(xml)) throw new FeedError("not a feed (HTML page)");
   if (XMLValidator.validate(xml) !== true) throw new FeedError("malformed XML");
-  const doc = parser.parse(xml);
+  let doc;
+  try {
+    doc = parser.parse(xml); // refuses external entities ("External entities are not supported")
+  } catch {
+    throw new FeedError("unsupported XML");
+  }
 
   const rssItems = doc.rss?.channel?.item ?? doc["rdf:RDF"]?.item;
   if (doc.rss?.channel || doc["rdf:RDF"]) {

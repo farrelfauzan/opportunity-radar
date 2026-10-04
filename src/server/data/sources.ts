@@ -17,6 +17,8 @@ export async function upsertSource(input: NewSource): Promise<Source> {
 
 /** Switches off every source whose slug is not in the list. */
 export async function deactivateSourcesExcept(slugs: string[]): Promise<void> {
+  // An empty list would switch every source off; that is never what a caller means.
+  if (slugs.length === 0) throw new Error("deactivateSourcesExcept needs at least one slug to keep");
   await db().update(sources).set({ active: false }).where(notInArray(sources.slug, slugs));
 }
 

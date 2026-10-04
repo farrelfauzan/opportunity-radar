@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { sql } from "drizzle-orm";
 import { beforeEach, describe, expect, test } from "vitest";
-import { listSources, sourceHealth } from "@/server/data";
+import { deactivateSourcesExcept, listSources, sourceHealth } from "@/server/data";
 import { db } from "@/server/data/client";
 import { runJob, type Registry } from "@/server/jobs/runner";
 import { FEEDS, type Feed } from "@/server/news/feeds";
@@ -195,6 +195,44 @@ describe("failures", () => {
     expect(feeds.map((f) => perFeed(f.slug))).toEqual([1, 1, 1, 1, 1, 4, 1]);
   });
 
+  test.each([
+    ["http://localhost/feed.xml", "redirect to a private address"],
+    ["http://127.0.0.1:5432/", "redirect to a private address"],
+    ["http://169.254.169.254/latest/meta-data/", "redirect to a private address"],
+    ["https://10.0.0.5/feed", "redirect to a private address"],
+    ["https://192.168.1.1/feed", "redirect to a private address"],
+    ["http://[::1]/feed", "redirect to a private address"],
+    ["http://feeds.test/plain.xml", "redirect from https to http"],
+    ["file:///etc/passwd", "redirect to a non-http address"],
+  ])("a redirect to %s is refused", async (location, status) => {
+    const { fetcher, requests } = fakeFetch({
+      "https://feeds.test/a.xml": { status: 302, headers: { location } },
+      "https://feeds.test/b.xml": good,
+    });
+    await ingestNews({ feeds: [feed("a"), feed("b")], fetch: fetcher, now });
+
+    // The refused address is never requested.
+    expect(requests.map((r) => r.url)).toEqual(["https://feeds.test/a.xml", "https://feeds.test/b.xml"]);
+    expect((await listSources()).find((s) => s.slug === "a")!.lastStatus).toBe(status);
+  });
+
+  test("a response over 5 MB is cut off", async () => {
+    const huge = "<rss version=\"2.0\"><channel>" + "x".repeat(5 * 1024 * 1024 + 1) + "</channel></rss>";
+    await ingestNews({ feeds: [feed("big"), feed("b")], fetch: fakeFetch({
+      "https://feeds.test/big.xml": { body: huge },
+      "https://feeds.test/b.xml": good,
+    }).fetcher, now });
+    expect((await listSources()).find((s) => s.slug === "big")!.lastStatus).toBe("response too large");
+  });
+
+  test("an empty feed list is refused before anything is changed", async () => {
+    await ingestNews({ feeds: [feed("a")], fetch: fakeFetch({ "https://feeds.test/a.xml": good }).fetcher, now });
+
+    await expect(ingestNews({ feeds: [], fetch: fakeFetch({}).fetcher, now })).rejects.toThrow("No feeds configured");
+    await expect(deactivateSourcesExcept([])).rejects.toThrow("at least one slug");
+    expect((await listSources()).map((s) => s.active)).toEqual([true]);
+  });
+
   test("a redirect is followed to the feed", async () => {
     const { fetcher } = fakeFetch({
       "https://feeds.test/moved.xml": { status: 301, headers: { location: "/new/feed.xml" } },
@@ -231,7 +269,7 @@ describe("the fixture run: all 12 recorded feeds plus the synthetic ones", () =>
     }
 
     const outcome = await ingestNews({ feeds: [...FEEDS, ...synthetic], fetch: fakeFetch(replies).fetcher, now });
-    expect(outcome).toMatchObject({ status: "ok", counts: { sources_ok: 16, sources_failed: 0 } });
+    expect(outcome).toMatchObject({ status: "ok", counts: { sources_ok: 17, sources_failed: 0 } });
     expect(await articleCount()).toBeGreaterThanOrEqual(36);
 
     // The same query is in the README for QA: it must return no rows.
@@ -239,7 +277,7 @@ describe("the fixture run: all 12 recorded feeds plus the synthetic ones", () =>
     expect(await db().execute(sql.raw(query))).toEqual([]);
 
     const sources = await db().execute(sql`select count(distinct source_id) as n from articles`);
-    expect(Number(sources[0].n)).toBe(16);
+    expect(Number(sources[0].n)).toBe(17);
     const latin = await db().execute(sql`select headline from articles where link = 'https://example.com/latin1'`);
     expect(latin[0].headline).toBe("Café société: crédit à la hausse");
   });
