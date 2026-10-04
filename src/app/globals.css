@@ -2,12 +2,13 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* Dark is the only theme, so `dark:` utilities always apply. */
+@custom-variant dark (&);
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -39,6 +40,14 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-glass-border: var(--glass-border);
+  --color-signal-buy: var(--signal-buy);
+  --color-signal-buy-bg: var(--signal-buy-bg);
+  --color-signal-sell: var(--signal-sell);
+  --color-signal-sell-bg: var(--signal-sell-bg);
+  --color-signal-hold: var(--signal-hold);
+  --color-signal-hold-bg: var(--signal-hold-bg);
+  --shadow-glass: 0 8px 32px rgb(12 6 30 / 28%), inset 0 1px 0 rgb(255 255 255 / 10%);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -49,82 +58,66 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* One dark set only: the app has no light theme and needs no .dark class. */
+  color-scheme: dark;
+  --background: #1d1236;
+  --foreground: #faf8ff;
+  --card: rgb(255 255 255 / 8%);
+  --card-foreground: #faf8ff;
+  --popover: #2e1c57;
+  --popover-foreground: #faf8ff;
+  --primary: #2dd4bf;
+  --primary-foreground: #1d1236;
+  --secondary: #4b3e75;
+  --secondary-foreground: #faf8ff;
+  --muted: rgb(255 255 255 / 8%);
+  --muted-foreground: #c1b9da;
+  --accent: #4b3e75;
+  --accent-foreground: #faf8ff;
+  --destructive: #fb923c;
+  /* Solid elements only (inputs, dividers, table rules). Glass uses --glass-border. */
+  --border: #4b3e75;
+  --input: #4b3e75;
+  --ring: #2dd4bf;
+  --glass-border: rgb(255 255 255 / 16%);
+  --signal-buy: #5eead4;
+  --signal-buy-bg: #1d4b48;
+  --signal-sell: #fdba74;
+  --signal-sell-bg: #5a3320;
+  --signal-hold: #e2ddf0;
+  --signal-hold-bg: #4b3e75;
+  --chart-1: #2dd4bf;
+  --chart-2: #fb923c;
+  --chart-3: #60a5fa;
+  --chart-4: #c1b9da;
+  --chart-5: #fbbf24;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: #2e1c57;
+  --sidebar-foreground: #faf8ff;
+  --sidebar-primary: #2dd4bf;
+  --sidebar-primary-foreground: #1d1236;
+  --sidebar-accent: #4b3e75;
+  --sidebar-accent-foreground: #faf8ff;
+  --sidebar-border: #4b3e75;
+  --sidebar-ring: #2dd4bf;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
-    @apply font-sans;
+    @apply bg-background font-sans;
+    font-variant-numeric: tabular-nums;
+  }
+  body {
+    @apply text-foreground;
+    /* Two glows at the top and two lower down, so long pages keep the glass readable. */
+    background:
+      radial-gradient(1100px 700px at 8% 0%, #5b34a6 0%, rgb(91 52 166 / 0%) 65%),
+      radial-gradient(900px 700px at 100% 25%, #7a2e8e 0%, rgb(122 46 142 / 0%) 60%),
+      radial-gradient(1000px 800px at 15% 90%, #3f2c9a 0%, rgb(63 44 154 / 0%) 60%),
+      radial-gradient(900px 700px at 95% 75%, #6a2a86 0%, rgb(106 42 134 / 0%) 60%),
+      linear-gradient(180deg, #2e1c57 0%, #1d1236 100%);
   }
 }
