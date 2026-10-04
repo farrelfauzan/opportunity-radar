@@ -15,6 +15,7 @@ export {
   THEMES,
   IMPACTS,
   ASSET_KINDS,
+  FACTOR_KEYS,
 } from "./schema.ts";
 export type {
   Region,

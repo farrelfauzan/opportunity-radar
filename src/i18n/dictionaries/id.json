@@ -55,7 +55,8 @@
       "politics": "Politik & kebijakan",
       "tech": "Teknologi & AI",
       "markets": "Pasar",
-      "commodities": "Komoditas"
+      "commodities": "Komoditas",
+      "label": "Kategori"
     },
     "region": {
       "label": "Wilayah",
@@ -73,7 +74,8 @@
       "title": "Sumber",
       "indonesia": "Indonesia: {names}",
       "global": "Global: {names}",
-      "note": "Hanya judul dan tautan; artikel lengkap dibuka di situs penerbit."
+      "note": "Hanya judul dan tautan; artikel lengkap dibuka di situs penerbit.",
+      "notUpdated": "belum diperbarui"
     },
     "credit": {
       "line": "Sumber: {publisher}",
@@ -170,7 +172,8 @@
         "news": "Berita",
         "opportunities": "Peluang"
       }
-    }
+    },
+    "partial": "{ok} dari {total} sumber diperbarui · belum diperbarui: {names}"
   },
   "calc": {
     "title": "Kalkulator",

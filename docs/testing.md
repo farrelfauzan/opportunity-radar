@@ -78,6 +78,18 @@ and never put a key or token in one.
   connection goes through a small TCP proxy, then stops the proxy: that is how the "store
   unreachable" state is tested without touching the Postgres server other sessions use.
   `e2e/opportunities.spec.ts` does the same through `e2e/unreachable-server.ts`.
+- **Seeing the error state by hand.** A server whose database is unreachable at start exits by design
+  (`src/instrumentation.ts`), so pointing `DATABASE_URL` at a dead address no longer works. Point it at
+  a database that is up but has none of the tables instead: `DATABASE_URL=postgres://postgres@127.0.0.1:54329/postgres
+  pnpm exec next start -p <your port>` (the shared server's own `postgres` database), then open
+  `/en/news`: the server starts, the page's queries fail, and the page shows the error state with
+  no host, port or password in it. Never stop the shared Postgres container for this.
+- The per-port e2e databases (`opportunity_radar_e2e_<port>_test`) are not dropped after a run. List
+  them with `psql postgres://postgres@127.0.0.1:54329/postgres -c '\l'` and drop your own when you
+  are done: `... -c 'drop database opportunity_radar_e2e_3329_test'`. `E2E_PORT` must be a whole number
+  from 1 to 65000 (it names the database).
+- Source status in the browser tests: `runDb("source-status", "<slug>", "403")` sets a source's status
+  on the latest ingestion run (200 and 304 count as updated, anything else as not updated).
 - Tests import `test` from `e2e/fixtures.ts`. That makes a test fail when the page logs a
   `console.error`, throws an uncaught error, or a request to the app's own origin fails or answers
   4xx/5xx.

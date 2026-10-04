@@ -1,6 +1,7 @@
 import { callLlm } from "@/server/llm/client";
 import { ingestNews } from "@/server/news/ingest";
 import { ingestPrices } from "@/server/prices/ingest";
+import { generateOpportunities } from "@/server/opportunities/generate";
 import { triageNews } from "@/server/news/triage";
 import type { Job, Registry } from "./runner.ts";
 
@@ -78,7 +79,8 @@ export const jobs: Registry = {
   // OR-14. Also the second step of `news` (ingest, then triage), the command to run every 30 minutes.
   triage: { timeoutSeconds: 600, after: ["ingest-news"], run: () => triageNews() },
   news: { steps: ["ingest-news", "triage"] },
-  opportunities: stub("opportunities", ["triage"]),
+  // OR-15 (matching, update and close come with OR-50).
+  opportunities: { timeoutSeconds: 600, after: ["triage"], run: () => generateOpportunities() },
   scores: stub("scores", ["opportunities"]),
   brief: stub("brief", ["scores"]),
   morning: { steps: ["triage", "opportunities", "scores", "brief"] },

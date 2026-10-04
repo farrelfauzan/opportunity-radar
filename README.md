@@ -68,6 +68,10 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
   backfills 6 years. Yahoo is **off** unless `PRICES_YAHOO=live` (Yahoo's terms are decision D9):
   by default a synthetic history in Yahoo's response shape is used, which is not market data.
   `PRICES_FRANKFURTER=fixtures` uses a recorded USD/IDR history instead of the live API.
+- `pnpm job opportunities` (also the second step of `morning`) asks the LLM to group the last 7
+  days of relevant, triaged news into opportunities. Each one is checked against the OR-11 contract
+  (`docs/opportunities/scoring-v1.md`); one that breaks it is rejected and logged, and nothing is
+  stored for it. Valid ones are stored with their citations and first score.
 - `pnpm job morning` runs triage → opportunities → scores → brief and stops at the first failing
   step; later steps are recorded as `skipped`.
 - `--test` runs against the test database; `--timeout <seconds>` overrides the job's own time
