@@ -67,3 +67,4 @@ Numbering matches the sprint plan in Notion (D1–D16). Rows marked "Designer, d
 - 2026-10-04 — Muted colour scope: #D4CEE6 is for text only; chart lines and borders keep #C1B9DA (`--chart-4` in the app). Reference files aligned.
 - 2026-10-04 — OR-11: opportunity scoring v1, output contract and JSON Schema, 18 sectors and 36 themes (`docs/opportunities/scoring-v1.md`); D11 equal-weight mean. QA follow-up: the contract's region value is `global` (as stored for articles), not `worldwide`; "Worldwide" stays a UI label.
 - 2026-10-04 — Calculators: amounts from Rp 1,000 trillion upwards show "more than Rp 1,000 trillion" (`calc.result.beyond`); no exponent notation.
+- 2026-10-04 — News: "Why it matters" carries an "AI" mark (`news.whyAi`, screen-reader text `news.whyAiSr`) on News, Radar and venture surfaces, so our text is never mistaken for the publisher's (`copy.md` §3).
