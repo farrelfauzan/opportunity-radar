@@ -32,15 +32,32 @@ describe("formatRupiah", () => {
 });
 
 test("formatRupiahCompact", () => {
-  expect(formatRupiahCompact(425_665_138, "en", en.calc.unit)).toBe(`Rp${NBSP}425.7 million`);
-  expect(formatRupiahCompact(425_665_138, "id", id.calc.unit)).toBe(`Rp${NBSP}425,7 juta`);
-  expect(formatRupiahCompact(1_204_000_000, "en", en.calc.unit)).toBe(`Rp${NBSP}1.20 billion`);
-  expect(formatRupiahCompact(1_204_000_000, "id", id.calc.unit)).toBe(`Rp${NBSP}1,20 miliar`);
-  expect(formatRupiahCompact(2e12, "en", en.calc.unit)).toBe(`Rp${NBSP}2.00 trillion`);
-  expect(formatRupiahCompact(2e12, "id", id.calc.unit)).toBe(`Rp${NBSP}2,00 triliun`);
-  expect(formatRupiahCompact(-3_500_000, "en", en.calc.unit)).toBe(`${MINUS}Rp${NBSP}3.5 million`);
-  expect(formatRupiahCompact(999_999, "id", id.calc.unit)).toBe(`Rp${NBSP}999.999`);
-  expect(formatRupiahCompact(0, "en", en.calc.unit)).toBe(`Rp${NBSP}0`);
+  expect(formatRupiahCompact(425_665_138, "en", en.calc.unit, en.calc.result.beyond)).toBe(`Rp${NBSP}425.7 million`);
+  expect(formatRupiahCompact(425_665_138, "id", id.calc.unit, id.calc.result.beyond)).toBe(`Rp${NBSP}425,7 juta`);
+  expect(formatRupiahCompact(1_204_000_000, "en", en.calc.unit, en.calc.result.beyond)).toBe(`Rp${NBSP}1.20 billion`);
+  expect(formatRupiahCompact(1_204_000_000, "id", id.calc.unit, id.calc.result.beyond)).toBe(`Rp${NBSP}1,20 miliar`);
+  expect(formatRupiahCompact(2e12, "en", en.calc.unit, en.calc.result.beyond)).toBe(`Rp${NBSP}2.00 trillion`);
+  expect(formatRupiahCompact(2e12, "id", id.calc.unit, id.calc.result.beyond)).toBe(`Rp${NBSP}2,00 triliun`);
+  expect(formatRupiahCompact(-3_500_000, "en", en.calc.unit, en.calc.result.beyond)).toBe(`${MINUS}Rp${NBSP}3.5 million`);
+  expect(formatRupiahCompact(999_999, "id", id.calc.unit, id.calc.result.beyond)).toBe(`Rp${NBSP}999.999`);
+  expect(formatRupiahCompact(0, "en", en.calc.unit, en.calc.result.beyond)).toBe(`Rp${NBSP}0`);
+});
+
+test("formatRupiahCompact: from Rp 1,000 trillion upwards it says so, never a long number or an exponent", () => {
+  const compact = (value: number, locale: "en" | "id") =>
+    formatRupiahCompact(value, locale, (locale === "en" ? en : id).calc.unit, (locale === "en" ? en : id).calc.result.beyond);
+  // Just below: the normal form.
+  expect(compact(9.99e14, "en")).toBe(`Rp${NBSP}999.00 trillion`);
+  expect(compact(9.99e14, "id")).toBe(`Rp${NBSP}999,00 triliun`);
+  // The boundary and far beyond it.
+  for (const value of [1e15, 3.5e48, Number.MAX_VALUE, Infinity]) {
+    expect(compact(value, "en"), String(value)).toBe("more than Rp 1,000 trillion");
+    expect(compact(value, "id"), String(value)).toBe("lebih dari Rp 1.000 triliun");
+  }
+  // A loss gets the minus sign (U+2212).
+  expect(compact(-1e15, "en")).toBe(`${MINUS}more than Rp 1,000 trillion`);
+  expect(compact(-3.5e48, "id")).toBe(`${MINUS}lebih dari Rp 1.000 triliun`);
+  for (const value of [3.5e48, -3.5e48, 1e15, 1e21]) expect(compact(value, "en")).not.toMatch(/e\+|\d{4,}/);
 });
 
 test("formatUsd", () => {
@@ -111,7 +128,7 @@ describe("formatRelativeTime", () => {
 test("missing values show an em dash", () => {
   for (const value of [null, undefined, NaN]) {
     expect(formatRupiah(value, "en")).toBe(DASH);
-    expect(formatRupiahCompact(value, "en", en.calc.unit)).toBe(DASH);
+    expect(formatRupiahCompact(value, "en", en.calc.unit, en.calc.result.beyond)).toBe(DASH);
     expect(formatUsd(value, "id")).toBe(DASH);
     expect(formatPercent(value, "en")).toBe(DASH);
   }

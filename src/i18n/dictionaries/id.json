@@ -176,6 +176,9 @@
       "required": "Masukkan angka",
       "range": "Masukkan nilai dari {min} sampai {max}",
       "keptPrevious": "Menampilkan hasil valid terakhir"
+    },
+    "result": {
+      "beyond": "lebih dari Rp 1.000 triliun"
     }
   }
 }

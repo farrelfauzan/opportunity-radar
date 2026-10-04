@@ -18,8 +18,8 @@ export default async function CalculatorsPage() {
         <h1 className="text-[26px] font-bold tracking-tight">{calc.title}</h1>
         <p className="text-muted-foreground">{calc.intro}</p>
       </div>
-      <InvestmentCalculator locale={locale} strings={calc.inv} errors={calc.err} units={calc.unit} />
-      <BusinessCalculator locale={locale} strings={calc.biz} errors={calc.err} units={calc.unit} />
+      <InvestmentCalculator locale={locale} strings={calc.inv} errors={calc.err} units={calc.unit} beyond={calc.result.beyond} />
+      <BusinessCalculator locale={locale} strings={calc.biz} errors={calc.err} units={calc.unit} beyond={calc.result.beyond} />
       <p className="text-xs text-muted-foreground">{calc.disclaimer}</p>
     </>
   );

@@ -176,6 +176,9 @@
       "required": "Enter a number",
       "range": "Enter a value from {min} to {max}",
       "keptPrevious": "Showing the last valid result"
+    },
+    "result": {
+      "beyond": "more than Rp 1,000 trillion"
     }
   }
 }
