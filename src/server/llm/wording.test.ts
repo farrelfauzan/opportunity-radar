@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
-import { adviceIn, assertDescriptive, bannedWording } from "./wording.ts";
+import { adviceIn, assertDescriptive, bannedWording, normalise, WORDING_RULE, wordingHit } from "./wording.ts";
 
 // The ticket's crafted advice lines (AC1-AC4) and the Reviewer's evasion lines.
 const REJECTED = [
@@ -127,12 +127,12 @@ describe("helpers", () => {
   test("assertDescriptive names the field and the wording, as an AdviceError", async () => {
     const { AdviceError } = await import("./wording.ts");
     expect(() => assertDescriptive({ x: "Demand will rise." })).toThrow(AdviceError);
-    expect(() => assertDescriptive({ "lines[0].en": "Fine.", "lines[0].id": "Anda harus beli." })).toThrow(/^lines\[0\]\.id: advice wording "/);
+    expect(() => assertDescriptive({ "lines[0].en": "Fine.", "lines[0].id": "Anda harus beli." })).toThrow(/^lines\[0\]\.id: advice wording \(rule "/);
     expect(() => assertDescriptive({ a: "Fine." })).not.toThrow();
   });
 
   test("adviceIn scans every string of a reply item", () => {
-    expect(adviceIn({ id: 1, why: { en: "Fine.", id: "Segera beli sekarang." }, themes: ["ai_adoption"] })).toMatch(/beli/i);
+    expect(adviceIn({ id: 1, why: { en: "Fine.", id: "Segera beli sekarang." }, themes: ["ai_adoption"] })?.match).toMatch(/beli/i);
     expect(adviceIn({ id: 1, why: { en: "Fine.", id: "Baik." }, themes: ["ai_adoption"], n: 3 })).toBeNull();
   });
 });
@@ -150,4 +150,113 @@ test("the phrases live in exactly one file (wording.ts)", () => {
   walk(root);
   const holding = files.filter((f) => /"kami sarankan"|"porsi kecil saja"|"buy the dip"/.test(readFileSync(f, "utf8")));
   expect(holding.map((f) => f.slice(root.length))).toEqual(["server/llm/wording.ts"]);
+});
+
+describe("OR-64: normalisation, clause breaks, forecast forms, the authority exception", () => {
+  test.each([
+    // Clause breaks: a sentence end, colon or dash ends the policy noun's clause.
+    "The VAT rose. Demand will fall.",
+    "VAT: demand will fall.",
+    "VAT — demand will fall.",
+    "VAT (demand will fall).",
+    "The VAT rose\nDemand will fall.",
+    // Forecast forms with filler words; would / shall / gonna count as will.
+    "Gold will also rise.",
+    "Prices will soon surge.",
+    "Gold will go up.",
+    "Gold will hit record highs.",
+    "Prices will be higher next year.",
+    "Gold would surge.",
+    "Gold would rise if rates fell.", // accepted cost: write "could rise"
+    "Gold shall rise.",
+    "Gold is gonna rise.",
+    "Harga emas akan kembali naik.",
+    "Saham akan melambung.",
+    "Rupiah akan terapresiasi.",
+    // Normalisation.
+    "Set a stop-loss.",
+    "**take-profit** at 10%",
+    "ｂｕｙ ｎｏｗ",
+    "you  **should**  buy",
+    "buy<b></b> now",
+    "buy\u200b now",
+    "risk\u00ad free returns",
+    "risk_free returns",
+    // Mandates without an authority word in reach, or with one that is only attributed.
+    "You must invest in gold.",
+    "Investors must sell bank stocks.",
+    "Investors must buy gold, the ministry says.",
+    "Investors must buy gold, OJK data show.",
+    "Investor harus membeli emas, data OJK menunjukkan.",
+    "Investors must buy gold, according to the ministry.",
+    "Investors must sell now, the regulator warned.",
+    // "recommend" in any inflection, also inside names (accepted).
+    "Recommended Daily Allowance rises.",
+  ])("rejects %s", (line) => {
+    expect(bannedWording(line)).not.toBeNull();
+  });
+
+  test.each([
+    "Prices could fall if the subsidy ends.",
+    "Prices may rise if demand holds.",
+    "Costs might increase, the survey found.",
+    "VAT will also increase to 12% from January.",
+    "Pension funds must invest 30% in bonds under the new rule.",
+    "Under the new regulation, funds must invest 30% in bonds.",
+    "Dana pensiun wajib berinvestasi 30% di obligasi sesuai aturan OJK.",
+    "Bank harus membeli SBN sesuai aturan OJK.",
+    "The new rule requires funds to invest 30% in bonds.",
+    // Decimals and abbreviations are not sentence ends: the clause and sentence hold.
+    "The VAT of 12.5% will increase to 13% in 2026.",
+    "Rp 1.000.000 duty: the U.S. tariff will rise to 25%.",
+    "Exports are expected to grow 4.5%, the No. 2 ministry said.",
+  ])("passes %s", (line) => {
+    expect(bannedWording(line)).toBeNull();
+  });
+
+  test("the signal list rejects every mandate, authority or not", () => {
+    expect(bannedWording("Pension funds must invest 30% in bonds under the new rule.", "signal")).not.toBeNull();
+  });
+
+  test("normalise: NFKC, hidden characters, tags, markdown, hyphens and spaces; line breaks kept", () => {
+    expect(normalise("ｂｕｙ\u200b  <i>now</i>")).toBe("buy now ");
+    expect(normalise("stop-loss_order\u00ad")).toBe("stop loss order");
+    expect(normalise("a\n b")).toBe("a\n b");
+  });
+
+  test("a hit names the list entry (logged and counted), never more of the text", () => {
+    expect(wordingHit("Set a stop-loss.")).toEqual({ id: "stop loss", match: "stop loss" });
+    expect(wordingHit("Demand will rise.")).toEqual({ id: "forecast", match: "will rise" });
+    expect(wordingHit("Investors must sell bank stocks.")).toMatchObject({ id: "mandate" });
+  });
+
+  test("a comparison sign is not a tag: the words between < and > are still checked", () => {
+    for (const line of ["Rates fell < 5% so you should buy gold > 3 days", "<you should buy gold now>", "Prices <fell and the rupiah will fall> again"]) {
+      expect(bannedWording(line)).not.toBeNull();
+    }
+    expect(bannedWording("buy<b></b> now")).not.toBeNull(); // a real tag is still removed
+    // A known tag name followed by words is not one tag: the words are still checked.
+    for (const line of ["<b you should buy gold now>", "<font color=red you should buy gold now>", "<br you should buy gold now/>", "<b <b you should buy gold now>", "<B you must act now>"]) {
+      expect(bannedWording(line)).not.toBeNull();
+    }
+  });
+
+  test("many < characters stay fast", () => {
+    for (const text of ["<".repeat(100_000), "<a ".repeat(33_000)]) {
+      const started = performance.now();
+      bannedWording(text);
+      expect(performance.now() - started).toBeLessThan(1000);
+    }
+  });
+
+  test("WORDING_RULE, the prompt sentence, passes its own guard", () => {
+    expect(bannedWording(WORDING_RULE)).toBeNull();
+  });
+
+  test("long texts stay fast: the policy check looks only just before each forecast", () => {
+    const text = "the tax will rise ".repeat(6000); // about 100,000 characters
+    const started = performance.now();
+    expect(bannedWording(text)).toBeNull();
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
 });
