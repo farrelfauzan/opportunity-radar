@@ -19,8 +19,10 @@ export function LanguageSwitch({ locale, label }: { locale: Locale; label: strin
           <Link
             key={target}
             href={href}
-            // Next 16.3.8 re-requests the prefetch of a link to the current path forever when the path holds %27
-            // (OR-61); a language switch is a click, so nothing is lost without the prefetch.
+            // Next 16.3.8 re-requests the prefetch of a link to the current path forever when the path holds
+            // %27 (also + %21 %28 %29 %2A %7E: what encodeURIComponent leaves unescaped, plus "+"). OR-61: a language
+            // switch is a click, so nothing is lost without the prefetch. Any new <Link> to the current path
+            // needs prefetch={false} too (e2e/encoded-path.spec.ts).
             prefetch={false}
             aria-current={target === locale ? "true" : undefined}
             onClick={(event) => {

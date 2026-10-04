@@ -306,6 +306,10 @@ test.describe("a full day", () => {
       ...(await newsItems(page).all()).map((item) => item.locator('a[target="_blank"]').first()),
     ];
     for (const link of links) expect((await box(link)).height).toBeGreaterThanOrEqual(44);
+    // The licence link of the credit line too, and it does not make the line taller.
+    const licence = section(page, "radar-news").getByRole("link", { name: "CC BY-ND 4.0" });
+    expect((await box(licence)).height).toBeGreaterThanOrEqual(44);
+    expect((await box(licence.locator(".."))).height).toBeLessThan(20);
     for (const item of await topItems(page).all()) expect((await box(item)).height).toBeGreaterThanOrEqual(44);
 
     // The same page with a 204-character word added to every text.
@@ -388,7 +392,7 @@ for (const locale of ["en", "id"] as const) {
       // The stored content is still shown, and the header names the same time.
       await expect(topItems(page)).toHaveCount(5);
       await expect(briefItems(page)).toHaveCount(3);
-      await expect(main(page).getByText(c.updated(longDate(new Date(), locale), clockOf(new Date(scoresRun), locale)), { exact: true })).toBeVisible();
+      await expect(main(page).getByText(c.updated(longDate(new Date(scoresRun), locale), clockOf(new Date(scoresRun), locale)), { exact: true })).toBeVisible();
 
       // Both at once, each in its own section.
       const both = JSON.parse(runDb("fixtures", `--scores-run=${27 * 60}`, `--brief-run=${30 * 60}`));
