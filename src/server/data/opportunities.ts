@@ -271,9 +271,15 @@ export type RefreshedFields = Omit<NewOpportunity, "theme" | "region" | "sectors
 /**
  * A matched opportunity keeps its id: its text fields are refreshed and the new
  * citations added (an article already cited keeps its first citation time), in
- * one transaction. Returns how many citations were new.
+ * one transaction. An opportunity never exceeds MAX_CITATIONS citations: new
+ * ones beyond the limit are left out (in the order given, most relevant first)
+ * and counted as skipped.
  */
-export async function refreshOpportunity(id: number, fields: RefreshedFields, articleIds: number[]): Promise<number> {
+export async function refreshOpportunity(
+  id: number,
+  fields: RefreshedFields,
+  articleIds: number[],
+): Promise<{ added: number; skipped: number }> {
   return db().transaction(async (tx) => {
     const [row] = await tx
       .update(opportunities)
@@ -281,13 +287,18 @@ export async function refreshOpportunity(id: number, fields: RefreshedFields, ar
       .where(and(eq(opportunities.id, id), eq(opportunities.status, "open")))
       .returning({ id: opportunities.id });
     if (!row) throw new Error(`Opportunity ${id} is not open`);
-    if (articleIds.length === 0) return 0;
-    const added = await tx
-      .insert(opportunityArticles)
-      .values([...new Set(articleIds)].map((articleId) => ({ opportunityId: id, articleId })))
-      .onConflictDoNothing()
-      .returning({ articleId: opportunityArticles.articleId });
-    return added.length;
+    const cited = new Set(
+      (await tx.select({ articleId: opportunityArticles.articleId }).from(opportunityArticles).where(eq(opportunityArticles.opportunityId, id))).map(
+        (r) => r.articleId,
+      ),
+    );
+    const fresh = [...new Set(articleIds)].filter((a) => !cited.has(a));
+    const room = Math.max(0, MAX_CITATIONS - cited.size);
+    const toAdd = fresh.slice(0, room);
+    if (toAdd.length) {
+      await tx.insert(opportunityArticles).values(toAdd.map((articleId) => ({ opportunityId: id, articleId })));
+    }
+    return { added: toAdd.length, skipped: fresh.length - toAdd.length };
   });
 }
 

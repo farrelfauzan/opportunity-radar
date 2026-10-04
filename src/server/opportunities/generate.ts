@@ -7,6 +7,7 @@
 import {
   closeStaleOpportunities,
   FACTOR_KEYS,
+  MAX_CITATIONS as MAX_STORED_CITATIONS,
   insertOpportunity,
   listOpenForMatching,
   opportunityCandidates,
@@ -28,7 +29,7 @@ const MAX_INPUT_ARTICLES = 150;
 const MAX_DATA_CHARS = 150_000;
 const MAX_REASON_CHARS = 200;
 const MAX_OPPORTUNITIES = 10; // per run
-const MAX_CITATIONS = 20; // stored per opportunity
+const MAX_CITATIONS = 20; // used from one reply item (an opportunity stores at most MAX_STORED_CITATIONS in total)
 const MAX_TOKENS = 8000;
 
 /** Overall score (scoring-v1 §1): the equal-weight mean of the five factors, Math.round, computed in code. */
@@ -111,16 +112,16 @@ export async function generateOpportunities(
     candidates.push(c);
     size += itemSize;
   }
-  const counts = { candidates: candidates.length, created: 0, matched: 0, rejected: 0, closed: 0 };
+  const counts = { candidates: candidates.length, candidates_available: ranked.length, created: 0, matched: 0, rejected: 0, closed: 0, citations_skipped: 0 };
   const closeStale = async () => {
     const closed = await closeStaleOpportunities(now);
     counts.closed = closed.length;
     for (const id of closed) console.info(`opportunities: closed #${id} (no new evidence for 30 days)`);
   };
-  if (candidates.length < 2) {
-    await closeStale();
-    return { status: "ok", counts }; // no theme can have 2 citations
-  }
+  console.info(`opportunities: ${candidates.length} of ${ranked.length} candidates used`);
+  // Nothing to judge by (no news, a dead ingestion or triage job, a machine that was off):
+  // no call, and nothing is closed, since a closed opportunity is never reopened.
+  if (candidates.length < 2) return { status: "ok", counts }; // no theme can have 2 citations
 
   const fence = fenceUntrusted("ARTICLES", candidates.map(inputItem));
   const items = await callLlm({
@@ -157,11 +158,15 @@ export async function generateOpportunities(
       // Same opportunity: it keeps its id, gains the new citations and fresh texts. Re-scoring is OR-16's.
       const { theme: _t, region: _r, sectors: _s, ...refreshed } = toFields(o);
       void [_t, _r, _s];
-      const added = await refreshOpportunity(match.id, refreshed, citations);
+      const { added, skipped } = await refreshOpportunity(match.id, refreshed, citations);
+      counts.citations_skipped += skipped;
       const known = open.find((x) => x.id === match.id)!;
       known.citations = [...new Set([...known.citations, ...citations])];
       counts.matched++;
-      console.info(`opportunities: theme ${o.theme}/${o.region} → matched #${match.id} (${match.reason}; ${added} new citations)`);
+      console.info(
+        `opportunities: theme ${o.theme}/${o.region} → matched #${match.id} (${match.reason}; ${added} new citations` +
+          (skipped ? `, ${skipped} left out at the ${MAX_STORED_CITATIONS}-citation limit)` : ")"),
+      );
       continue;
     }
     const factors = Object.fromEntries(FACTOR_KEYS.map((key) => [key, o.factors[key].score])) as FactorScores;

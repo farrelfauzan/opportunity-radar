@@ -339,3 +339,51 @@ describe("review follow-ups (PR 42)", () => {
     expect(await stored()).toHaveLength(1);
   });
 });
+
+describe("review follow-ups (PR 52)", () => {
+  test("a match never takes an opportunity past 50 citations: extra new ones are left out and counted", async () => {
+    const ids = await triagedArticles(65);
+    // An open opportunity already citing 45 articles.
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(ids.slice(0, 2).map(String))] })).transport, now: () => NOW });
+    const [{ id }] = await stored();
+    await db().execute(sql`insert into opportunity_articles (opportunity_id, article_id)
+      select ${id}, a.id from articles a where a.id = any(${`{${ids.slice(2, 45).join(",")}}`}::bigint[])`);
+
+    const outcome = await generateOpportunities({
+      transport: provider(() => ({ opportunities: [opportunity(ids.slice(45, 65).map(String))] })).transport,
+      now: () => NOW,
+    });
+
+    expect(outcome.counts).toMatchObject({ matched: 1, citations_skipped: 15 });
+    expect((await stored())[0].cited).toHaveLength(50);
+  });
+
+  test("an empty store closes nothing, however old the evidence (nothing to judge by)", async () => {
+    const ids = await triagedArticles(2);
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(ids.map(String))] })).transport, now: () => NOW });
+    await db().execute(sql`update opportunity_articles set cited_at = ${new Date(NOW.getTime() - 31 * 86400_000).toISOString()}`);
+    await db().execute(sql`delete from article_triage`); // no candidates any more (e.g. triage stopped)
+
+    const { transport, requests } = provider(() => ({ opportunities: [] }));
+    const outcome = await generateOpportunities({ transport, now: () => NOW });
+
+    expect(requests).toHaveLength(0);
+    expect(outcome.counts).toMatchObject({ closed: 0 });
+    expect((await db().execute(sql`select status from opportunities`)).map((r) => r.status)).toEqual(["open"]);
+  });
+
+  test("a closed opportunity cannot be refreshed", async () => {
+    const ids = await triagedArticles(2);
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(ids.map(String))] })).transport, now: () => NOW });
+    const [{ id }] = await stored();
+    await db().execute(sql`update opportunities set status = 'closed', closed_at = now()`);
+    const { refreshOpportunity } = await import("@/server/data");
+    await expect(refreshOpportunity(id, { titleEn: "New title" } as never, [])).rejects.toThrow(`Opportunity ${id} is not open`);
+  });
+
+  test("the run counts how many candidates were available and how many were used", async () => {
+    await triagedArticles(3);
+    const outcome = await generateOpportunities({ transport: provider(() => ({ opportunities: [] })).transport, now: () => NOW });
+    expect(outcome.counts).toMatchObject({ candidates: 3, candidates_available: 3 });
+  });
+});
