@@ -392,3 +392,23 @@ test("/id reads business numbers the Indonesian way; the largest projection fits
   await page.waitForTimeout(500);
   expect(requests).toEqual([]);
 });
+
+test("the business calculator's largest figures fit at 390 px and show no exact line above 2^53", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en/calculators");
+  const top: [string, string][] = [
+    ["Starting capital (Rp)", "10,000,000,000,000"],
+    ["Fixed cost per month (Rp)", "10,000,000,000,000"],
+    ["First-month revenue (Rp)", "10,000,000,000,000"],
+    ["Revenue growth per month (%)", "100"],
+    ["Months to project", "120"],
+  ];
+  for (const [name, value] of top) await field(page, name).fill(value);
+
+  await expect(page.getByTestId("biz-end")).toHaveCount(0);
+  const overflowing = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll<HTMLElement>("div.rounded-lg.bg-black\\/18")];
+    return cards.filter((card) => card.scrollWidth > card.clientWidth).length;
+  });
+  expect(overflowing).toBe(0);
+});

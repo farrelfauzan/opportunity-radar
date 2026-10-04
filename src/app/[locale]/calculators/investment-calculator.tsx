@@ -4,12 +4,12 @@ import { useMemo, useState } from "react";
 import { CartesianGrid, Line, LineChart, YAxis } from "recharts";
 import { Card } from "@/components/ui/card";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
-import { formatRupiah, formatRupiahCompact } from "@/i18n/format";
+import { formatRupiahCompact } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { fill, type Messages } from "@/i18n/t";
 import { projectInvestment, type InvestmentInput } from "@/lib/calculators/investment";
 import { formatNumberInput, type NumberRange } from "@/lib/calculators/number-input";
-import { NumberField, ResultCard, useNumberFields } from "./calculator-parts";
+import { exactRupiah, NumberField, ResultCard, useNumberFields } from "./calculator-parts";
 
 type Field = keyof InvestmentInput;
 type Strings = Messages["calc"]["inv"];
@@ -163,8 +163,7 @@ export function InvestmentCalculator({
                 testId={card.testId}
                 label={card.label}
                 value={formatRupiahCompact(card.value, locale, units)}
-                // Above 2^53 a number cannot hold every digit, so no exact line is shown.
-                exact={Math.abs(card.value) <= Number.MAX_SAFE_INTEGER ? formatRupiah(card.value, locale) : null}
+                exact={exactRupiah(card.value, locale)}
                 valueClassName={card.accent ? "text-primary" : ""}
               />
             ))}

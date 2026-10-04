@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { formatRupiah } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { fill, type Messages } from "@/i18n/t";
 import {
@@ -97,6 +98,11 @@ export function NumberField({
 }
 
 /** A label, a large value and, for amounts, the exact value under it. The test id sits on the exact value when there is one. */
+/** The exact rupiah figure, or null above 2^53, where a number cannot hold every digit. */
+export function exactRupiah(value: number, locale: Locale): string | null {
+  return Math.abs(value) <= Number.MAX_SAFE_INTEGER ? formatRupiah(value, locale) : null;
+}
+
 export function ResultCard({
   label,
   value,

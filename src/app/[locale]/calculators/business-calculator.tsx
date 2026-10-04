@@ -4,12 +4,12 @@ import { useMemo } from "react";
 import { CartesianGrid, Line, LineChart, ReferenceLine, YAxis } from "recharts";
 import { Card } from "@/components/ui/card";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
-import { formatRupiah, formatRupiahCompact } from "@/i18n/format";
+import { formatRupiahCompact } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { fill, type Messages } from "@/i18n/t";
 import { projectBusiness, type BusinessInput } from "@/lib/calculators/business";
 import type { NumberRange } from "@/lib/calculators/number-input";
-import { NumberField, ResultCard, useNumberFields } from "./calculator-parts";
+import { exactRupiah, NumberField, ResultCard, useNumberFields } from "./calculator-parts";
 
 type Field = keyof BusinessInput;
 type Strings = Messages["calc"]["biz"];
@@ -97,14 +97,14 @@ export function BusinessCalculator({
               testId="biz-lowest"
               label={strings.lowest}
               value={formatRupiahCompact(result.lowest, locale, units)}
-              exact={formatRupiah(result.lowest, locale)}
+              exact={exactRupiah(result.lowest, locale)}
               valueClassName="text-chart-2"
             />
             <ResultCard
               testId="biz-end"
               label={fill(strings.end[plural], { months: valid.months })}
               value={formatRupiahCompact(result.end, locale, units)}
-              exact={formatRupiah(result.end, locale)}
+              exact={exactRupiah(result.end, locale)}
             />
           </div>
 
