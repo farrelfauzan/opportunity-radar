@@ -24,6 +24,7 @@ Contents: 1 Shell · 2 States (all screens) · 3 News · 4 Calculators · 5 Rada
 | nav.news | News | Berita |
 | nav.invest | Investments | Investasi |
 | nav.calculators | Calculators | Kalkulator |
+| nav.main | Main | Utama |
 | nav.language | Language | Bahasa |
 | nav.lang.en | EN | EN |
 | nav.lang.id | ID | ID |
@@ -44,7 +45,7 @@ Contents: 1 Shell · 2 States (all screens) · 3 News · 4 Calculators · 5 Rada
 | error.title | Something went wrong | Terjadi kesalahan |
 | error.retry | Try again | Coba lagi |
 
-The alert bell (`nav.alerts.*`) ships with OR-34. The canvas badge "Sample data" is never shipped.
+`nav.main` is the accessible name of the main navigation (screen readers already say "navigation"). The alert bell (`nav.alerts.*`) ships with OR-34. The canvas badge "Sample data" is never shipped.
 
 ## 2. States (all screens)
 
@@ -145,6 +146,7 @@ Region shown on an item uses `news.region.id` / `news.region.global`. Category a
 | calc.title | Calculators | Kalkulator |
 | calc.intro | Provisional projections from your own assumptions. Change any number; results update as you type. | Proyeksi sementara dari asumsi Anda sendiri. Ubah angka mana pun; hasil diperbarui saat Anda mengetik. |
 | calc.inv.title | Investment projection | Proyeksi investasi |
+| calc.inv.presetGroup | Asset type assumptions | Asumsi jenis aset |
 | calc.inv.preset.cash | Cash & bonds | Kas & obligasi |
 | calc.inv.preset.gold | Gold | Emas |
 | calc.inv.preset.stocks | Stocks | Saham |
@@ -166,6 +168,7 @@ Region shown on an item uses `news.region.id` / `news.region.global`. Category a
 | calc.inv.base | Base | Dasar |
 | calc.inv.pessimistic | Pessimistic | Pesimis |
 | calc.inv.paidLine | Paid in | Setoran |
+| calc.inv.chartLabel | Projected value over time for pessimistic, base and optimistic returns, compared with the amount paid in | Proyeksi nilai dari waktu ke waktu untuk imbal hasil pesimis, dasar, dan optimis, dibandingkan dengan total setoran |
 | calc.biz.title | Business projection | Proyeksi bisnis |
 | calc.biz.hint | Open it from an opportunity or a venture to start with that idea's numbers | Buka dari sebuah peluang atau usaha untuk memulai dengan angka ide tersebut |
 | calc.biz.from | Starting from: {title} | Dimulai dari: {title} |
@@ -189,8 +192,11 @@ Region shown on an item uses `news.region.id` / `news.region.global`. Category a
 | calc.err.required | Enter a number | Masukkan angka |
 | calc.err.range | Enter a value from {min} to {max} | Masukkan nilai dari {min} sampai {max} |
 | calc.err.keptPrevious | Showing the last valid result | Menampilkan hasil valid terakhir |
+| calc.unit.million | million | juta |
+| calc.unit.billion | billion | miliar |
+| calc.unit.trillion | trillion | triliun |
 
-Large amounts in results use compact form: EN `Rp 425.67 million`, `Rp 1.20 billion`, `Rp 2.00 trillion`; ID `Rp 425,67 juta`, `Rp 1,20 miliar`, `Rp 2,00 triliun` (two decimals from billions, one or two from millions as in the canvas; exact values are in the AC of OR-24/25).
+`calc.inv.chartLabel` and `calc.inv.presetGroup` are accessible names (chart and preset button group). Large amounts in results use compact form, with the unit words `calc.unit.*`: EN `Rp 425.67 million`, `Rp 1.20 billion`, `Rp 2.00 trillion`; ID `Rp 425,67 juta`, `Rp 1,20 miliar`, `Rp 2,00 triliun` (two decimals from billions, one or two from millions as in the canvas; exact values are in the AC of OR-24/25).
 
 ## 5. Radar (OR-23, OR-28, OR-34, OR-39)
 
