@@ -1,5 +1,6 @@
 import { callLlm } from "@/server/llm/client";
 import { ingestNews } from "@/server/news/ingest";
+import { writeBrief } from "@/server/opportunities/brief";
 import { assessVentures } from "@/server/ventures/market";
 import { ingestPrices } from "@/server/prices/ingest";
 import { ingestMetals } from "@/server/prices/metals";
@@ -10,18 +11,6 @@ import { triageNews } from "@/server/news/triage";
 import type { Job, Registry } from "./runner.ts";
 
 const production = process.env.NODE_ENV === "production";
-
-/**
- * A pipeline step whose real job has not landed yet. Outside production,
- * STUB_FAIL=<step> makes that step fail, to test the pipeline.
- */
-const stub = (name: string, after?: string[]): Job => ({
-  timeoutSeconds: 60,
-  after,
-  async run() {
-    if (!production && process.env.STUB_FAIL === name) throw new Error(`stub step "${name}" failed on request`);
-  },
-});
 
 /**
  * A morning step that, outside production, fails on request with STUB_FAIL=<step>,
@@ -93,8 +82,7 @@ export const jobs: Registry = {
   // OR-27: gold and silver in rupiah per gram (every 10 minutes) and crypto (every 15), as their own jobs.
   metals: { timeoutSeconds: 300, run: () => ingestMetals() },
   crypto: { timeoutSeconds: 300, run: () => ingestCrypto() },
-  // Morning pipeline: triage → opportunities → scores → brief. Each stub is
-  // replaced by the real job when its ticket lands (OR-14, OR-15/OR-50, OR-16, OR-22).
+  // Morning pipeline: triage → opportunities → scores → ventures → brief.
   // OR-14. Also the second step of `news` (ingest, then triage), the command to run every 30 minutes.
   triage: step("triage", { timeoutSeconds: 600, after: ["ingest-news"], run: () => triageNews() }),
   news: { steps: ["ingest-news", "triage"] },
@@ -104,7 +92,8 @@ export const jobs: Registry = {
   scores: step("scores", { timeoutSeconds: 900, after: ["opportunities"], run: () => scoreOpportunities() }),
   // OR-38: the market view of each venture (before the brief, which may mention it).
   ventures: step("ventures", { timeoutSeconds: 600, after: ["scores"], run: () => assessVentures() }),
-  brief: stub("brief", ["ventures"]),
+  // OR-22: the daily brief, the last morning step.
+  brief: step("brief", { timeoutSeconds: 300, after: ["ventures"], run: () => writeBrief() }),
   morning: { steps: ["triage", "opportunities", "scores", "ventures", "brief"] },
   ...(production ? {} : testJobs),
 };

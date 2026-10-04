@@ -380,6 +380,8 @@ describe("review follow-ups (PR 52)", () => {
     await db().execute(sql`update opportunities set status = 'closed', closed_at = now()`);
     const { refreshOpportunity } = await import("@/server/data");
     await expect(refreshOpportunity(id, { titleEn: "New title" } as never, [])).rejects.toThrow(`Opportunity ${id} is not open`);
+    // The citations-only path (text not refreshed) has the same guard.
+    await expect(refreshOpportunity(id, null, ids)).rejects.toThrow(`Opportunity ${id} is not open`);
   });
 
   test("the run counts how many candidates were available and how many were used", async () => {

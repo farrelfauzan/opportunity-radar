@@ -140,6 +140,8 @@ Exchange holidays come from a small holiday list in config; until it exists, wee
 | news.impact.risk | Risk | Risiko |
 | news.impact.context | Context | Konteks |
 | news.why | Why it matters | Mengapa penting |
+| news.whyAi | AI | AI |
+| news.whyAiSr | Written by AI from the article, not by the publisher | Ditulis oleh AI dari artikel, bukan oleh penerbit |
 | news.linked | Linked opportunity: {title} | Peluang terkait: {title} |
 | news.themes.title | Trending themes, 7 days | Tema populer, 7 hari |
 | news.themes.caption | Number of articles mentioning each theme. | Jumlah artikel yang menyebut setiap tema. |
@@ -171,6 +173,8 @@ Rules
 - How: one line under the snippet (or under the headline where no snippet is shown), muted text, the licence name as a link to the licence deed. Shown in both locales; publisher and licence names are not translated except "European Central Bank" in ID.
 - The Conversation (CC BY-ND, no derivatives): its summary is shown as stored (tags stripped, entities decoded, cut at 500 characters; no other change), never translated, rewritten or summarised by the LLM, also on `/id`. "Why it matters" and other AI text stay visually separate and labelled as ours, so they are commentary, not an altered version.
 - Sources without a reuse licence keep the existing meta line (`news.item.meta`) and no credit line.
+
+AI mark on "Why it matters" (OR-21 review): the label `news.why` is followed by `news.whyAi`, a small word in muted text with a solid 1px outline (the dashed outline stays reserved for `sample.badge`), and `news.whyAiSr` as screen-reader text. The visible tooltip is `news.whyAiSr` too. Applies wherever the "why it matters" text is shown: News items (OR-21), Radar "News that moves opportunities" (OR-23), venture related news (OR-51) if it shows the text. The publisher's snippet never carries the mark.
 
 Partial state (OR-9 follow-up): when the news is not stale but at least one active source failed on the latest ingestion run (status not ok and not 304), the Sources panel shows `state.partial` at its top and `news.sources.notUpdated` after each affected source name. No page-level banner; the stale banner (§2) takes precedence when both apply.
 

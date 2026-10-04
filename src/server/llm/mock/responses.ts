@@ -44,6 +44,26 @@ function mockOpportunity(articles: { id: string; region: string; themes?: string
 }
 
 export const MOCK_RESPONSES: Record<string, MockCase[]> = {
+  // OR-22: three "[mock]" lines citing the first articles and today's opportunity changes.
+  brief: [
+    {
+      name: "three-lines",
+      content: (requestText) => {
+        const data = fencedData(requestText, "BRIEF") as { articles: { id: number; category: string }[]; opportunities: { id: number }[] };
+        const opp = data.opportunities.map((o) => o.id).slice(0, 2);
+        return JSON.stringify({
+          lines: [0, 1, 2].map((i) => ({
+            label: data.articles[i]?.category ?? "business",
+            en: `[mock] Recorded brief line ${i + 1}: the AI brief is not live yet.`,
+            id: `[mock] Baris ringkasan rekaman ${i + 1}: ringkasan AI belum aktif.`,
+            opportunityIds: i === 0 ? opp : [],
+            articleIds: [data.articles[i]?.id ?? data.articles[0].id],
+          })),
+        });
+      },
+      usage: { prompt_tokens: 3000, completion_tokens: 400 },
+    },
+  ],
   // OR-38: every matched article rated relevant, middle scores, a "[mock]" wind pair.
   ventures: [
     {
