@@ -2,6 +2,7 @@
 
 ## Run it locally
 
+Needs **Node.js 22.18 or newer** (it runs the TypeScript scripts directly) and pnpm.
 **Docker Desktop must be running** for development, QA and the browser tests: the app stores its
 data in a local Postgres started with docker compose.
 
@@ -60,7 +61,8 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
 - A job that is already running is not started twice: the second start is recorded as `skipped`.
 - `pnpm job morning` runs triage → opportunities → scores → brief and stops at the first failing
   step; later steps are recorded as `skipped`.
-- `--test` runs against the test database; `--timeout` overrides the job's own time limit.
+- `--test` runs against the test database; `--timeout <seconds>` overrides the job's own time
+  limit (a value that is not a positive number exits with code 2 and runs nothing).
 - `pnpm job ingest-news` fetches the 12 news feeds once (meant to run every 30 minutes) and stores
   new articles: headline, snippet and link only. `pnpm sources:health` prints, per source, the
   last successful check, the last status (`200`, `304`, `403`, `timeout`, …) and the number of

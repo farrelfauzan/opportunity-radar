@@ -15,7 +15,13 @@ const flag = (name: string, takesValue: boolean): string | undefined => {
 async function main(): Promise<number> {
   loadEnv();
   if (flag("--test", false)) process.env.DATABASE_URL = testDatabaseUrl();
+  const timeoutGiven = argv.includes("--timeout");
   const timeout = flag("--timeout", true);
+  const timeoutSeconds = timeout === undefined ? undefined : Number(timeout);
+  if (timeoutGiven && !(timeoutSeconds !== undefined && Number.isFinite(timeoutSeconds) && timeoutSeconds > 0)) {
+    console.error("--timeout needs a number of seconds greater than 0, for example --timeout 30");
+    return 2; // a usage error: nothing was run or recorded
+  }
   const [name, ...args] = argv;
 
   const interrupt = new AbortController();
@@ -26,7 +32,7 @@ async function main(): Promise<number> {
   try {
     const run = await runJob(name ?? "", jobs, {
       args,
-      timeoutSeconds: timeout === undefined ? undefined : Number(timeout),
+      timeoutSeconds,
       signal: interrupt.signal,
     });
     console.log(`${run.job}: ${run.status}${run.error ? ` (${run.error})` : ""}`);

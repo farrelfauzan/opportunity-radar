@@ -202,6 +202,9 @@ describe("listArticles: a WIB calendar day, newest first", () => {
   test("an invalid day is rejected", async () => {
     await expect(listArticles({ day: "03-10-2026" })).rejects.toThrow("YYYY-MM-DD");
     await expect(listArticles({ day: "2026-13-40" })).rejects.toThrow("YYYY-MM-DD");
+    await expect(listArticles({ day: "2026-02-30" })).rejects.toThrow("YYYY-MM-DD");
+    await expect(listArticles({ day: "2026-04-31" })).rejects.toThrow("YYYY-MM-DD");
+    await expect(listArticles({ day: "2028-02-29" })).resolves.toEqual([]); // a leap day exists
   });
 
   test("wibDay gives the WIB calendar day of an instant", () => {
