@@ -560,6 +560,7 @@ function MarketItem({ row, m }: { row: MarketRowView; m: Messages }) {
           <svg viewBox="0 0 96 28" aria-hidden="true" data-market-spark className="h-7 w-24">
             <polyline points={row.points} fill="none" strokeWidth={1.5} className={cn("stroke-current", tone)} />
           </svg>
+          {row.trend && <span className="sr-only">{row.trend}</span>}
         </div>
       )}
       {/* The arrow and number are for the eye; the screen reader gets "up 1.2%" instead. */}
@@ -572,7 +573,10 @@ function MarketItem({ row, m }: { row: MarketRowView; m: Messages }) {
             <span className="sr-only">{change.label}</span>
           </>
         ) : (
-          <span aria-hidden="true">—</span>
+          <>
+            <span aria-hidden="true">—</span>
+            <span className="sr-only">{m.radar.market.noChange}</span>
+          </>
         )}
       </span>
     </div>

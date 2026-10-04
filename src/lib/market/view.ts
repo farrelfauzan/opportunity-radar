@@ -81,6 +81,8 @@ export type MarketRowView = {
   change: ChangeView | null;
   /** SVG polyline points, null when there are fewer than 2 closes. */
   points: string | null;
+  /** The spoken summary of the sparkline ("Last 10 closes: from … to …"), null with it. */
+  trend: string | null;
   asOf: string;
   stale: boolean;
 };
@@ -109,6 +111,13 @@ export function marketView(
       synthetic: row.synthetic,
       change: changeView(row.price, row.previousClose, locale, m.radar.market),
       points: sparklinePoints(row.closes),
+      trend:
+        row.closes.length >= 2
+          ? fill(m.radar.market.trend, {
+              first: priceText(row.slug, row.closes[0], locale),
+              last: priceText(row.slug, row.closes[row.closes.length - 1], locale),
+            })
+          : null,
       asOf: asOfText(row, closed, now, locale, m),
       stale,
     };
