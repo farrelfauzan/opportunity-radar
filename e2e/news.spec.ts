@@ -596,3 +596,26 @@ test("items from licensed sources carry a credit line; others do not", async ({ 
   await page.goto("/id/news?category=markets&region=global");
   await expect(item(headlines.ecb)).toContainText("Sumber: Bank Sentral Eropa (ECB)");
 });
+
+test("switching a source off drops its articles from the list, the header counts and the Sources panel", async ({
+  page,
+}) => {
+  try {
+    // "kemendag" has exactly one article today (the one with the very long headline).
+    runDb("deactivate", "kemendag");
+    await page.goto("/en/news");
+    await expect(page.locator("main")).toContainText(
+      `${stats.articles - 1} articles today · ${stats.sources - 1} sources · refreshed every 30 minutes`,
+    );
+    await expect(items(page).filter({ hasText: headlines.long.slice(0, 40) })).toHaveCount(0);
+    await expect(sourcesCard(page, "en")).not.toContainText(longSourceName);
+    await expect(sourcesCard(page, "en")).toContainText("Indonesia: Antara, CNBC Indonesia, Katadata, The Conversation Indonesia");
+
+    // The same rule holds under a filter that used to show it.
+    await page.goto("/en/news?category=business&region=indonesia");
+    await expect(items(page)).toHaveCount(1);
+    await expect(items(page).first()).toContainText("UMKM digital tumbuh di luar Jawa");
+  } finally {
+    resetFixtures();
+  }
+});

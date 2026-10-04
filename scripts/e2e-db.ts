@@ -6,6 +6,7 @@
 //                                         empty the tables, then store the News fixtures
 //                                         (default: a successful ingestion 5 minutes ago)
 //   add <headline>                        store one more article, published now
+//   deactivate <slug>                     switch a source off (its articles are hidden)
 // "fixtures" prints {"lastRun": <ISO time or null>}.
 import { closeDb, insertArticle, recordSuccessfulRun, upsertSource } from "../src/server/data/index.ts";
 import { sql } from "../src/server/data/client.ts";
@@ -63,6 +64,11 @@ async function add(headline: string) {
   });
 }
 
+async function deactivate(slug: string) {
+  const rows = await sql()`update sources set active = false where slug = ${slug} returning id`;
+  if (rows.length === 0) throw new Error(`No source with slug ${slug}`);
+}
+
 async function main() {
   switch (command) {
     case "setup":
@@ -70,6 +76,9 @@ async function main() {
       break;
     case "fixtures":
       await fixtures();
+      break;
+    case "deactivate":
+      await deactivate(args[0]);
       break;
     case "add":
       await add(args[0]);
