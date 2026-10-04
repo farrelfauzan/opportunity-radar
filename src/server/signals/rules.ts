@@ -103,23 +103,30 @@ function rsiWithLast(closes: number[]): ((x: number) => number) | null {
 
 // --- Verdicts -----------------------------------------------------------------
 
-const stretched = (rsi: number) => rsi < 30 || rsi > 70;
+// Equal values compare with a tiny relative tolerance: a mean of identical closes is not always
+// bit-equal to the close (18.33 × 50 / 50 = 18.330000000000013), and equality is HOLD in the tables.
+const EPS = 1e-9;
+export function cmp(a: number, b: number): -1 | 0 | 1 {
+  return Math.abs(a - b) <= EPS * Math.max(Math.abs(a), Math.abs(b), 1) ? 0 : a > b ? 1 : -1;
+}
+const stretched = (rsi: number) => cmp(rsi, 30) < 0 || cmp(rsi, 70) > 0;
 
 /** Short-term table (§3.1). */
 export function shortVerdict(close: number, sma50: number, rsi: number): Verdict {
   if (stretched(rsi)) return "HOLD";
-  return close > sma50 ? "BUY" : close < sma50 ? "SELL" : "HOLD";
+  const c = cmp(close, sma50);
+  return c > 0 ? "BUY" : c < 0 ? "SELL" : "HOLD";
 }
 
 /** Long-term table (§3.2). */
 export function longVerdict(close: number, sma50: number, sma200: number): Verdict {
-  if (sma50 > sma200 && close > sma200) return "BUY";
-  if (sma50 < sma200 && close < sma200) return "SELL";
+  if (cmp(sma50, sma200) > 0 && cmp(close, sma200) > 0) return "BUY";
+  if (cmp(sma50, sma200) < 0 && cmp(close, sma200) < 0) return "SELL";
   return "HOLD";
 }
 
-const side = (a: number, b: number): CheckVerdict => (a > b ? "supportsBuy" : a < b ? "supportsSell" : "neutral");
-const position = (a: number, b: number) => (a > b ? "above" : a < b ? "below" : "equal");
+const side = (a: number, b: number): CheckVerdict => (cmp(a, b) > 0 ? "supportsBuy" : cmp(a, b) < 0 ? "supportsSell" : "neutral");
+const position = (a: number, b: number) => (cmp(a, b) > 0 ? "above" : cmp(a, b) < 0 ? "below" : "equal");
 
 /**
  * Momentum check (Designer, rules-v1 §3.3; a display word only): RSI between 30 and 70 supports buy

@@ -127,6 +127,19 @@ describe("crypto's running day", () => {
   });
 });
 
+describe("from sample to real prices (Reviewer, PR 80)", () => {
+  test("the first verdict on real closes after a synthetic series is an initial baseline, not a change", async () => {
+    const rows = fixture("rising_noisy");
+    const asset = await stock(rows, "synthetic");
+    await computeSignals({ now: () => FRIDAY });
+    await db().execute(sql`delete from candles where asset_id = ${asset.id}`);
+    await upsertCandles(asset.id, "yahoo", fixture("falling_noisy"));
+    await computeSignals({ now: () => day(1) });
+    const latest = (await listSignalHistory(asset.id, "long"))[0];
+    expect(latest).toMatchObject({ initial: true, fromVerdict: null, trigger: "signal.trigger.initial", synthetic: false });
+  });
+});
+
 describe("sample data (synthetic series, AC5-AC7)", () => {
   test("synthetic prices: verdicts are computed and stored with synthetic = true on the signal and every history row", async () => {
     await ingestPrices({ now: () => FRIDAY }); // fixtures: IHSG, BBCA, S&P 500 synthetic; USD/IDR real (ECB)

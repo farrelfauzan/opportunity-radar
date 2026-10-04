@@ -54,7 +54,9 @@ export async function computeSignals(options: { now?: () => Date } = {}): Promis
 
     for (const term of ["short", "long"] as const) {
       const result: TermResult = evaluation[term];
-      const previous = await getSignal(asset.id, term);
+      // A verdict computed on made-up prices is no baseline for real ones: the first real verdict is `initial`.
+      const stored = await getSignal(asset.id, term);
+      const previous = stored?.synthetic && !synthetic ? null : stored;
       const changed = isVerdict(result.state) && previous?.verdict !== result.state;
       if (!isVerdict(result.state)) counts.no_verdict++;
       if (changed) {

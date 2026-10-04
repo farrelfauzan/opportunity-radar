@@ -209,3 +209,15 @@ describe("every row of the decision tables, including each boundary (100% covera
     expect(longVerdict(close, sma50, sma200)).toBe(verdict);
   });
 });
+
+describe("ties compare as equal (Reviewer, PR 80)", () => {
+  test("a flat series of 18.33 is HOLD on both terms (the mean is not bit-equal to the close)", () => {
+    const rows = Array.from({ length: 250 }, (_, i) => ({ day: new Date(Date.UTC(2025, 0, 1) + i * 86400000).toISOString().slice(0, 10), close: 18.33 }));
+    const r = evaluate(rows, { asOf: rows.at(-1)!.day, assetClass: "crypto" });
+    expect([r.short.state, r.long.state]).toEqual(["HOLD", "HOLD"]);
+  });
+
+  test("an RSI of exactly 70 (gains 7u, losses 3u) is not stretched", () => {
+    expect(shortVerdict(101, 100, 100 * 0.7 / (0.7 + 0.3))).toBe("BUY");
+  });
+});
