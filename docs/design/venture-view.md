@@ -28,7 +28,7 @@ For one of the owner's own ventures: how far the build is, and whether the marke
 | venture.back | ← Radar | ← Radar |
 | venture.progress.title | Build progress | Progres pengembangan |
 | venture.progress.source | From {source} · updated {time} WIB | Dari {source} · diperbarui {time} WIB |
-| venture.progress.notConnectedBody | Connect this venture's project board to show build progress. | Hubungkan papan proyek usaha ini untuk menampilkan progres pembangunan. |
+| venture.progress.notConnectedBody | Connect this venture's project board to show build progress. | Hubungkan papan proyek usaha ini untuk menampilkan progres pengembangan. |
 | venture.market.title | Market view from the news | Pandangan pasar dari berita |
 | venture.market.subtitle | AI-scored every morning from the news of the last 30 days | Dinilai AI setiap pagi dari berita 30 hari terakhir |
 | venture.market.score | score / 100 | skor / 100 |
