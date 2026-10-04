@@ -69,7 +69,7 @@ Rules use states, not events: there is no "crossed within N days" rule.
 | Any close ≤ 0 in the series | whole series rejected: `INVALID_DATA`, no verdict, logged |
 | Several rows for one date | keep the last one |
 | Gaps in dates | not filled; rows counted as they are |
-| Latest close older than 7 calendar days (stocks), 4 (metals), 3 (crypto) | `STALE`: no verdict; IDX stocks use 10 days in Lebaran week (limit = age in calendar days; equal to the limit is fine). Metals use 4 so a US Monday holiday after a weekend does not trip it |
+| Latest close older than 7 calendar days (stocks), 4 (metals), 3 (crypto) | `STALE`: no verdict; IDX stocks use 12 days from the last close before the IDX Idul Fitri closure until the first close after it (limit = age in calendar days; equal to the limit is fine). The closure dates are a config list per year (2026: last close Tue 17 Mar, reopens Wed 25 Mar; 2027: last close Fri 5 Mar, reopens Tue 16 Mar; R-6), extended each September when IDX publishes its calendar; a year missing from the list falls back to 7 days (no verdict for a few days, the safe side). Metals use 4 so a US Monday holiday after a weekend does not trip it |
 | Cash & bonds | no signal |
 
 ## 5. What would change the signal (OR-32 "What would change this to …")
