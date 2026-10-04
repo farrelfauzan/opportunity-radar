@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { CreditLine } from "@/components/credit-line";
+import { SampleBadge } from "@/components/sample-badge";
 import { WhyLabel } from "@/components/why-label";
 import { focusRing } from "@/components/focus-ring";
 import { buttonVariants } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { currentLocale, getMessages, getT } from "@/i18n/dictionaries";
 import { formatDateLongWib, formatRelativeTime, formatTimeWib } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { fill, type Messages } from "@/i18n/t";
+import { MARKET_JOB, marketView, type MarketRowView } from "@/lib/market/view";
 import { categoryLabel, safeHref } from "@/lib/news/view";
 import { horizonKey, inLocale, isNeverScored, trendText } from "@/lib/opportunities/view";
 import { affectedText, briefSourceText, firstRunTime, plural, sectionStale, updatedText } from "@/lib/radar/view";
@@ -17,6 +19,7 @@ import { cn } from "@/lib/utils";
 import {
   citationCounts,
   getBrief,
+  getMarketSnapshot,
   lastSuccessfulRun,
   lastScoringRun,
   listOpportunities,
@@ -44,7 +47,7 @@ const wrap = "[overflow-wrap:anywhere]";
 const sectionLink = `inline-flex min-h-11 items-center text-primary underline-offset-4 hover:underline ${focusRing}`;
 
 async function load(now: Date) {
-  const [open, lastRun, briefRun, brief, news] = await Promise.all([
+  const [open, lastRun, briefRun, brief, news, market, marketRuns] = await Promise.all([
     listOpportunities({}, now),
     // The same source of truth as "updated" on the Opportunities screen: the last successful
     // "scores" run (the morning pipeline's steps are triage, opportunities, scores, ventures, brief).
@@ -52,9 +55,12 @@ async function load(now: Date) {
     lastSuccessfulRun("brief"),
     getBrief(wibDay(now)),
     recentLinkedNews(NEWS_COUNT),
+    getMarketSnapshot(),
+    // The last successful run of each job that feeds the snapshot (several rows share one).
+    Promise.all([...new Set(Object.values(MARKET_JOB))].map(async (job) => [job, await lastSuccessfulRun(job)] as const)).then(Object.fromEntries),
   ]);
   const top = open.slice(0, TOP_COUNT);
-  return { total: open.length, top, counts: await citationCounts(top.map((o) => o.id)), lastRun, briefRun, brief, news };
+  return { total: open.length, top, counts: await citationCounts(top.map((o) => o.id)), lastRun, briefRun, brief, news, market, marketRuns };
 }
 
 export default async function RadarPage() {
@@ -85,7 +91,8 @@ export default async function RadarPage() {
     );
   }
 
-  const { total, top, counts, lastRun, briefRun, brief, news } = data;
+  const { total, top, counts, lastRun, briefRun, brief, news, market, marketRuns } = data;
+  const snapshot = marketView(market, marketRuns, now, locale, m);
 
   // Nothing has ever run: one card in place of the brief; the other sections keep their own empty texts.
   const neverRun = isNeverScored(lastRun, total) && !brief && news.length === 0;
@@ -125,6 +132,7 @@ export default async function RadarPage() {
         m={m}
       />
       {news.length > 0 && <NewsSection items={news} now={now} locale={locale} m={m} />}
+      {snapshot.rows.length > 0 && <MarketSection rows={snapshot.rows} staleLine={snapshot.staleLine} m={m} />}
     </>
   );
 }
@@ -357,6 +365,75 @@ function NewsItem({ article, now, locale, m }: { article: LinkedNews; now: Date;
           ago: formatRelativeTime(article.publishedAt, now, locale, m.time),
           region: article.region === "indonesia" ? m.news.region.id : m.news.region.global,
         })}
+      </span>
+    </div>
+  );
+}
+
+function MarketSection({ rows, staleLine, m }: { rows: MarketRowView[]; staleLine: string | null; m: Messages }) {
+  return (
+    <section aria-labelledby="radar-market">
+      <Card>
+        <CardContent className="flex flex-col gap-3">
+          <h2 id="radar-market" className={h2}>
+            {m.radar.market.title}
+          </h2>
+          {staleLine && (
+            <p role="status" className={staleClass}>
+              {staleLine}
+            </p>
+          )}
+          <ul>
+            {rows.map((row) => (
+              <li key={row.slug} data-market={row.slug}>
+                <MarketItem row={row} m={m} />
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+    </section>
+  );
+}
+
+function MarketItem({ row, m }: { row: MarketRowView; m: Messages }) {
+  const change = row.change;
+  const tone = change?.direction === "up" ? "text-primary" : change?.direction === "down" ? "text-destructive" : "text-muted-foreground";
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[#4B3E75] py-2.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="font-semibold">{row.name}</span>
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span data-market-price className="font-mono text-[13px]">
+            {row.price}
+          </span>
+          {row.synthetic && <SampleBadge label={m.sample.badge} />}
+        </span>
+        <span className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+          <span data-market-asof>{row.asOf}</span>
+          {row.stale && <span className="font-semibold text-foreground">{m.radar.market.stale}</span>}
+        </span>
+      </div>
+      {/* On a phone the sparkline drops below the price and change (copy.md §11). */}
+      {row.points && (
+        <div className="shrink-0 max-sm:order-last max-sm:basis-full">
+          <svg viewBox="0 0 96 28" aria-hidden="true" data-market-spark className="h-7 w-24">
+            <polyline points={row.points} fill="none" strokeWidth={1.5} className={cn("stroke-current", tone)} />
+          </svg>
+        </div>
+      )}
+      {/* The arrow and number are for the eye; the screen reader gets "up 1.2%" instead. */}
+      <span data-market-change={change?.direction ?? "none"} className={cn("w-16 shrink-0 text-right font-mono text-[13px] font-medium", tone)}>
+        {change ? (
+          <>
+            <span aria-hidden="true">
+              {change.arrow} {change.text}
+            </span>
+            <span className="sr-only">{change.label}</span>
+          </>
+        ) : (
+          <span aria-hidden="true">—</span>
+        )}
       </span>
     </div>
   );

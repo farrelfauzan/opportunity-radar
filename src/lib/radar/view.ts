@@ -1,6 +1,7 @@
 import { formatDateShortWib, formatTimeWib } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { fill, type Messages } from "@/i18n/t";
+import { sameWibDay } from "@/lib/market/hours";
 import { isStale } from "@/lib/opportunities/view";
 
 /** The singular or plural form of a counted phrase ("{n} article" / "{n} articles"). */
@@ -25,6 +26,8 @@ export function updatedText(date: string, time: string | null, template: string)
   return time === null ? date : fill(template, { date, time });
 }
 
+type StaleWhat = "brief" | "opportunities" | "prices";
+
 /**
  * "The daily brief last updated 3 Oct, 07:00 WIB" for a section whose last successful run is more than 26 hours
  * old; null while it is fresh or has never run (nothing to say yet). A run that old is always on an earlier WIB
@@ -35,14 +38,28 @@ export function sectionStale(
   now: Date,
   locale: Locale,
   strings: Messages["state"]["stale"],
-  what: "brief" | "opportunities",
+  what: StaleWhat,
 ): string | null {
   if (!isStale(lastRun, now)) return null;
-  return fill(strings.earlier, {
-    what: strings.what[what],
-    date: formatDateShortWib(lastRun!, locale),
-    time: formatTimeWib(lastRun!, locale),
-  });
+  return staleText(lastRun!, now, locale, strings, what);
+}
+
+/**
+ * The stale line for a run already known to be out of date: "Prices last updated 09:30 WIB" when the run was
+ * today (WIB), "Prices last updated 3 Oct, 07:00 WIB" on an earlier day. The prices go stale after 1 hour, so
+ * they need the same-day form that the 26-hour sections never do.
+ */
+export function staleText(
+  lastRun: Date,
+  now: Date,
+  locale: Locale,
+  strings: Messages["state"]["stale"],
+  what: StaleWhat,
+): string {
+  const time = formatTimeWib(lastRun, locale);
+  return sameWibDay(lastRun, now)
+    ? fill(strings.today, { what: strings.what[what], time })
+    : fill(strings.earlier, { what: strings.what[what], date: formatDateShortWib(lastRun, locale), time });
 }
 
 /** The time of the first morning run, 07:00 WIB, written the way the locale writes a time. */

@@ -4,16 +4,17 @@
 //   setup                                 create, empty and migrate the database
 //   fixtures [--last-run=<minutes ago | ISO time | never>] [--no-articles]
 //            [--scores-run=<minutes ago | ISO time | never>] [--brief-run=<minutes ago | ISO time | never>] [--no-opportunities] [--no-brief]
-//            [--brief-day=<days from today, e.g. -1>]
+//            [--brief-day=<days from today, e.g. -1>] [--no-market]
+//            [--prices-run=<...>] [--metals-run=<...>] [--crypto-run=<...>]   (the jobs behind the market snapshot, default 5)
 //                                         empty the tables, then store the News fixtures, the
-//                                         Opportunities fixtures and today's daily brief (default: a
-//                                         successful ingestion and a successful scoring run 5 minutes ago)
+//                                         Opportunities fixtures, today's daily brief and the market snapshot's prices
+//                                         (default: a successful ingestion and a successful scoring run 5 minutes ago)
 //   add <headline>                        store one more article, published now
 //   break <table> | restore <table>       rename a table away and back (articles, opportunities): the page's
 //                                         queries fail like a store that is down, with no second server
 //   deactivate <slug>                     switch a source off (its articles are hidden)
 //   source-status <slug> <status>         set a source's status on the latest ingestion run (e.g. 403, 304)
-// "fixtures" prints {"lastRun": <ISO time or null>}.
+// "fixtures" prints {"lastRun": <ISO time or null>, ..., "marketAsOf": <the as-of time of the timed quotes>}.
 import {
   addDays,
   closeDb,
@@ -24,6 +25,9 @@ import {
   saveBrief,
   saveTriage,
   SCORING_JOB,
+  setQuote,
+  upsertAsset,
+  upsertCandles,
   upsertSource,
   wibDay,
   type Sector,
@@ -33,6 +37,7 @@ import {
 import { sql } from "../src/server/data/client.ts";
 import { detailOf, evidenceArticles, factorsOf, fixtureOpportunities } from "../e2e/opportunity-fixtures.ts";
 import { fixtureArticles, fixtureSources, todayStats } from "../e2e/news-fixtures.ts";
+import { fixtureMarket } from "../e2e/market-fixtures.ts";
 import { fixtureBriefLines } from "../e2e/radar-fixtures.ts";
 import { resetTestDatabase } from "./db-admin.ts";
 import { e2eDatabaseUrl } from "./e2e-env.ts";
@@ -149,8 +154,33 @@ async function storeBrief(opportunityIds: Map<string, number>, evidence: Map<str
   });
 }
 
+/**
+ * The market snapshot's assets: 10 daily closes on the 10 days up to the day before the quotes (UTC) and a quote that is newer.
+ * The quote of a timed asset is from 5 minutes ago; a daily rate (USD/IDR) is stored at 00:00 UTC of the same UTC day.
+ * Returns the as-of time of the timed quotes.
+ */
+async function storeMarket(): Promise<Date> {
+  const now = Date.now();
+  const timed = new Date(now - 5 * 60_000);
+  // The UTC day of the quotes (not of "now", which can be the next day for a moment): the candles end the day before.
+  const today = new Date(`${timed.toISOString().slice(0, 10)}T00:00:00Z`).getTime();
+  for (const f of fixtureMarket) {
+    const { id } = await upsertAsset({ slug: f.slug, symbol: f.symbol, name: f.name, kind: f.kind, exchange: f.exchange, currency: f.currency, source: f.source });
+    await upsertCandles(
+      id,
+      f.source,
+      f.closes.map((close, i) => {
+        const day = new Date(today - (f.closes.length - i) * DAY_MS).toISOString().slice(0, 10);
+        return { day, open: close, high: close, low: close, close, volume: null };
+      }),
+    );
+    await setQuote(id, { price: f.price, asOf: f.daily ? new Date(today) : timed, source: f.quoteSource });
+  }
+  return timed;
+}
+
 async function fixtures() {
-  await sql()`truncate articles, sources, job_runs, opportunities, daily_briefs restart identity cascade`;
+  await sql()`truncate articles, sources, job_runs, opportunities, daily_briefs, assets restart identity cascade`;
   const ids = await storeSources();
   const evidence = new Map<string, number>();
   if (!args.includes("--no-articles")) {
@@ -193,8 +223,19 @@ async function fixtures() {
   if (scoresRun) await recordSuccessfulRun(SCORING_JOB, scoresRun);
   const briefRun = timeOption("brief-run", "5");
   if (briefRun) await recordSuccessfulRun("brief", briefRun);
+  const marketAsOf = args.includes("--no-market") ? null : await storeMarket();
+  const pricesRun = timeOption("prices-run", "5");
+  if (pricesRun) await recordSuccessfulRun("prices", pricesRun);
+  const metalsRun = timeOption("metals-run", "5");
+  if (metalsRun) await recordSuccessfulRun("metals", metalsRun);
+  const cryptoRun = timeOption("crypto-run", "5");
+  if (cryptoRun) await recordSuccessfulRun("crypto", cryptoRun);
   console.log(
     JSON.stringify({
+      marketAsOf: marketAsOf?.toISOString() ?? null,
+      pricesRun: pricesRun?.toISOString() ?? null,
+      metalsRun: metalsRun?.toISOString() ?? null,
+      cryptoRun: cryptoRun?.toISOString() ?? null,
       lastRun: lastRun?.toISOString() ?? null,
       scoresRun: scoresRun?.toISOString() ?? null,
       briefRun: briefRun?.toISOString() ?? null,
