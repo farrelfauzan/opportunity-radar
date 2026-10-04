@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
+import { AppHeader } from "@/components/app-header";
 import { getT } from "@/i18n/dictionaries";
 import { hasLocale, locales } from "@/i18n/locales";
 import "../globals.css";
@@ -23,7 +24,8 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(locale)) notFound();
-  return { title: "Opportunity Radar", description: getT(locale)("meta.description") };
+  const t = getT(locale);
+  return { title: t("app.name"), description: t("meta.description") };
 }
 
 export default async function RootLayout({ children, params }: LayoutProps<"/[locale]">) {
@@ -35,7 +37,12 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
       lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col text-sm">
+        <AppHeader locale={locale} />
+        <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-[clamp(16px,3vw,32px)] pt-6 pb-12">
+          {children}
+        </main>
+      </body>
     </html>
   );
 }

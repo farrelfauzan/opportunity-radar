@@ -2,10 +2,34 @@
   "meta": {
     "description": "Business opportunities and investment signals from the news."
   },
-  "home": {
-    "heading": "Today's radar",
-    "intro": "Business opportunities and investment signals from the news.",
-    "note": "The screens arrive with the next tickets."
+  "app": {
+    "name": "Opportunity Radar"
+  },
+  "nav": {
+    "main": "Main",
+    "radar": "Radar",
+    "opportunities": "Opportunities",
+    "news": "News",
+    "invest": "Investments",
+    "calculators": "Calculators",
+    "language": "Language"
+  },
+  "page": {
+    "title": {
+      "radar": "Radar",
+      "opportunities": "Opportunities",
+      "news": "News",
+      "invest": "Investments",
+      "asset": "Asset report",
+      "calculators": "Calculators"
+    },
+    "documentTitle": "{page} · Opportunity Radar",
+    "emptyFrame": "Nothing here yet"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This page does not exist.",
+    "back": "Back to Radar"
   },
   "time": {
     "justNow": "just now",

@@ -1,6 +1,6 @@
-import { emptyScreen } from "./screen";
+import { emptyScreen } from "../screen";
 
-const screen = emptyScreen("radar");
+const screen = emptyScreen("invest");
 
 export const generateMetadata = screen.generateMetadata;
 export default screen.Page;

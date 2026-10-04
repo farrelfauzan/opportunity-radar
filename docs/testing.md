@@ -61,3 +61,10 @@ and never put a key or token in one.
 - `e2e/smoke.spec.ts` contains one test that logs a console error on purpose and is expected to
   fail, so a normal run stays green. To see the real failure and a non-zero exit:
   `E2E_SHOW_FAILURE=1 pnpm test:e2e`.
+
+### Test-only routes
+
+`/en/dev/error` and `/id/dev/error` throw on purpose, so the error page can be checked. They work
+under `pnpm dev`. In a production build they return 404 unless the server is started with
+`ENABLE_TEST_ROUTES=1`; `pnpm test:e2e` sets that for its own server only. Never set it on a
+deployed server.

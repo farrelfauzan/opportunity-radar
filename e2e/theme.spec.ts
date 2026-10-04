@@ -5,7 +5,7 @@ test.use({ colorScheme: "light" });
 
 test("the start page shows the dark glass theme", async ({ page }) => {
   await page.goto("/");
-  await expect(page).toHaveTitle("Opportunity Radar");
+  await expect(page).toHaveTitle("Radar · Opportunity Radar");
 
   await expect(page.locator("html")).not.toHaveClass(/dark/);
   await expect(page.locator("body")).toHaveCSS("color", "rgb(250, 248, 255)");
@@ -18,7 +18,7 @@ test("the start page shows the dark glass theme", async ({ page }) => {
   await expect(card).toHaveCSS("border-top-color", "rgba(255, 255, 255, 0.16)");
   await expect(card).toHaveCSS("border-top-width", "1px");
 
-  await expect(page.getByTestId("sample-number")).toHaveCSS("font-variant-numeric", "tabular-nums");
+  await expect(page.locator("main")).toHaveCSS("font-variant-numeric", "tabular-nums");
 
   const overflows = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
