@@ -1,0 +1,10 @@
+{"scorer":"A (Designer)","written_utc":"2026-10-04T01:19:43Z","seen_other_scores":false,
+ "factors":["demand","timing","low_competition","capital_efficiency","low_regulatory_risk"],
+ "scores":{
+  "theme-a":[70,75,60,45,70],
+  "theme-b":[65,70,35,65,75],
+  "theme-c":[75,65,40,70,45]},
+ "reasons":{
+  "theme-a":"Drought worse than 2023 and paid insurance claims show demand; timing is the current dry season; government programmes (AUTP, PATS) are partners as much as competitors; pumps and rural selling cost capital; regulation is supportive.",
+  "theme-b":"Diesel spike and disrupted supply chains raise demand, but the spike may reverse; consultancies and logistics software already crowd the space; a service needs little capital; low regulatory exposure.",
+  "theme-c":"Rp12 trillion of scam losses and an OJK push show demand; OJK building its own app both validates and threatens; banks and telcos compete; software is capital-light; financial data and the PDP law raise regulatory risk."}}

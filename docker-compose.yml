@@ -1,0 +1,26 @@
+# Local Postgres for development and tests. One server, two databases:
+# opportunity_radar (development) and opportunity_radar_test (tests, QA).
+# The project name and volume are fixed so every worktree on this machine
+# shares the same server instead of starting its own.
+name: opportunity-radar
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      # No password: the port is published on loopback only, so nothing
+      # outside this machine can reach it and there is no credential to leak.
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      # 5432 is taken by other projects on this machine.
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - or_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  or_pgdata:

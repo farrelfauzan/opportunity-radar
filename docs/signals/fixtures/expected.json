@@ -1,0 +1,450 @@
+{
+  "rules": "rules v1",
+  "as_of_default": "last_date of each file",
+  "fixtures": {
+    "rising_noisy": {
+      "note": "noisy uptrend, 260 rows (seed 16); RSI mid so short-term is BUY, not HOLD",
+      "rows": 260,
+      "last_date": "2026-10-02",
+      "last_close": "219.08",
+      "sma50": "209.89",
+      "sma200": "161.51",
+      "rsi14": "55.80",
+      "short": "BUY",
+      "long": "BUY",
+      "flips": {
+        "short": {
+          "down": {
+            "still_old_verdict_at": "209.71",
+            "becomes": "SELL",
+            "at": "209.70"
+          },
+          "up": {
+            "still_old_verdict_at": "225.47",
+            "becomes": "HOLD",
+            "at": "225.48"
+          }
+        },
+        "long": {
+          "down": {
+            "still_old_verdict_at": "161.23",
+            "becomes": "HOLD",
+            "at": "161.22"
+          },
+          "up": null
+        }
+      }
+    },
+    "falling_noisy": {
+      "note": "noisy downtrend, 260 rows (seed 3); RSI mid so short-term is SELL",
+      "rows": 260,
+      "last_date": "2026-10-02",
+      "last_close": "35.31",
+      "sma50": "36.54",
+      "sma200": "48.42",
+      "rsi14": "43.14",
+      "short": "SELL",
+      "long": "SELL",
+      "flips": {
+        "short": {
+          "down": {
+            "still_old_verdict_at": "34.00",
+            "becomes": "HOLD",
+            "at": "33.99"
+          },
+          "up": {
+            "still_old_verdict_at": "36.56",
+            "becomes": "BUY",
+            "at": "36.57"
+          }
+        },
+        "long": {
+          "down": null,
+          "up": {
+            "still_old_verdict_at": "48.48",
+            "becomes": "HOLD",
+            "at": "48.49"
+          }
+        }
+      }
+    },
+    "flat": {
+      "note": "constant 100.00, 250 rows: RSI=50 by the flat rule, every average equal, HOLD/HOLD",
+      "rows": 250,
+      "last_date": "2026-10-02",
+      "last_close": "100.00",
+      "sma50": "100.00",
+      "sma200": "100.00",
+      "rsi14": "50.00",
+      "short": "HOLD",
+      "long": "HOLD",
+      "flips": {
+        "short": {
+          "down": null,
+          "up": null
+        },
+        "long": {
+          "down": {
+            "still_old_verdict_at": "100.00",
+            "becomes": "SELL",
+            "at": "99.99"
+          },
+          "up": {
+            "still_old_verdict_at": "100.00",
+            "becomes": "BUY",
+            "at": "100.01"
+          }
+        }
+      }
+    },
+    "all_gain": {
+      "note": "+0.50 every row, 250 rows: avgLoss=0 so RSI=100; short HOLD (overbought), long BUY",
+      "rows": 250,
+      "last_date": "2026-10-02",
+      "last_close": "224.50",
+      "sma50": "212.25",
+      "sma200": "174.75",
+      "rsi14": "100.00",
+      "short": "HOLD",
+      "long": "BUY",
+      "flips": {
+        "short": {
+          "down": {
+            "still_old_verdict_at": "221.22",
+            "becomes": "BUY",
+            "at": "221.21"
+          },
+          "up": null
+        },
+        "long": {
+          "down": {
+            "still_old_verdict_at": "174.51",
+            "becomes": "HOLD",
+            "at": "174.50"
+          },
+          "up": null
+        }
+      }
+    },
+    "all_loss": {
+      "note": "-0.50 every row, 250 rows: avgGain=0 so RSI=0; short HOLD (oversold), long SELL",
+      "rows": 250,
+      "last_date": "2026-10-02",
+      "last_close": "175.50",
+      "sma50": "187.75",
+      "sma200": "225.25",
+      "rsi14": "0.00",
+      "short": "HOLD",
+      "long": "SELL",
+      "flips": {
+        "short": {
+          "down": null,
+          "up": {
+            "still_old_verdict_at": "178.78",
+            "becomes": "SELL",
+            "at": "178.79"
+          }
+        },
+        "long": {
+          "down": null,
+          "up": {
+            "still_old_verdict_at": "225.49",
+            "becomes": "HOLD",
+            "at": "225.50"
+          }
+        }
+      }
+    },
+    "len_14": {
+      "note": "first 14 rows of rising_noisy (history-length boundary)",
+      "rows": 14,
+      "last_date": "2026-10-02",
+      "last_close": "105.24",
+      "sma50": null,
+      "sma200": null,
+      "rsi14": null,
+      "short": "INSUFFICIENT",
+      "long": "INSUFFICIENT",
+      "flips": {
+        "short": {
+          "down": null,
+          "up": null
+        },
+        "long": {
+          "down": null,
+          "up": null
+        }
+      }
+    },
+    "len_15": {
+      "note": "first 15 rows of rising_noisy (history-length boundary)",
+      "rows": 15,
+      "last_date": "2026-10-02",
+      "last_close": "106.27",
+      "sma50": null,
+      "sma200": null,
+      "rsi14": "78.78",
+      "short": "INSUFFICIENT",
+      "long": "INSUFFICIENT",
+      "flips": {
+        "short": {
+          "down": null,
+          "up": null
+        },
+        "long": {
+          "down": null,
+          "up": null
+        }
+      }
+    },
+    "len_49": {
+      "note": "first 49 rows of rising_noisy (history-length boundary)",
+      "rows": 49,
+      "last_date": "2026-10-02",
+      "last_close": "121.73",
+      "sma50": null,
+      "sma200": null,
+      "rsi14": "77.82",
+      "short": "INSUFFICIENT",
+      "long": "INSUFFICIENT",
+      "flips": {
+        "short": {
+          "down": null,
+          "up": null
+        },
+        "long": {
+          "down": null,
+          "up": null
+        }
+      }
+    },
+    "len_50": {
+      "note": "first 50 rows of rising_noisy (history-length boundary)",
+      "rows": 50,
+      "last_date": "2026-10-02",
+      "last_close": "121.36",
+      "sma50": "109.71",
+      "sma200": null,
+      "rsi14": "75.72",
+      "short": "HOLD",
+      "long": "INSUFFICIENT",
+      "flips": {
+        "short": {
+          "down": {
+            "still_old_verdict_at": "120.24",
+            "becomes": "BUY",
+            "at": "120.23"
+          },
+          "up": null
+        },
+        "long": {
+          "down": null,
+          "up": null
+        }
+      }
+    },
+    "len_199": {
+      "note": "first 199 rows of rising_noisy (history-length boundary)",
+      "rows": 199,
+      "last_date": "2026-10-02",
+      "last_close": "181.40",
+      "sma50": "159.26",
+      "sma200": null,
+      "rsi14": "88.97",
+      "short": "HOLD",
+      "long": "INSUFFICIENT",
+      "flips": {
+        "short": {
+          "down": {
+            "still_old_verdict_at": "175.31",
+            "becomes": "BUY",
+            "at": "175.30"
+          },
+          "up": null
+        },
+        "long": {
+          "down": null,
+          "up": null
+        }
+      }
+    },
+    "len_200": {
+      "note": "first 200 rows of rising_noisy (history-length boundary)",
+      "rows": 200,
+      "last_date": "2026-10-02",
+      "last_close": "178.59",
+      "sma50": "159.82",
+      "sma200": "133.36",
+      "rsi14": "77.27",
+      "short": "HOLD",
+      "long": "BUY",
+      "flips": {
+        "short": {
+          "down": {
+            "still_old_verdict_at": "176.37",
+            "becomes": "BUY",
+            "at": "176.36"
+          },
+          "up": null
+        },
+        "long": {
+          "down": {
+            "still_old_verdict_at": "133.14",
+            "becomes": "HOLD",
+            "at": "133.13"
+          },
+          "up": null
+        }
+      }
+    },
+    "len_201": {
+      "note": "first 201 rows of rising_noisy (history-length boundary)",
+      "rows": 201,
+      "last_date": "2026-10-02",
+      "last_close": "176.29",
+      "sma50": "160.33",
+      "sma200": "133.74",
+      "rsi14": "69.25",
+      "short": "BUY",
+      "long": "BUY",
+      "flips": {
+        "short": {
+          "down": {
+            "still_old_verdict_at": "160.01",
+            "becomes": "SELL",
+            "at": "160.00"
+          },
+          "up": {
+            "still_old_verdict_at": "176.52",
+            "becomes": "HOLD",
+            "at": "176.53"
+          }
+        },
+        "long": {
+          "down": {
+            "still_old_verdict_at": "133.54",
+            "becomes": "HOLD",
+            "at": "133.53"
+          },
+          "up": null
+        }
+      }
+    },
+    "gap": {
+      "note": "rising_noisy minus 12 consecutive weekdays (rows 120-131); 248 rows; gaps are NOT filled",
+      "rows": 248,
+      "last_date": "2026-10-02",
+      "last_close": "219.08",
+      "sma50": "209.89",
+      "sma200": "160.52",
+      "rsi14": "55.80",
+      "short": "BUY",
+      "long": "BUY",
+      "flips": {
+        "short": {
+          "down": {
+            "still_old_verdict_at": "209.71",
+            "becomes": "SELL",
+            "at": "209.70"
+          },
+          "up": {
+            "still_old_verdict_at": "225.47",
+            "becomes": "HOLD",
+            "at": "225.48"
+          }
+        },
+        "long": {
+          "down": {
+            "still_old_verdict_at": "160.23",
+            "becomes": "HOLD",
+            "at": "160.22"
+          },
+          "up": null
+        }
+      }
+    },
+    "duplicate_date": {
+      "note": "rising_noisy with a bogus extra row for one date placed BEFORE the real row; keep the last row per date, so results equal rising_noisy",
+      "rows": 260,
+      "last_date": "2026-10-02",
+      "last_close": "219.08",
+      "sma50": "209.89",
+      "sma200": "161.51",
+      "rsi14": "55.80",
+      "short": "BUY",
+      "long": "BUY",
+      "flips": {
+        "short": {
+          "down": {
+            "still_old_verdict_at": "209.71",
+            "becomes": "SELL",
+            "at": "209.70"
+          },
+          "up": {
+            "still_old_verdict_at": "225.47",
+            "becomes": "HOLD",
+            "at": "225.48"
+          }
+        },
+        "long": {
+          "down": {
+            "still_old_verdict_at": "161.23",
+            "becomes": "HOLD",
+            "at": "161.22"
+          },
+          "up": null
+        }
+      }
+    },
+    "nonpositive_close": {
+      "note": "rising_noisy with close 0.00 at row 150: whole series rejected as INVALID_DATA",
+      "rows": 260,
+      "short": "INVALID_DATA",
+      "long": "INVALID_DATA"
+    }
+  },
+  "stale_cases": [
+    {
+      "file": "rising_noisy.csv",
+      "asset_class": "stock",
+      "as_of": "2026-10-09",
+      "age_days": 7,
+      "expected": "BUY/BUY"
+    },
+    {
+      "file": "rising_noisy.csv",
+      "asset_class": "stock",
+      "as_of": "2026-10-10",
+      "age_days": 8,
+      "expected": "STALE (no verdict)"
+    },
+    {
+      "file": "rising_noisy.csv",
+      "asset_class": "metal",
+      "as_of": "2026-10-06",
+      "age_days": 4,
+      "expected": "BUY/BUY"
+    },
+    {
+      "file": "rising_noisy.csv",
+      "asset_class": "metal",
+      "as_of": "2026-10-07",
+      "age_days": 5,
+      "expected": "STALE (no verdict)"
+    },
+    {
+      "file": "rising_noisy.csv",
+      "asset_class": "crypto",
+      "as_of": "2026-10-05",
+      "age_days": 3,
+      "expected": "BUY/BUY"
+    },
+    {
+      "file": "rising_noisy.csv",
+      "asset_class": "crypto",
+      "as_of": "2026-10-06",
+      "age_days": 4,
+      "expected": "STALE (no verdict)"
+    }
+  ]
+}
