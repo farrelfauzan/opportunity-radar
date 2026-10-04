@@ -2,12 +2,24 @@
 // triaged news into themes and writes one opportunity per theme, citing the
 // articles it used. Each opportunity is checked against the OR-11 contract;
 // one that breaks it is rejected and logged, and nothing is stored for it.
-// Matching to existing opportunities, updating and closing are OR-50.
-import { FACTOR_KEYS, insertOpportunity, opportunityCandidates, wibDay, type FactorScores, type NewOpportunity } from "@/server/data";
+// A theme that matches an open opportunity updates it instead (OR-50), and
+// opportunities without new evidence for 30 days are closed.
+import {
+  closeStaleOpportunities,
+  FACTOR_KEYS,
+  insertOpportunity,
+  listOpenForMatching,
+  opportunityCandidates,
+  refreshOpportunity,
+  wibDay,
+  type FactorScores,
+  type NewOpportunity,
+} from "@/server/data";
 import type { JobOutcome } from "@/server/jobs/runner";
 import { callLlm, type LlmCall } from "@/server/llm/client";
 import { fenceUntrusted } from "@/server/llm/fence";
 import { checkOpportunity, type OpportunityOutput } from "./contract.ts";
+import { findMatch } from "./match.ts";
 
 const WINDOW_DAYS = 7;
 const MAX_INPUT_ARTICLES = 150; // newest first; keeps the prompt well under the client's input guard
@@ -73,8 +85,16 @@ export async function generateOpportunities(
   const now = options.now?.() ?? new Date();
   const since = new Date(now.getTime() - WINDOW_DAYS * 24 * 60 * 60 * 1000);
   const candidates: Candidate[] = (await opportunityCandidates(since)).slice(0, MAX_INPUT_ARTICLES);
-  const counts = { candidates: candidates.length, created: 0, rejected: 0 };
-  if (candidates.length < 2) return { status: "ok", counts }; // no theme can have 2 citations
+  const counts = { candidates: candidates.length, created: 0, matched: 0, rejected: 0, closed: 0 };
+  const closeStale = async () => {
+    const closed = await closeStaleOpportunities(now);
+    counts.closed = closed.length;
+    for (const id of closed) console.info(`opportunities: closed #${id} (no new evidence for 30 days)`);
+  };
+  if (candidates.length < 2) {
+    await closeStale();
+    return { status: "ok", counts }; // no theme can have 2 citations
+  }
 
   const fence = fenceUntrusted(
     "ARTICLES",
@@ -102,6 +122,7 @@ export async function generateOpportunities(
 
   const inputIds = new Set(candidates.map(({ article }) => String(article.id)));
   const reasons: string[] = [];
+  const open = await listOpenForMatching();
   for (const [index, raw] of items.slice(0, MAX_OPPORTUNITIES).entries()) {
     const checked = checkOpportunity(raw, inputIds);
     if (!checked.ok) {
@@ -111,14 +132,26 @@ export async function generateOpportunities(
       continue;
     }
     const o = checked.value;
+    const citations = o.citations.slice(0, MAX_CITATIONS).map(Number);
+    const match = findMatch({ theme: o.theme, region: o.region, sectors: o.sectors, citations }, open);
+    if (match) {
+      // Same opportunity: it keeps its id, gains the new citations and fresh texts. Re-scoring is OR-16's.
+      const { theme: _t, region: _r, sectors: _s, ...refreshed } = toFields(o);
+      void [_t, _r, _s];
+      const added = await refreshOpportunity(match.id, refreshed, citations);
+      const known = open.find((x) => x.id === match.id)!;
+      known.citations = [...new Set([...known.citations, ...citations])];
+      counts.matched++;
+      console.info(`opportunities: theme ${o.theme}/${o.region} → matched #${match.id} (${match.reason}; ${added} new citations)`);
+      continue;
+    }
     const factors = Object.fromEntries(FACTOR_KEYS.map((key) => [key, o.factors[key].score])) as FactorScores;
-    await insertOpportunity(
-      toFields(o),
-      { day: wibDay(now), overall: overallScore(o.factors), ...factors },
-      o.citations.slice(0, MAX_CITATIONS).map(Number),
-    );
+    const created = await insertOpportunity(toFields(o), { day: wibDay(now), overall: overallScore(o.factors), ...factors }, citations);
+    open.push({ id: created.id, theme: o.theme, region: o.region, sectors: o.sectors, citations });
     counts.created++;
+    console.info(`opportunities: theme ${o.theme}/${o.region} → new #${created.id} (no open opportunity matches)`);
   }
+  await closeStale();
   return reasons.length
     ? { status: "partial", counts, error: `${reasons.length} rejected: ${reasons.join("; ")}` }
     : { status: "ok", counts };

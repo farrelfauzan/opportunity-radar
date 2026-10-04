@@ -230,6 +230,8 @@ export const opportunityArticles = pgTable(
     articleId: bigint("article_id", { mode: "number" })
       .notNull()
       .references(() => articles.id),
+    // When the citation was added (OR-50: closed after 30 days without a new one).
+    citedAt: timestamp("cited_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     primaryKey({ columns: [t.opportunityId, t.articleId] }),

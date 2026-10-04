@@ -203,3 +203,78 @@ describe("overall score", () => {
     expect(overallScore({ demand: f(82), timing: f(70), competition: f(60), capital: f(50), regulatory: f(41) })).toBe(61);
   });
 });
+
+describe("continuity (OR-50)", () => {
+  const ids = (list: number[]) => list.map(String);
+  const later = (days: number) => () => new Date(NOW.getTime() + days * 86400_000);
+
+  test("a matching theme updates the open opportunity: same id, new citations, fresh text, no duplicate", async () => {
+    const first = await triagedArticles(2);
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(ids(first))] })).transport, now: () => NOW });
+    const [{ id }] = await stored();
+
+    const second = await triagedArticles(2);
+    const updated = opportunity(ids(second), { title: { en: "Scam checks for sellers, updated", id: "Cek penipuan untuk penjual, diperbarui" } });
+    const outcome = await generateOpportunities({ transport: provider(() => ({ opportunities: [updated] })).transport, now: () => NOW });
+
+    expect(outcome.counts).toMatchObject({ created: 0, matched: 1 });
+    const rows = await stored();
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ id, title_en: "Scam checks for sellers, updated" });
+    expect(rows[0].cited.map(Number).sort()).toEqual([...first, ...second].sort());
+  });
+
+  test("a different theme creates a new opportunity", async () => {
+    const a = await triagedArticles(2);
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(ids(a))] })).transport, now: () => NOW });
+    const b = await triagedArticles(2);
+    const other = opportunity(ids(b), { theme: "digital_payments" });
+    const outcome = await generateOpportunities({ transport: provider(() => ({ opportunities: [other] })).transport, now: () => NOW });
+
+    expect(outcome.counts).toMatchObject({ created: 1, matched: 0 });
+    expect(await stored()).toHaveLength(2);
+  });
+
+  test("no new evidence for 30 days: closed, still readable", async () => {
+    const a = await triagedArticles(2);
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(ids(a))] })).transport, now: () => NOW });
+    await db().execute(sql`update opportunity_articles set cited_at = ${new Date(NOW.getTime() - 31 * 86400_000).toISOString()}`);
+
+    const outcome = await generateOpportunities({ transport: provider(() => ({ opportunities: [] })).transport, now: () => NOW });
+
+    expect(outcome.counts).toMatchObject({ closed: 1 });
+    const [row] = await db().execute(sql`select status, closed_at, title_en from opportunities`);
+    expect(row).toMatchObject({ status: "closed", title_en: contract.valid[0].output.title.en });
+    expect(row.closed_at).not.toBeNull();
+  });
+
+  test("evidence 29 days old keeps it open", async () => {
+    const a = await triagedArticles(2);
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(ids(a))] })).transport, now: () => NOW });
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [] })).transport, now: later(29) });
+    const [row] = await db().execute(sql`select status from opportunities`);
+    expect(row.status).toBe("open");
+  });
+
+  test("a closed opportunity is not reopened by a match: a new one is created", async () => {
+    const a = await triagedArticles(2);
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(ids(a))] })).transport, now: () => NOW });
+    await db().execute(sql`update opportunities set status = 'closed', closed_at = now()`);
+
+    const b = await triagedArticles(2);
+    const outcome = await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(ids(b))] })).transport, now: () => NOW });
+
+    expect(outcome.counts).toMatchObject({ created: 1, matched: 0 });
+    expect((await db().execute(sql`select status from opportunities order by id`)).map((r) => r.status)).toEqual(["closed", "open"]);
+  });
+
+  test("two themes in one run matching each other: the second updates the first instead of duplicating", async () => {
+    const a = await triagedArticles(4);
+    const outcome = await generateOpportunities({
+      transport: provider(() => ({ opportunities: [opportunity(ids(a.slice(0, 2))), opportunity(ids(a.slice(2)))] })).transport,
+      now: () => NOW,
+    });
+    expect(outcome.counts).toMatchObject({ created: 1, matched: 1 });
+    expect((await stored())[0].cited).toHaveLength(4);
+  });
+});

@@ -209,3 +209,61 @@ export async function citeArticles(opportunityId: number, articleIds: number[]):
     .values(articleIds.map((articleId) => ({ opportunityId, articleId })))
     .onConflictDoNothing();
 }
+
+/** Open opportunities with what matching compares (theme, region, sectors, cited article ids). */
+export async function listOpenForMatching(): Promise<{ id: number; theme: string; region: string; sectors: string[]; citations: number[] }[]> {
+  const rows = await db()
+    .select({
+      id: opportunities.id,
+      theme: opportunities.theme,
+      region: opportunities.region,
+      sectors: opportunities.sectors,
+      citations: sqlTag<number[]>`coalesce(array_agg(${opportunityArticles.articleId}) filter (where ${opportunityArticles.articleId} is not null), '{}')`,
+    })
+    .from(opportunities)
+    .leftJoin(opportunityArticles, eq(opportunityArticles.opportunityId, opportunities.id))
+    .where(eq(opportunities.status, "open"))
+    .groupBy(opportunities.id)
+    .orderBy(asc(opportunities.id));
+  return rows.map((r) => ({ ...r, citations: r.citations.map(Number) }));
+}
+
+/** Text fields an update refreshes; theme, region and sectors stay (they are what the match was on). */
+export type RefreshedFields = Omit<NewOpportunity, "theme" | "region" | "sectors" | "createdAt" | "closedAt">;
+
+/**
+ * A matched opportunity keeps its id: its text fields are refreshed and the new
+ * citations added (an article already cited keeps its first citation time), in
+ * one transaction. Returns how many citations were new.
+ */
+export async function refreshOpportunity(id: number, fields: RefreshedFields, articleIds: number[]): Promise<number> {
+  return db().transaction(async (tx) => {
+    const [row] = await tx
+      .update(opportunities)
+      .set(fields)
+      .where(and(eq(opportunities.id, id), eq(opportunities.status, "open")))
+      .returning({ id: opportunities.id });
+    if (!row) throw new Error(`Opportunity ${id} is not open`);
+    if (articleIds.length === 0) return 0;
+    const added = await tx
+      .insert(opportunityArticles)
+      .values([...new Set(articleIds)].map((articleId) => ({ opportunityId: id, articleId })))
+      .onConflictDoNothing()
+      .returning({ articleId: opportunityArticles.articleId });
+    return added.length;
+  });
+}
+
+/**
+ * Closes every open opportunity whose newest citation is older than `days`
+ * (scoring-v1 §4: 30). A closed one stays readable and is never matched again.
+ */
+export async function closeStaleOpportunities(now: Date, days = 30): Promise<number[]> {
+  const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  const rows = await db().execute(sqlTag`
+    update opportunities o set status = 'closed', closed_at = ${now.toISOString()}
+    where o.status = 'open'
+      and coalesce((select max(oa.cited_at) from opportunity_articles oa where oa.opportunity_id = o.id), o.created_at) < ${cutoff.toISOString()}
+    returning o.id`);
+  return rows.map((r) => Number(r.id));
+}
