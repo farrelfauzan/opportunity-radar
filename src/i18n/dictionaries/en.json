@@ -85,7 +85,8 @@
       "up": "up {pct}",
       "down": "down {pct}",
       "flat": "unchanged",
-      "noChange": "change not available"
+      "noChange": "change not available",
+      "trend": "Last 10 closes: from {first} to {last}"
     }
   },
   "news": {

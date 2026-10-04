@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import { beforeEach, describe, expect, test } from "vitest";
 import { finishJobRun, listSources, recordSuccessfulRun, startJobRun, upsertSource } from "@/server/data";
 import { databaseUrl, db } from "@/server/data/client";
-import { migrate, testDatabaseUrl } from "../../scripts/db-admin.ts";
+import { dropTestDatabase, migrate, testDatabaseUrl } from "../../scripts/db-admin.ts";
 
 beforeEach(async () => {
   await db().execute(sql`truncate articles, sources, job_runs restart identity cascade`);
@@ -134,5 +134,28 @@ describe("repository", () => {
     expect(ignored(".env")).toBe(true);
     expect(ignored(".env.local")).toBe(true);
     expect(ignored(".env.example")).toBe(false);
+  });
+});
+
+describe("dropTestDatabase", () => {
+  test("drops a test database and does nothing when it is already gone", async () => {
+    // (testDatabaseUrl() refuses here: the integration setup points DATABASE_URL at the test database.)
+    const url = new URL(databaseUrl("TEST_DATABASE_URL"));
+    url.pathname = "/opportunity_radar_drop_probe_test";
+    const exists = async () => {
+      const admin = new URL(url.href);
+      admin.pathname = "/postgres";
+      const probe = (await import("postgres")).default(admin.href, { max: 1 });
+      try {
+        return (await probe`select 1 from pg_database where datname = 'opportunity_radar_drop_probe_test'`).length === 1;
+      } finally {
+        await probe.end();
+      }
+    };
+    await migrate(url.href); // creates it
+    expect(await exists()).toBe(true);
+    await dropTestDatabase(url.href);
+    expect(await exists()).toBe(false);
+    await dropTestDatabase(url.href); // already gone: no error
   });
 });

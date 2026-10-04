@@ -1,4 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
+import { e2eDatabaseUrl } from "../scripts/e2e-env";
 import { expect, test } from "./fixtures";
 
 // OR-55: on a case-insensitive file system (macOS) a request for /EN used to overwrite the
@@ -27,9 +28,16 @@ test("/en and /id still answer 200 after a restart that followed /EN and /ID req
   const port = Number(process.env.E2E_PORT ?? 3210) + 3; // the web server uses E2E_PORT
   const start = async (): Promise<ChildProcess> => {
     const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", String(port)], {
+      // The run's own database: without it the server would fall back to DATABASE_URL of .env.local, the development one.
+      env: { ...process.env, DATABASE_URL: e2eDatabaseUrl() },
       stdio: "ignore",
     });
-    for (let i = 0; i < 100; i++) {
+    // Up to 90 s: with several sessions running tests the machine can be slow.
+    for (let i = 0; i < 450; i++) {
+      // A server that is gone will never answer (for example it exits at start when its database is unreachable).
+      if (server.exitCode !== null) {
+        throw new Error(`The test server exited with code ${server.exitCode} before it answered; is the e2e database (DATABASE_URL) reachable?`);
+      }
       try {
         await fetch(`http://localhost:${port}/en`, { redirect: "manual" });
         return server;
@@ -38,7 +46,7 @@ test("/en and /id still answer 200 after a restart that followed /EN and /ID req
       }
     }
     server.kill();
-    throw new Error(`The test server did not start on port ${port}`);
+    throw new Error(`The test server did not start on port ${port} within 90 s`);
   };
   const stop = async (server: ChildProcess) => {
     const closed = new Promise((resolve) => server.once("close", resolve));

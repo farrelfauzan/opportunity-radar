@@ -9,6 +9,7 @@ const baseURL = `http://localhost:${port}`;
 export default defineConfig({
   testDir: "./e2e",
   globalSetup: "./e2e/global-setup.ts",
+  globalTeardown: "./e2e/global-teardown.ts",
   reporter: "list",
   // Many sessions share this machine and its load average can pass 20: a test that starts a
   // second server (the "store unreachable" ones) then takes over 30 s, Playwright's default.

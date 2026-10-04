@@ -85,7 +85,8 @@
       "up": "naik {pct}",
       "down": "turun {pct}",
       "flat": "tidak berubah",
-      "noChange": "perubahan tidak tersedia"
+      "noChange": "perubahan tidak tersedia",
+      "trend": "10 penutupan terakhir: dari {first} ke {last}"
     }
   },
   "news": {

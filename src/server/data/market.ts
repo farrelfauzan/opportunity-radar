@@ -44,6 +44,8 @@ export type StoredCandle = { day: string; close: number; source: string; fetched
  *   newer than every candle, the last candle is the previous close. Without a quote the last close is the
  *   price and the candle before it the previous close.
  * - Sparkline: the last SPARKLINE_CLOSES closes, oldest first (the view hides it under 2 points).
+ * - Candles of the other kind than the price (synthetic vs real) are ignored for both, so the row then has no
+ *   change and no sparkline rather than a made-up one without its badge.
  */
 export function priceRow(
   quote: { price: number; asOf: Date; source: string; fetchedAt: Date } | null,
@@ -51,16 +53,21 @@ export function priceRow(
 ): PriceRow | null {
   const last = series.at(-1);
   if (!quote && !last) return null;
-  const closes = series.map((c) => c.close);
-  const sameDay = quote && last ? last.day >= quote.asOf.toISOString().slice(0, 10) : !quote;
-  const previousClose = (sameDay ? series.at(-2) : last)?.close ?? null;
+  const synthetic = (quote?.source ?? last!.source) === "synthetic";
+  // A price is only compared with, and drawn beside, closes of its own kind: a real quote against made-up
+  // candles (or the reverse, e.g. right after live prices are switched on) would show an unbadged made-up change.
+  const own = series.filter((c) => (c.source === "synthetic") === synthetic);
+  const lastOwn = own.at(-1);
+  const closes = own.map((c) => c.close);
+  const sameDay = quote && lastOwn ? lastOwn.day >= quote.asOf.toISOString().slice(0, 10) : !quote;
+  const previousClose = (sameDay ? own.at(-2) : lastOwn)?.close ?? null;
   return {
     price: quote?.price ?? last!.close,
     asOf: quote?.asOf ?? new Date(`${last!.day}T00:00:00Z`),
     timed: quote !== null,
     updatedAt: quote?.fetchedAt ?? last!.fetchedAt,
     source: quote?.source ?? last!.source,
-    synthetic: (quote?.source ?? last!.source) === "synthetic",
+    synthetic,
     previousClose,
     closes,
   };

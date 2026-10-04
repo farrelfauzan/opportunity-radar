@@ -26,18 +26,14 @@ export type WatchlistRow = {
 };
 
 /**
- * The price of one watchlist asset. Provenance must not mix: a price and closes of the other kind (a made-up
- * price against real closes, or the reverse while a live backfill is pending) are no basis for a change or a
- * sparkline, so a series with a candle of the other kind than the price gives neither.
+ * The price of one watchlist asset: `priceRow`, which already keeps provenance apart (a price is only compared
+ * with, and drawn beside, closes of its own kind: made-up vs real).
  */
 export function watchlistPrice(
   quote: { price: number; asOf: Date; source: string; fetchedAt: Date } | null,
   series: StoredCandle[],
 ): PriceRow | null {
-  const row = priceRow(quote, series);
-  if (!row) return null;
-  const mixed = series.some((c) => (c.source === "synthetic") !== row.synthetic);
-  return mixed ? { ...row, previousClose: null, closes: [] } : row;
+  return priceRow(quote, series);
 }
 
 /**

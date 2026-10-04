@@ -89,6 +89,23 @@ export async function resetTestDatabase(url = testDatabaseUrl()): Promise<void> 
 }
 
 /**
+ * Drops a TEST database (name ends in "_test", on this machine) with any connections still open to it, so a
+ * browser-test run leaves nothing on the shared Postgres server. Nothing happens when it does not exist.
+ */
+export async function dropTestDatabase(url: string): Promise<void> {
+  requireTestName(url);
+  const name = new URL(url).pathname.slice(1);
+  const admin = new URL(url);
+  admin.pathname = "/postgres";
+  const sql = connect(admin.href);
+  try {
+    await sql`drop database if exists ${sql(name)} with (force)`;
+  } finally {
+    await sql.end();
+  }
+}
+
+/**
  * Holds a server-wide lock until the returned function is called, so two test
  * runs on this machine (several sessions share one Postgres) wait for each other.
  */
