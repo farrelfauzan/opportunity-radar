@@ -443,6 +443,11 @@ Sector labels come from the fixed sector list in `docs/opportunities/scoring-v1.
 
 Not shipped in v1: `inv.alertsTo.*` (alerts are in-app only, D4; Telegram OR-42, email OR-43). Keys exist so the dictionaries stay complete.
 
+Investments watchlist (OR-30):
+- Risk card per row: IDX index or stock → Indonesian stocks; US index or stock → Global stocks; XAU → Gold; XAG → Silver; crypto → Crypto; USD/IDR and anything unmapped show "—". The Cash & government bonds card has no watchlist asset.
+- Signal chip: the verdict word is always shown; the outline is an extra shape cue, not the carrier: BUY 2px solid, HOLD 1px solid, SELL 3px double (dashed stays reserved for `sample.badge`), plus the teal / orange / muted colours.
+- Sparkline: hidden summary `radar.market.trend` with `{n}` = closes drawn (up to 30 here); no summary below 2.
+
 Add an asset (OR-44): `inv.addAsset` opens a small form (`inv.add.*`) under the watchlist, not a dialog. The symbol is checked on the server against its price source. Allowed: IDX stocks (stored with exchange `IDX`), US stocks, Binance crypto pairs; any other market gives `inv.add.error.market`, since staleness time zones exist only for these (rules-v1 §4). A latest price below 0.05 (`{min}`, formatted per locale) gives `inv.add.error.tooSmall`, because reversal prices use a 0.01 grid (rules-v1 §5). On success `inv.add.added`; the new row shows "Not enough history" until the next price and signal runs. Removing uses `inv.remove`, then `inv.removed` (history kept).
 
 The disclaimer drops "plus a news check" from the canvas: in rules v1 the news check is context and never moves the verdict (OR-10, D10).
