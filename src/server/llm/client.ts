@@ -111,26 +111,48 @@ type Reservation = { tokens: number; costUsd: number };
 // Live calls in flight in this process. Usage is recorded only after a call
 // returns, so calls made in parallel reserve their estimate here first.
 const inFlight: Reservation = { tokens: 0, costUsd: 0 };
+// Everything this process has recorded for live calls, only ever growing. A call
+// recorded while another call is reading the month's usage may be missing from
+// that read and already released from inFlight; the growth of this total over
+// the read covers it (it may count such a call twice, never zero times).
+const recordedLive: Reservation = { tokens: 0, costUsd: 0 };
 
 /**
  * Checked before every live request, so a cap reached in the middle of a job
  * stops it. A call goes ahead only if this month's usage, the calls in flight
  * and its own estimate (input, plus maxTokens of output when given) fit the
- * cap; it then reserves that estimate until it is recorded. Separate processes
- * do not see each other's reservations: each can overshoot by one call.
+ * cap; it then reserves that estimate until it is recorded. The estimate is
+ * reserved before the usage is read, which is conservative: near the cap a call
+ * may be refused because of parallel calls that are refused too, but the cap is
+ * never overshot within one process. Separate processes do not see each other's
+ * reservations: each can overshoot by one call.
  */
 async function reserve(s: Settings, estimate: Reservation): Promise<Reservation | null> {
   if (s.provider !== "live") return null;
-  const used = await liveUsageThisMonth();
-  // No await between this check and the reservation: parallel calls see each other.
-  if (s.budgetUsd !== null && (used.costUsd >= s.budgetUsd || used.costUsd + inFlight.costUsd + estimate.costUsd > s.budgetUsd)) {
-    throw new BudgetExhaustedError(`budget_exhausted: ${used.costUsd.toFixed(2)} of ${s.budgetUsd} USD used this month`);
-  }
-  if (s.tokenCap !== null && (used.tokens >= s.tokenCap || used.tokens + inFlight.tokens + estimate.tokens > s.tokenCap)) {
-    throw new BudgetExhaustedError(`budget_exhausted: ${used.tokens} of ${s.tokenCap} tokens used this month`);
-  }
+  // Reserve first, so calls starting while this one reads see it.
   inFlight.tokens += estimate.tokens;
   inFlight.costUsd += estimate.costUsd;
+  const before = { ...recordedLive };
+  let read: Reservation;
+  try {
+    read = await liveUsageThisMonth();
+  } catch (error) {
+    release(estimate);
+    throw error;
+  }
+  const used = {
+    tokens: read.tokens + recordedLive.tokens - before.tokens,
+    costUsd: read.costUsd + recordedLive.costUsd - before.costUsd,
+  };
+  // inFlight already holds this call's own estimate.
+  if (s.budgetUsd !== null && (used.costUsd >= s.budgetUsd || used.costUsd + inFlight.costUsd > s.budgetUsd)) {
+    release(estimate);
+    throw new BudgetExhaustedError(`budget_exhausted: ${used.costUsd.toFixed(2)} of ${s.budgetUsd} USD used this month`);
+  }
+  if (s.tokenCap !== null && (used.tokens >= s.tokenCap || used.tokens + inFlight.tokens > s.tokenCap)) {
+    release(estimate);
+    throw new BudgetExhaustedError(`budget_exhausted: ${used.tokens} of ${s.tokenCap} tokens used this month`);
+  }
   return estimate;
 }
 
@@ -219,13 +241,13 @@ export async function callLlm<T>(call: LlmCall<T>): Promise<T> {
     temperature: 0,
     ...(call.maxTokens ? { max_tokens: call.maxTokens } : {}),
   };
-  const record = (status: LlmCallStatus, extra: { inputTokens?: number; outputTokens?: number; estimated?: boolean } = {}) => {
+  const record = async (status: LlmCallStatus, extra: { inputTokens?: number; outputTokens?: number; estimated?: boolean } = {}) => {
     const { inputTokens = null, outputTokens = null } = extra;
     const costUsd =
       s.prices && inputTokens !== null && outputTokens !== null
         ? (inputTokens * s.prices.in + outputTokens * s.prices.out) / 1_000_000
         : null;
-    return recordLlmUsage({
+    const row = await recordLlmUsage({
       job: call.job,
       role: call.role,
       provider: s.provider,
@@ -236,6 +258,11 @@ export async function callLlm<T>(call: LlmCall<T>): Promise<T> {
       costUsd,
       status,
     });
+    if (s.provider === "live") {
+      recordedLive.tokens += (inputTokens ?? 0) + (outputTokens ?? 0);
+      recordedLive.costUsd += costUsd ?? 0;
+    }
+    return row;
   };
 
   const inputEstimate = estimateTokens(call.messages.map((m) => m.content).join("\n"));
@@ -254,40 +281,42 @@ export async function callLlm<T>(call: LlmCall<T>): Promise<T> {
       throw error;
     }
 
-    let completion: Completion;
+    // Released in `finally`, after recording, whatever happens (also if recording fails).
     try {
-      completion = await request(s, transport, body);
-    } catch (error) {
-      await record("error");
-      release(reservation);
-      throw error;
-    }
-
-    // Without usage from the provider, estimate it so the token cap still counts the call.
-    const reported = completion.usage;
-    const estimated = typeof reported?.prompt_tokens !== "number" || typeof reported?.completion_tokens !== "number";
-    const tokens = estimated
-      ? {
-          inputTokens: estimateTokens(call.messages.map((m) => m.content).join("\n")),
-          outputTokens: estimateTokens(completion.content),
-          estimated: true,
-        }
-      : { inputTokens: reported!.prompt_tokens!, outputTokens: reported!.completion_tokens! };
-
-    let value: T;
-    try {
-      value = call.parse(parseModelJson(completion.content));
-    } catch (error) {
-      await record("invalid_output", tokens);
-      release(reservation);
-      if (attempt === 2) {
-        throw new InvalidOutputError(`invalid output twice: ${(error as Error).message}`.slice(0, 300));
+      let completion: Completion;
+      try {
+        completion = await request(s, transport, body);
+      } catch (error) {
+        await record("error");
+        throw error;
       }
-      continue;
+
+      // Without usage from the provider, estimate it so the token cap still counts the call.
+      const reported = completion.usage;
+      const estimated = typeof reported?.prompt_tokens !== "number" || typeof reported?.completion_tokens !== "number";
+      const tokens = estimated
+        ? {
+            inputTokens: estimateTokens(call.messages.map((m) => m.content).join("\n")),
+            outputTokens: estimateTokens(completion.content),
+            estimated: true,
+          }
+        : { inputTokens: reported!.prompt_tokens!, outputTokens: reported!.completion_tokens! };
+
+      let value: T;
+      try {
+        value = call.parse(parseModelJson(completion.content));
+      } catch (error) {
+        await record("invalid_output", tokens);
+        if (attempt === 2) {
+          throw new InvalidOutputError(`invalid output twice: ${(error as Error).message}`.slice(0, 300));
+        }
+        continue;
+      }
+      // Recorded before the reservation is released, so the cap never loses sight of the call.
+      await record("ok", tokens);
+      return value;
+    } finally {
+      release(reservation);
     }
-    // Recorded before the reservation is released, so the cap never loses sight of the call.
-    await record("ok", tokens);
-    release(reservation);
-    return value;
   }
 }

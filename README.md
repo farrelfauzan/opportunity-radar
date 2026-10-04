@@ -63,6 +63,10 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
   reads each new article once: category, region, relevance, impact, "why it matters" in EN and ID,
   themes). `pnpm job triage` alone triages whatever is waiting. With `LLM_PROVIDER` unset the LLM
   is a local mock: its replies say "[mock]" and nothing leaves the machine.
+- `pnpm job opportunities` (also the second step of `morning`) asks the LLM to group the last 7
+  days of relevant, triaged news into opportunities. Each one is checked against the OR-11 contract
+  (`docs/opportunities/scoring-v1.md`); one that breaks it is rejected and logged, and nothing is
+  stored for it. Valid ones are stored with their citations and first score.
 - `pnpm job morning` runs triage → opportunities → scores → brief and stops at the first failing
   step; later steps are recorded as `skipped`.
 - `--test` runs against the test database; `--timeout <seconds>` overrides the job's own time

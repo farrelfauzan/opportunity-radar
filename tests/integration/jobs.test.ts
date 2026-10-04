@@ -258,7 +258,9 @@ describe("pnpm job", { timeout: 60_000 }, () => {
   });
 
   test("a second process while the first runs: one ok, one skipped, both exit 0", async () => {
-    const first = start(["sleep", "3"]);
+    // 20 s: under load a second Node process can take ~10 s to start, and it must
+    // arrive while the first still runs.
+    const first = start(["sleep", "20"]);
     await untilRunning(); // not a fixed wait: process start-up time varies under load
     const second = job(["sleep", "3"]);
 
@@ -269,14 +271,15 @@ describe("pnpm job", { timeout: 60_000 }, () => {
   });
 
   test("the morning pipeline with a failing second step", async () => {
-    const result = job(["morning"], { STUB_FAIL: "opportunities" });
+    // The steps are real jobs (nothing to do on an empty store); STUB_FAIL makes one fail outside production.
+    const result = job(["morning"], { STUB_FAIL: "scores" });
     expect(result.status).not.toBe(0);
-    expect(result.stdout).toContain('morning: failed (step "opportunities" failed');
+    expect(result.stdout).toContain('morning: failed (step "scores" failed');
     expect((await runs()).map((r) => [r.job, r.status])).toEqual([
       ["morning", "failed"],
       ["triage", "ok"],
-      ["opportunities", "failed"],
-      ["scores", "skipped"],
+      ["opportunities", "ok"],
+      ["scores", "failed"],
       ["brief", "skipped"],
     ]);
   });

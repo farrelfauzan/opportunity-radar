@@ -190,10 +190,25 @@ describe("review follow-ups (OR-13 → OR-14)", () => {
 
     const results = await Promise.allSettled([call(), call(), call(), call(), call()]);
 
-    // Each call reserves 2 input + 40 output tokens: two fit under 100, the rest are refused.
-    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(2);
-    expect(results.filter((r) => r.status === "rejected" && r.reason instanceof BudgetExhaustedError)).toHaveLength(3);
-    expect(requests).toHaveLength(2);
+    // Each call reserves 2 input + 40 output tokens, so at most two fit under 100. Reservations
+    // are made before the usage is read, which is conservative: near the cap a call may be
+    // refused although it would have fitted, but the cap is never overshot.
+    const passed = results.filter((r) => r.status === "fulfilled").length;
+    expect(passed).toBeGreaterThanOrEqual(1);
+    expect(passed).toBeLessThanOrEqual(2);
+    expect(results.filter((r) => r.status === "rejected" && r.reason instanceof BudgetExhaustedError)).toHaveLength(5 - passed);
+    expect(requests).toHaveLength(passed);
+  });
+
+  test("a failure to record still releases the reservation", async () => {
+    setEnv({ ...LIVE, LLM_MONTHLY_TOKEN_CAP: "100" });
+    const { transport } = provider({ content: '{"ok":true}', usage: { prompt_tokens: 1, completion_tokens: 1 } });
+    // A model name the llm_usage CHECKs cannot fail on, but a role they refuse: recording throws.
+    const failing = callLlm({ job: "rec", role: "bogus" as never, messages: [{ role: "user", content: "x" }], parse: isOk, maxTokens: 60, fetch: transport });
+    await expect(failing).rejects.toThrow();
+    // The 61 reserved tokens are free again: a call reserving 61 more fits under 100.
+    const next = callLlm({ job: "rec", role: "triage", messages: [{ role: "user", content: "x" }], parse: isOk, maxTokens: 60, fetch: transport });
+    await expect(next).resolves.toEqual({ ok: true });
   });
 
   test("reservations are released: after the parallel calls finish, a later call is judged on recorded usage", async () => {

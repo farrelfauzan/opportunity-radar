@@ -115,6 +115,7 @@ Exchange holidays come from a small holiday list in config; until it exists, wee
 | news.summary.articles.other | {n} articles today | {n} artikel hari ini |
 | news.summary.sources.one | {n} source | {n} sumber |
 | news.summary.sources.other | {n} sources | {n} sumber |
+| news.cat.label | Category | Kategori |
 | news.cat.all | All | Semua |
 | news.cat.business | Business | Bisnis |
 | news.cat.politics | Politics & policy | Politik & kebijakan |

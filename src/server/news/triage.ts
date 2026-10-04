@@ -21,6 +21,8 @@ import { fenceUntrusted } from "@/server/llm/fence";
 
 export const BATCH_SIZE = 10;
 const MAX_WHY_WORDS = 30;
+const MAX_WHY_CHARS = 300; // per language (Designer, OR-15); a single huge "word" passes the word limit
+const MAX_ERROR_CHARS = 300;
 const MAX_THEMES = 3;
 // Output tokens reserved per batch against the monthly cap (about 120 per article).
 const MAX_TOKENS = 1500;
@@ -32,7 +34,7 @@ For every article in the data block, return one item:
 - "region": "indonesia" if the news is about Indonesia, otherwise "global"
 - "relevance": integer 0-100, how useful the news is for spotting business opportunities
 - "impact": "opportunity", "risk" or "context" for businesses
-- "why": {"en": "...", "id": "..."}: one sentence each, at most ${MAX_WHY_WORDS} words, on why it matters for business; "id" in Bahasa Indonesia
+- "why": {"en": "...", "id": "..."}: one sentence each, at most ${MAX_WHY_WORDS} words and ${MAX_WHY_CHARS} characters, on why it matters for business; "id" in Bahasa Indonesia
 - "themes": 1 to ${MAX_THEMES} ids from this list: ${THEMES.join(", ")}
 Answer with JSON only, exactly {"items": [ ... ]}, with no other text.`;
 
@@ -56,6 +58,9 @@ export function checkItem(raw: unknown): { id: number; result: Omit<Extract<Tria
   const whyId = typeof why?.id === "string" ? why.id.trim() : "";
   if (!whyEn || !whyId) return "why must be given in EN and ID";
   if (words(whyEn) > MAX_WHY_WORDS || words(whyId) > MAX_WHY_WORDS) return `why is longer than ${MAX_WHY_WORDS} words`;
+  if (Array.from(whyEn).length > MAX_WHY_CHARS || Array.from(whyId).length > MAX_WHY_CHARS) {
+    return `why is longer than ${MAX_WHY_CHARS} characters`;
+  }
   // scoring-v1 §8: an unknown theme becomes "other"; at most 3, no repeats.
   const listed = Array.isArray(item.themes) ? item.themes : [];
   const themes = [...new Set(listed.map((t) => (THEMES.includes(t as Theme) ? (t as Theme) : "other")))].slice(0, MAX_THEMES);
@@ -94,19 +99,24 @@ export async function triageBatch(batch: TriageInput[], transport?: LlmCall<unkn
     });
   } catch (error) {
     if (!(error instanceof InvalidOutputError)) throw error; // budget, settings, provider down: stop the run
-    return batch.map((a) => ({ articleId: a.id, status: "failed", error: error.message.slice(0, 300) }));
+    return batch.map((a) => ({ articleId: a.id, status: "failed", error: error.message.slice(0, MAX_ERROR_CHARS) }));
   }
 
   const checked = new Map<number, ReturnType<typeof checkItem>>();
+  const repeated = new Set<number>();
   for (const raw of items) {
     const outcome = checkItem(raw);
     const id = typeof outcome === "string" ? (raw as { id?: unknown } | null)?.id : outcome.id;
-    if (typeof id === "number" && !checked.has(id)) checked.set(id, outcome);
+    if (typeof id !== "number") continue;
+    // An id given twice is ambiguous: neither answer is trusted.
+    if (checked.has(id)) repeated.add(id);
+    checked.set(id, outcome);
   }
+  for (const id of repeated) checked.set(id, "id repeated in the reply");
   return batch.map((article): TriageResult => {
     const outcome = checked.get(article.id);
     if (outcome === undefined) return { articleId: article.id, status: "failed", error: "missing from the reply" };
-    if (typeof outcome === "string") return { articleId: article.id, status: "failed", error: outcome };
+    if (typeof outcome === "string") return { articleId: article.id, status: "failed", error: outcome.slice(0, MAX_ERROR_CHARS) };
     return { articleId: article.id, ...outcome.result };
   });
 }

@@ -9,6 +9,7 @@
 //                                         successful scoring run 5 minutes ago)
 //   add <headline>                        store one more article, published now
 //   deactivate <slug>                     switch a source off (its articles are hidden)
+//   source-status <slug> <status>         set a source's status on the latest ingestion run (e.g. 403, 304)
 // "fixtures" prints {"lastRun": <ISO time or null>}.
 import {
   addDays,
@@ -152,6 +153,11 @@ async function deactivate(slug: string) {
   if (rows.length === 0) throw new Error(`No source with slug ${slug}`);
 }
 
+async function sourceStatus(slug: string, status: string) {
+  const rows = await sql()`update sources set last_status = ${status} where slug = ${slug} returning id`;
+  if (rows.length === 0) throw new Error(`No source with slug ${slug}`);
+}
+
 async function main() {
   switch (command) {
     case "setup":
@@ -159,6 +165,9 @@ async function main() {
       break;
     case "fixtures":
       await fixtures();
+      break;
+    case "source-status":
+      await sourceStatus(args[0], args[1]);
       break;
     case "deactivate":
       await deactivate(args[0]);

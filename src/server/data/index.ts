@@ -14,6 +14,7 @@ export {
   OPPORTUNITY_STATUSES,
   THEMES,
   IMPACTS,
+  FACTOR_KEYS,
 } from "./schema.ts";
 export type {
   Region,

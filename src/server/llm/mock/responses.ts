@@ -21,7 +21,55 @@ function fencedData(requestText: string, label: string): unknown {
   return block ? JSON.parse(block[2]) : [];
 }
 
+/** A well-formed opportunity citing the given articles, every text marked "[mock]". */
+function mockOpportunity(articles: { id: string; region: string; themes?: string[] }[]) {
+  const t = (en: string, id: string) => ({ en: `[mock] ${en}`, id: `[mock] ${id}` });
+  const reason = t("Recorded reply: AI scoring is not live yet.", "Jawaban rekaman: penilaian AI belum aktif.");
+  const theme = articles[0].themes?.find((x) => x !== "other") ?? "ai_adoption";
+  return {
+    title: t("Example opportunity from recent news", "Contoh peluang dari berita terbaru"),
+    thesis: t("A placeholder written by the local mock; the live model writes the real thesis.", "Teks pengganti dari mock lokal; model asli menulis tesis sebenarnya."),
+    region: articles[0].region,
+    theme,
+    sectors: ["ai_software"],
+    horizon: "6-12m",
+    capital: { level: "medium", reason },
+    buyer: t("Small and medium businesses", "Usaha kecil dan menengah"),
+    model: t("Subscription", "Langganan"),
+    risks: [t("The mock cannot judge risk.", "Mock tidak dapat menilai risiko."), t("Placeholder risk.", "Risiko pengganti.")],
+    firstSteps: [t("Turn on the live model (OR-52).", "Aktifkan model asli (OR-52).")],
+    factors: Object.fromEntries(["demand", "timing", "competition", "capital", "regulatory"].map((k) => [k, { score: 50, reason }])),
+    citations: articles.slice(0, 2).map((a) => a.id),
+  };
+}
+
 export const MOCK_RESPONSES: Record<string, MockCase[]> = {
+  // OR-16: the same middle score on every factor, marked "[mock]".
+  scores: [
+    {
+      name: "middle-scores",
+      content: JSON.stringify({
+        factors: Object.fromEntries(
+          ["demand", "timing", "competition", "capital", "regulatory"].map((k) => [
+            k,
+            { score: 50, reason: { en: "[mock] Recorded reply: AI scoring is not live yet.", id: "[mock] Jawaban rekaman: penilaian AI belum aktif." } },
+          ]),
+        ),
+      }),
+      usage: { prompt_tokens: 1500, completion_tokens: 400 },
+    },
+  ],
+  // OR-15: one opportunity citing the first two articles, so the Opportunities screen has data offline.
+  opportunities: [
+    {
+      name: "one-mock-opportunity",
+      content: (requestText) => {
+        const articles = fencedData(requestText, "ARTICLES") as { id: string; region: string; themes?: string[] }[];
+        return JSON.stringify({ opportunities: articles.length >= 2 ? [mockOpportunity(articles)] : [] });
+      },
+      usage: { prompt_tokens: 4000, completion_tokens: 1500 },
+    },
+  ],
   // OR-14: one well-formed item per article, so the News screen has data offline.
   // Every text says it is a mock reply; the category and region stay the feed's.
   triage: [
