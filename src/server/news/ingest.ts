@@ -15,6 +15,45 @@ export const USER_AGENT =
   "Mozilla/5.0 (compatible; OpportunityRadar/0.1; +https://github.com/farrelfauzan/opportunity-radar)";
 const TIMEOUT_MS = 10_000;
 const MAX_REDIRECTS = 3;
+const MAX_BYTES = 5 * 1024 * 1024; // the largest recorded feed is about 120 kB
+
+/**
+ * True for an address on this machine or a private network, written as a host
+ * name or IP literal. A feed may only redirect to a public https/http host.
+ */
+function isPrivateHost(hostname: string): boolean {
+  const host = hostname.replace(/^\[|\]$/g, "").toLowerCase();
+  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) return true;
+  const v4 = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(host)?.slice(1).map(Number);
+  if (v4) {
+    const [a, b] = v4;
+    return a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127);
+  }
+  return host === "::" || host === "::1" || /^(fc|fd|fe8|fe9|fea|feb)/.test(host) || host.startsWith("::ffff:");
+}
+
+/** The body, read in chunks so an oversized response is cut off rather than buffered. */
+async function readBody(response: Response): Promise<ArrayBuffer> {
+  if (Number(response.headers.get("content-length")) > MAX_BYTES) throw new FeedError("response too large");
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  const reader = response.body?.getReader();
+  for (let read = await reader?.read(); read && !read.done; read = await reader!.read()) {
+    size += read.value.byteLength;
+    if (size > MAX_BYTES) {
+      await reader!.cancel();
+      throw new FeedError("response too large");
+    }
+    chunks.push(read.value);
+  }
+  const body = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return body.buffer;
+}
 
 type Fetched =
   | { status: "304" }
@@ -37,13 +76,16 @@ async function fetchFeed(source: Source, fetcher: typeof fetch): Promise<Fetched
       const location = response.headers.get("location");
       if (response.status >= 300 && response.status < 400 && response.status !== 304 && location) {
         if (redirects === MAX_REDIRECTS) throw new FeedError("too many redirects");
-        url = new URL(location, url).href;
-        if (!/^https?:/.test(url)) throw new FeedError("redirect to a non-http address");
+        const next = new URL(location, url);
+        if (!/^https?:$/.test(next.protocol)) throw new FeedError("redirect to a non-http address");
+        if (isPrivateHost(next.hostname)) throw new FeedError("redirect to a private address");
+        if (url.startsWith("https:") && next.protocol === "http:") throw new FeedError("redirect from https to http");
+        url = next.href;
         continue;
       }
       if (response.status === 304) return { status: "304" };
       if (response.status !== 200) throw new FeedError(String(response.status));
-      const xml = decodeFeed(await response.arrayBuffer(), response.headers.get("content-type"));
+      const xml = decodeFeed(await readBody(response), response.headers.get("content-type"));
       return {
         status: "200",
         items: parseFeed(xml),
@@ -62,13 +104,25 @@ async function fetchFeed(source: Source, fetcher: typeof fetch): Promise<Fetched
 
 type FeedArticle = NewArticle & { canonicalUrl: string; snippet: string; publishedAtEstimated: boolean };
 
+/**
+ * A feed date as a UTC instant. A date written without a time zone is read as
+ * UTC, never in the zone of the machine running the job.
+ */
+export function parseFeedDate(value: string): Date {
+  const text = value.trim();
+  const hasZone = /(z|[+-]\d{2}:?\d{2}|\b(gmt|utc|ut|[ecmp][sd]t))$/i.test(text);
+  const hasTime = /\d{1,2}:\d{2}/.test(text);
+  if (!hasTime || hasZone) return new Date(text);
+  return new Date(/^\d{4}-\d{2}-\d{2}T/.test(text) ? `${text}Z` : `${text} GMT`);
+}
+
 /** A storable article from a raw feed item, or null when the item must be skipped. */
 export function toArticle(item: FeedItem, feed: Feed, sourceId: number, fetchedAt: Date): FeedArticle | null {
   const headline = cleanText(item.title);
   const canonical = canonicalUrl(item.link);
   if (!headline || !canonical) return null; // no title, no link, or a link that is not http(s)
 
-  const published = new Date(item.date);
+  const published = parseFeedDate(item.date);
   const estimated = !item.date.trim() || Number.isNaN(published.getTime());
   return {
     sourceId,
@@ -93,6 +147,7 @@ export async function ingestNews(
   options: { feeds?: Feed[]; fetch?: typeof fetch; now?: () => Date } = {},
 ): Promise<JobOutcome> {
   const { feeds = FEEDS, fetch: fetcher = fetch, now = () => new Date() } = options;
+  if (feeds.length === 0) throw new Error("No feeds configured; nothing was changed");
   const counts = { sources_ok: 0, sources_failed: 0, stored: 0, duplicates: 0, skipped: 0, estimated_dates: 0 };
   const failures: string[] = [];
 

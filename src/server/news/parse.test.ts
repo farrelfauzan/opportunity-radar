@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { readFixture, readFixtureBytes } from "../../../tests/fixtures";
 import { FEEDS } from "./feeds";
-import { toArticle } from "./ingest";
+import { parseFeedDate, toArticle } from "./ingest";
 import { decodeFeed, FeedError, parseFeed } from "./parse";
 
 const fetchedAt = new Date("2026-10-04T02:00:00Z");
@@ -35,6 +35,13 @@ describe("parseFeed", () => {
     expect(() => parseFeed(readFixture("synthetic/malformed.xml"))).toThrow(new FeedError("malformed XML"));
   });
 
+  test("an external-entity DOCTYPE is refused as unsupported XML, not read", () => {
+    const xxe = `<?xml version="1.0"?>
+<!DOCTYPE rss [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+<rss version="2.0"><channel><title>&xxe;</title></channel></rss>`;
+    expect(() => parseFeed(xxe)).toThrow(new FeedError("unsupported XML"));
+  });
+
   test("an HTML page served with 200 is not a feed", () => {
     expect(() => parseFeed(readFixture("synthetic/challenge.html"))).toThrow("not a feed (HTML page)");
     expect(() => parseFeed("<?xml version='1.0'?><note><to>x</to></note>")).toThrow("not a feed");
@@ -55,6 +62,21 @@ describe("decodeFeed", () => {
   test("the XML declaration wins over a wrong header (Katadata says iso-8859-1, sends UTF-8)", () => {
     const xml = decodeFeed(readFixtureBytes("katadata/feed-2026-10-04.xml"), "text/xml;charset=iso-8859-1");
     expect(xml).not.toContain("Ã");
+  });
+});
+
+describe("parseFeedDate", () => {
+  test.each([
+    ["Sat, 03 Oct 2026 17:30:00 +0700", "2026-10-03T10:30:00.000Z"],
+    ["Sat, 03 Oct 2026 10:30:00 GMT", "2026-10-03T10:30:00.000Z"],
+    ["2026-10-03T17:30:00+07:00", "2026-10-03T10:30:00.000Z"],
+    ["2026-10-03T10:30:00Z", "2026-10-03T10:30:00.000Z"],
+    // No zone: read as UTC, not in the machine's zone.
+    ["Sat, 03 Oct 2026 10:30:00", "2026-10-03T10:30:00.000Z"],
+    ["2026-10-03T10:30:00", "2026-10-03T10:30:00.000Z"],
+    ["2026-10-03 10:30:00", "2026-10-03T10:30:00.000Z"],
+  ])("%s → %s", (input, expected) => {
+    expect(parseFeedDate(input).toISOString()).toBe(expected);
   });
 });
 
@@ -104,10 +126,10 @@ describe("toArticle", () => {
 });
 
 describe("recorded feeds (one per source, 2026-10-04)", () => {
-  test("there are 11 feeds from 10 publishers", () => {
-    expect(FEEDS).toHaveLength(11);
-    expect(new Set(FEEDS.map((f) => f.slug)).size).toBe(11);
-    expect(new Set(FEEDS.map((f) => f.name.replace(/^BBC .*/, "BBC"))).size).toBe(10);
+  test("there are 12 feeds from 11 publishers", () => {
+    expect(FEEDS).toHaveLength(12);
+    expect(new Set(FEEDS.map((f) => f.slug)).size).toBe(12);
+    expect(new Set(FEEDS.map((f) => f.name.replace(/^BBC .*/, "BBC"))).size).toBe(11);
   });
 
   test.each(FEEDS)("$slug parses into clean articles", (source) => {

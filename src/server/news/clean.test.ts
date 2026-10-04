@@ -9,12 +9,28 @@ describe("cleanText", () => {
     ["HTML escaped once is still stripped", "&lt;p&gt;Hello&lt;/p&gt;", "Hello"],
     ["HTML escaped twice is still stripped", "&amp;lt;b&amp;gt;Hi&amp;lt;/b&amp;gt; &amp;amp; bye", "Hi & bye"],
     ["whitespace is collapsed", "  a \n\t b   c ", "a b c"],
+    ["HTML escaped three times never comes out as a live tag", "&amp;amp;lt;script&amp;amp;gt;alert(1)&amp;amp;lt;/script&amp;amp;gt;ok", "ok"],
+    ["HTML escaped four times never comes out as a live tag", "&amp;amp;amp;lt;b&amp;amp;amp;gt;bold&amp;amp;amp;lt;/b&amp;amp;amp;gt;", "bold"],
     ["comments are removed", "a<!-- hidden -->b", "a b"],
     ["a less-than sign in prose is kept", "rates stay < 5% and > 2%", "rates stay < 5% and > 2%"],
     ["an unknown entity is left as written", "R&D; &zzz;", "R&D; &zzz;"],
     ["an invalid code point is left as written", "&#xD800; &#0;", "&#xD800; &#0;"],
   ])("%s", (_name, input, expected) => {
     expect(cleanText(input)).toBe(expected);
+  });
+});
+
+describe("cleanText on deeply escaped markup", () => {
+  const escape = (text: string, levels: number) => {
+    for (let i = 0; i < levels; i++) text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return text;
+  };
+
+  // 20 levels: the last allowed pass decodes into live tags, so the final strip must remove them.
+  test.each([1, 2, 3, 4, 19, 20, 21, 40])("%i levels of escaping never give a live tag", (levels) => {
+    const cleaned = cleanText(escape('<script>alert(1)</script><b>bold</b> ok', levels));
+    expect(cleaned).not.toMatch(/<[a-z\/]/i);
+    if (levels <= 20) expect(cleaned).toBe("bold ok");
   });
 });
 
@@ -48,6 +64,10 @@ describe("canonicalUrl", () => {
     ["surrounding whitespace", "  https://example.com/story/one\n"],
   ])("%s does not make a different article", (_name, link) => {
     expect(canonicalUrl(link)).toBe(same);
+  });
+
+  test("parameters are sorted by code unit, whatever the machine's locale", () => {
+    expect(canonicalUrl("https://example.com/a?b=1&B=2&a=3&%C3%A9=4")).toBe("https://example.com/a?B=2&a=3&b=1&%C3%A9=4");
   });
 
   test("remaining parameters are kept and sorted", () => {

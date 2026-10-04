@@ -32,19 +32,23 @@ function stripMarkup(text: string): string {
     .replace(/<\/?[a-z!][^>]*>/gi, " ");
 }
 
+const MAX_PASSES = 20;
+
 /**
  * Plain text from feed text: script/style content removed, tags stripped,
- * entities decoded, whitespace collapsed. Repeated because feeds escape HTML
- * once or twice ("&amp;lt;p&amp;gt;").
+ * entities decoded, whitespace collapsed. Feeds escape HTML once, twice or
+ * more ("&amp;lt;p&amp;gt;"), so strip-and-decode repeats until nothing
+ * changes, and the result always ends with a strip: a decode can never be the
+ * last step that turns escaped markup into live tags.
  */
 export function cleanText(input: string): string {
   let text = input;
-  for (let pass = 0; pass < 3; pass++) {
+  for (let pass = 0; pass < MAX_PASSES; pass++) {
     const next = decodeEntities(stripMarkup(text));
     if (next === text) break;
     text = next;
   }
-  return text.replace(/\s+/g, " ").trim();
+  return stripMarkup(text).replace(/\s+/g, " ").trim();
 }
 
 const SNIPPET_MAX = 500;
@@ -74,7 +78,8 @@ export function canonicalUrl(link: string): string | null {
   url.protocol = "https:"; // also drops :80 / :443, and URL lower-cases the host
   url.hash = "";
   const kept = [...url.searchParams].filter(([name]) => !TRACKING.test(name));
-  kept.sort(([a, av], [b, bv]) => (a === b ? av.localeCompare(bv) : a.localeCompare(b)));
+  const order = (x: string, y: string) => (x < y ? -1 : x > y ? 1 : 0); // code units, not the machine's locale
+  kept.sort(([a, av], [b, bv]) => order(a, b) || order(av, bv));
   url.search = new URLSearchParams(kept).toString();
   if (url.pathname.length > 1) url.pathname = url.pathname.replace(/\/+$/, "");
   return url.href;
