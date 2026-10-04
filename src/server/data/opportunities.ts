@@ -266,6 +266,7 @@ export async function closeStaleOpportunities(now: Date, days = 30): Promise<num
       and coalesce((select max(oa.cited_at) from opportunity_articles oa where oa.opportunity_id = o.id), o.created_at) < ${cutoff.toISOString()}
     returning o.id`);
   return rows.map((r) => Number(r.id));
+}
 
 export type RescoreInput = {
   id: number;
@@ -281,10 +282,9 @@ export type RescoreInput = {
 
 /**
  * Open opportunities to re-score on `today` (a WIB day): last scored before
- * today, with at least one cited article fetched on or after the day of that
- * score (new evidence; scoring-v1 §4). Until OR-50's cited_at exists this uses
- * the article's fetch time, which may re-score once too often but never misses
- * new evidence. Each comes with its cited articles, newest first (at most 30).
+ * today, with at least one article of an active source cited on or after the
+ * day of that score (new evidence; scoring-v1 §4). Each comes with its cited
+ * articles, newest first (at most 30).
  */
 export async function opportunitiesToRescore(today: string, limit: number): Promise<RescoreInput[]> {
   const rows = (await db().execute(sqlTag`
@@ -307,7 +307,7 @@ export async function opportunitiesToRescore(today: string, limit: number): Prom
         join articles a on a.id = oa.article_id
         join sources src on src.id = a.source_id and src.active
         where oa.opportunity_id = o.id
-          and a.fetched_at >= (s.last_day::timestamp at time zone 'Asia/Jakarta'))
+          and oa.cited_at >= (s.last_day::timestamp at time zone 'Asia/Jakarta'))
     order by o.id
     limit ${limit}`)) as unknown as {
     id: number; title_en: string; thesis_en: string; theme: string; region: string; sectors: string[];
