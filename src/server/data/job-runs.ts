@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql as sqlTag } from "drizzle-orm";
 import { db, sql } from "./client.ts";
 import { jobRuns, type JobStatus } from "./schema.ts";
 
@@ -16,7 +16,8 @@ export async function finishJobRun(
 ): Promise<JobRun> {
   const [row] = await db()
     .update(jobRuns)
-    .set({ ...result, finishedAt: new Date() })
+    // The database clock, like started_at: the host and container clocks can differ.
+    .set({ ...result, finishedAt: sqlTag`now()` })
     .where(eq(jobRuns.id, id))
     .returning();
   if (!row) throw new Error(`No job run with id ${id}`);

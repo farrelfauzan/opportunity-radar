@@ -50,7 +50,7 @@ export function pipelineOrder(steps: string[], registry: Registry): string[] {
   const visit = (step: string, path: string[]) => {
     if (ordered.includes(step)) return;
     if (path.includes(step)) throw new Error(`Pipeline steps depend on each other: ${[...path, step].join(" → ")}`);
-    const job = registry[step];
+    const job = Object.hasOwn(registry, step) ? registry[step] : undefined;
     if (!job || "steps" in job) throw new Error(`Pipeline step "${step}" is not a registered job`);
     for (const earlier of job.after ?? []) if (steps.includes(earlier)) visit(earlier, [...path, step]);
     ordered.push(step);
@@ -100,7 +100,8 @@ function runWithLimits(job: Job, options: RunOptions): Promise<JobOutcome | void
  * writes nothing) when the name is not registered.
  */
 export async function runJob(name: string, registry: Registry, options: RunOptions = {}): Promise<JobRun> {
-  const entry = registry[name];
+  // hasOwn: "constructor", "toString" or "__proto__" are not jobs.
+  const entry = Object.hasOwn(registry, name) ? registry[name] : undefined;
   if (!entry) throw new UnknownJobError(name, Object.keys(registry));
 
   // The lock lives on its own database session: if this process dies, even

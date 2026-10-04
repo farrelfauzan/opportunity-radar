@@ -17,6 +17,11 @@ test("very short values are left alone, so the message stays readable", () => {
   expect(errorSummary(new Error("1 of 12 feeds failed"), { FLAG: "1", LANG: "en" })).toBe("1 of 12 feeds failed");
 });
 
+test("a short value is redacted when the variable's name says it is a secret", () => {
+  const env = { API_KEY: "k9z", DB_PASSWORD: "pw1", MODE: "pw1x" };
+  expect(errorSummary(new Error("auth k9z failed for pw1"), env)).toBe("auth [redacted] failed for [redacted]");
+});
+
 test("the summary is the message only, cut at 500 characters", () => {
   const summary = errorSummary(new Error("x".repeat(600)), {});
   expect(summary).toHaveLength(501);

@@ -99,11 +99,20 @@ describe("runner", () => {
     expect(await runJob("some", registry)).toMatchObject({ status: "partial", counts: { ok: 11, failed: 1 } });
   });
 
-  test("an unknown job throws, lists the valid jobs and writes no record", async () => {
-    const error = await runJob("nope", jobs).catch((e) => e);
-    expect(error).toBeInstanceOf(UnknownJobError);
-    expect(error.validJobs).toContain("morning");
-    expect(await runs()).toEqual([]);
+  test.each(["nope", "constructor", "toString", "__proto__", "hasOwnProperty"])(
+    "an unknown job (%s) throws, lists the valid jobs and writes no record",
+    async (name) => {
+      const error = await runJob(name, jobs).catch((e) => e);
+      expect(error).toBeInstanceOf(UnknownJobError);
+      expect(error.validJobs).toContain("morning");
+      expect(await runs()).toEqual([]);
+    },
+  );
+
+  test("finish times come from the same clock as start times", async () => {
+    for (let i = 0; i < 20; i++) await runJob("noop", jobs);
+    const rows = await db().execute(sql`select count(*) as n from job_runs where finished_at < started_at`);
+    expect(Number(rows[0].n)).toBe(0);
   });
 });
 
@@ -192,7 +201,8 @@ describe("lastSuccessfulRun", () => {
 });
 
 // The real command, on plain Node outside Next.js, against the test database.
-describe("pnpm job", () => {
+// Each test spawns Node processes; on a busy machine one start-up takes seconds.
+describe("pnpm job", { timeout: 60_000 }, () => {
   const [node, ...nodeArgs] = JSON.parse(readFileSync(`${root}package.json`, "utf8")).scripts.job.split(" ");
   const env = { ...process.env, NODE_ENV: undefined } as unknown as NodeJS.ProcessEnv;
   const job = (args: string[], extraEnv: Record<string, string> = {}) =>
@@ -208,10 +218,10 @@ describe("pnpm job", () => {
     expect(await runs()).toMatchObject([{ job: "noop", status: "ok" }]);
   });
 
-  test("an unknown job exits non-zero, lists the valid jobs and writes nothing", async () => {
-    const result = job(["nope"]);
+  test.each(["nope", "constructor"])("an unknown job (%s) exits non-zero, lists the valid jobs and writes nothing", async (name) => {
+    const result = job([name]);
     expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain('Unknown job "nope". Valid jobs: triage, opportunities, scores, brief, morning');
+    expect(result.stderr).toContain(`Unknown job "${name}". Valid jobs: triage, opportunities, scores, brief, morning`);
     expect(await runs()).toEqual([]);
   });
 
