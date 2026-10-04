@@ -95,6 +95,13 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
   `initial` baseline. Signals on made-up prices are stored with `synthetic = true` and the screens
   show "No signal: sample data" instead, unless `SHOW_SAMPLE_SIGNALS=1` (development and QA only;
   ignored in production). No alert comes from them.
+- `pnpm job explanations` (after `signals`) writes the report behind each changed signal (and
+  weekly for the rest): an explanation of what the rules see, the risks, and a news check (this
+  week's matching articles read as supportive or against), in EN and ID. The verdict always comes
+  from the rules; a reply that names another verdict, a price that is not one of the rules'
+  reversal prices, or advice is rejected (one retry, then nothing is stored). A report on sample
+  prices starts with "Signal computed on sample data, not on real prices." and is shown only
+  with `SHOW_SAMPLE_SIGNALS=1`.
 - Made-up prices are stored with `source = synthetic` and are never written over real ones: a run in
   fixtures mode on an asset that already has real prices writes nothing for it and is `partial`. An
   unknown `PRICES_*` value fails the run.

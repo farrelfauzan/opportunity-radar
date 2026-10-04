@@ -684,3 +684,35 @@ export const signalHistory = pgTable(
     check("signal_history_close_check", sql`${t.close} > 0`),
   ],
 );
+
+// The written explanation of one asset's signal for one term (OR-33): the LLM explains, it never
+// decides. `verdict` is copied from OR-29's signal, never from the model's reply. One current row
+// per asset and term, replaced when it is written again.
+export const signalReports = pgTable(
+  "signal_reports",
+  {
+    assetId: integer("asset_id")
+      .notNull()
+      .references(() => assets.id, { onDelete: "cascade" }),
+    term: text().$type<SignalTerm>().notNull(),
+    verdict: text().$type<SignalVerdict>().notNull(),
+    explanationEn: text("explanation_en").notNull(),
+    explanationId: text("explanation_id").notNull(),
+    risksEn: jsonb("risks_en").$type<string[]>().notNull(),
+    risksId: jsonb("risks_id").$type<string[]>().notNull(),
+    // The news check: ids of the matched articles the model read as supportive / against, and how many matched.
+    newsSupportive: integer("news_supportive").array().notNull(),
+    newsAgainst: integer("news_against").array().notNull(),
+    newsTotal: integer("news_total").notNull(),
+    rulesVersion: text("rules_version").notNull(),
+    synthetic: boolean().notNull().default(false),
+    generatedAt: timestamp("generated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.assetId, t.term] }),
+    check("signal_reports_term_check", inList(t.term, SIGNAL_TERMS)),
+    check("signal_reports_verdict_check", inList(t.verdict, VERDICTS)),
+    check("signal_reports_text_check", sql`length(trim(${t.explanationEn})) > 0 and length(trim(${t.explanationId})) > 0`),
+    check("signal_reports_news_check", sql`${t.newsTotal} >= 0 and cardinality(${t.newsSupportive}) + cardinality(${t.newsAgainst}) <= ${t.newsTotal}`),
+  ],
+);

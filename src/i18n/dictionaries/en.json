@@ -385,6 +385,7 @@
     }
   },
   "sample": {
-    "badge": "Sample"
+    "badge": "Sample",
+    "signalNote": "Signal computed on sample data, not on real prices."
   }
 }

@@ -64,6 +64,25 @@ export const MOCK_RESPONSES: Record<string, MockCase[]> = {
       usage: { prompt_tokens: 3000, completion_tokens: 400 },
     },
   ],
+  // OR-33: a "[mock]" explanation naming only the rules' verdict, one risk, the first article as supportive.
+  explanations: [
+    {
+      name: "plain-report",
+      content: (requestText) => {
+        const data = fencedData(requestText, "SIGNAL") as { verdict: "BUY" | "HOLD" | "SELL"; articles: { id: number }[] };
+        const word = { BUY: ["buy", "beli"], HOLD: ["hold", "tahan"], SELL: ["sell", "jual"] }[data.verdict] ?? ["hold", "tahan"];
+        return JSON.stringify({
+          explanation: {
+            en: `[mock] Recorded explanation: the rules give a ${word[0]} signal; the AI explanation is not live yet.`,
+            id: `[mock] Penjelasan rekaman: aturan memberi sinyal ${word[1]}; penjelasan AI belum aktif.`,
+          },
+          risks: { en: ["[mock] Recorded risk: prices can move against the signal."], id: ["[mock] Risiko rekaman: harga dapat bergerak berlawanan dengan sinyal."] },
+          news: { supportive: data.articles.slice(0, 1).map((a) => a.id), against: [] },
+        });
+      },
+      usage: { prompt_tokens: 1200, completion_tokens: 300 },
+    },
+  ],
   // OR-38: every matched article rated relevant, middle scores, a "[mock]" wind pair.
   ventures: [
     {

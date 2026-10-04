@@ -385,6 +385,7 @@
     }
   },
   "sample": {
-    "badge": "Contoh"
+    "badge": "Contoh",
+    "signalNote": "Sinyal dihitung dari data contoh, bukan dari harga nyata."
   }
 }

@@ -6,6 +6,7 @@ import { ingestPrices } from "@/server/prices/ingest";
 import { ingestMetals } from "@/server/prices/metals";
 import { ingestCrypto } from "@/server/prices/crypto";
 import { computeSignals } from "@/server/signals/job";
+import { writeSignalReports } from "@/server/signals/explain";
 import { generateOpportunities } from "@/server/opportunities/generate";
 import { scoreOpportunities } from "@/server/opportunities/score";
 import { triageNews } from "@/server/news/triage";
@@ -85,6 +86,8 @@ export const jobs: Registry = {
   crypto: { timeoutSeconds: 300, run: () => ingestCrypto() },
   // OR-29: rules v1 on every asset's closes, after the price jobs (scheduled after them, OR-20).
   signals: { timeoutSeconds: 300, after: ["prices", "metals", "crypto"], run: () => computeSignals() },
+  // OR-33: the written report of each changed (or week-old) signal, after `signals`.
+  explanations: { timeoutSeconds: 900, after: ["signals"], run: () => writeSignalReports() },
   // Morning pipeline: triage → opportunities → scores → ventures → brief.
   // OR-14. Also the second step of `news` (ingest, then triage), the command to run every 30 minutes.
   triage: step("triage", { timeoutSeconds: 600, after: ["ingest-news"], run: () => triageNews() }),
