@@ -21,6 +21,8 @@ export type ChartResponse = {
   };
 };
 
+/** "synthetic" for made-up fixtures data, "yahoo" only for real Yahoo responses: stored with every value. */
+export type ChartSource = "synthetic" | "yahoo";
 export type Chart = { candles: Candle[]; quote: { price: number; asOf: Date } | null };
 
 const DAY_SECONDS = 24 * 60 * 60;
@@ -29,7 +31,9 @@ const DAY_SECONDS = 24 * 60 * 60;
  * Daily candles and the latest price from a chart response. Rows without a
  * close (Yahoo sends null rows) are skipped; a missing open, high or low takes
  * the close; the day is the exchange's calendar day; a day given twice keeps
- * the last row (the running day can appear twice).
+ * the last row (the running day can appear twice). A close that is zero,
+ * negative or not finite rejects the whole response (rules-v1 §4: INVALID_DATA),
+ * so the asset keeps its previous values and the run is partial.
  */
 export function parseChart(response: ChartResponse): Chart {
   const result = response.chart?.result?.[0];
@@ -37,10 +41,12 @@ export function parseChart(response: ChartResponse): Chart {
   const { meta, timestamp = [] } = result;
   const q = result.indicators.quote[0] ?? { open: [], high: [], low: [], close: [], volume: [] };
   const byDay = new Map<string, Candle>();
+  const valid = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v) && v > 0;
   timestamp.forEach((t, i) => {
     const close = q.close[i];
-    if (typeof close !== "number" || !(close > 0)) return;
-    const pick = (v: number | null | undefined) => (typeof v === "number" && v > 0 ? v : close);
+    if (close === null || close === undefined) return; // Yahoo's null rows
+    if (!valid(close)) throw new PriceSourceError(`invalid close ${close} in the response`);
+    const pick = (v: number | null | undefined) => (valid(v) ? v : close);
     const open = pick(q.open[i]);
     const day = new Date((t + meta.gmtoffset) * 1000).toISOString().slice(0, 10);
     byDay.set(day, {
@@ -49,12 +55,12 @@ export function parseChart(response: ChartResponse): Chart {
       high: Math.max(pick(q.high[i]), open, close),
       low: Math.min(pick(q.low[i]), open, close),
       close,
-      volume: typeof q.volume[i] === "number" ? Math.round(q.volume[i]!) : null,
+      volume: typeof q.volume[i] === "number" && Number.isFinite(q.volume[i]) && q.volume[i]! >= 0 ? Math.round(q.volume[i]!) : null,
     });
   });
   const candles = [...byDay.values()].sort((a, b) => (a.day < b.day ? -1 : 1));
   const quote =
-    typeof meta.regularMarketPrice === "number" && meta.regularMarketPrice > 0 && typeof meta.regularMarketTime === "number"
+    valid(meta.regularMarketPrice) && valid(meta.regularMarketTime)
       ? { price: meta.regularMarketPrice, asOf: new Date(meta.regularMarketTime * 1000) }
       : null;
   return { candles, quote };
@@ -148,9 +154,9 @@ export function yahooMode(): "fixtures" | "live" {
   return mode;
 }
 
-/** The chart of one symbol for a range ("5d", "1mo", "1y", "6y"). */
-export async function fetchChart(symbol: string, range: string, transport: typeof fetch = fetch): Promise<Chart> {
-  if (yahooMode() === "fixtures") return parseChart(syntheticChart(symbol, range));
+/** The chart of one symbol for a range ("5d", "1mo", "1y", "6y"), with where it came from. */
+export async function fetchChart(symbol: string, range: string, transport: typeof fetch = fetch): Promise<Chart & { source: ChartSource }> {
+  if (yahooMode() === "fixtures") return { ...parseChart(syntheticChart(symbol, range)), source: "synthetic" };
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=1d&includePrePost=false`;
   let response: Response;
   try {
@@ -160,7 +166,7 @@ export async function fetchChart(symbol: string, range: string, transport: typeo
   }
   if (!response.ok) throw new PriceSourceError(String(response.status));
   try {
-    return parseChart((await response.json()) as ChartResponse);
+    return { ...parseChart((await response.json()) as ChartResponse), source: "yahoo" };
   } catch (error) {
     if (error instanceof PriceSourceError) throw error;
     throw new PriceSourceError("not a chart response");

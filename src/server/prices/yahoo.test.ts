@@ -49,6 +49,25 @@ describe("parseChart", () => {
     expect(chart.candles).toEqual([{ day: "2026-10-02", open: 2, high: 2, low: 2, close: 2, volume: 2 }]);
   });
 
+  test("the day is the exchange's calendar day: an IDX bar at 17:30 UTC is the next day in WIB", () => {
+    const at = Date.parse("2026-10-01T17:30:00Z") / 1000; // 00:30 WIB on 2 October
+    expect(parseChart(response([[at, 1, 1, 1, 1, 1]])).candles[0].day).toBe("2026-10-02");
+    const us = parseChart(response([[Date.parse("2026-10-02T00:30:00Z") / 1000, 1, 1, 1, 1, 1]], { gmtoffset: -4 * 3600 }));
+    expect(us.candles[0].day).toBe("2026-10-01"); // 20:30 New York time on 1 October
+  });
+
+  test.each([
+    ["a zero close", 0],
+    ["a negative close", -5],
+    ["an infinite close (1e999 in the JSON)", JSON.parse("1e999")],
+  ])("%s rejects the whole response (rules-v1: INVALID_DATA)", (_name, close) => {
+    expect(() => parseChart(response([[T.thu, 1, 1, 1, 1, 1], [T.fri, 1, 1, 1, close, 1]]))).toThrow("invalid close");
+  });
+
+  test("a non-finite market price gives no quote", () => {
+    expect(parseChart(response([[T.thu, 1, 1, 1, 1, 1]], { regularMarketPrice: JSON.parse("1e999") })).quote).toBeNull();
+  });
+
   test("an error response is a source error", () => {
     expect(() => parseChart({ chart: { result: null, error: { code: "Not Found", description: "No data found" } } })).toThrow("No data found");
   });

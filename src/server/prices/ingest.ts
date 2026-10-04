@@ -20,8 +20,9 @@ export function rangeFor(lastDay: string | null, now: Date): string {
 
 async function yahooAsset(asset: Asset, transport: typeof fetch | undefined, now: Date) {
   const chart = await fetchChart(asset.symbol, rangeFor(await lastCandleDay(asset.id), now), transport);
-  const stored = await upsertCandles(asset.id, "yahoo", chart.candles);
-  if (chart.quote) await setQuote(asset.id, { ...chart.quote, source: "yahoo" });
+  // "synthetic" in fixtures mode: made-up prices must never look like Yahoo's.
+  const stored = await upsertCandles(asset.id, chart.source, chart.candles);
+  if (chart.quote) await setQuote(asset.id, { ...chart.quote, source: chart.source });
   return stored;
 }
 

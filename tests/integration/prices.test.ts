@@ -63,7 +63,38 @@ describe("prices job", () => {
       error: "3 of 4 assets failed: ihsg (429), bbca (429), sp500 (429)",
     });
     const after = await getQuote(ihsg.id);
-    expect(after).toMatchObject({ price: before!.price, asOf: before!.asOf, source: "yahoo" });
+    expect(after).toMatchObject({ price: before!.price, asOf: before!.asOf, source: "synthetic" });
+  });
+
+  test("live mode labels what it stores as yahoo", async () => {
+    process.env.PRICES_YAHOO = "live";
+    const { syntheticChart } = await import("@/server/prices/yahoo");
+    const transport = (async (url: string) => {
+      const symbol = decodeURIComponent(/chart\/([^?]+)/.exec(url)![1]);
+      return Response.json(syntheticChart(symbol, "5d", NOW)); // shape only: a stand-in for Yahoo's reply
+    }) as unknown as typeof fetch;
+    await ingestPrices({ transport, now: () => NOW });
+    const bbca = (await getQuote((await getAssetBySlug("bbca"))!.id))!;
+    expect(bbca.source).toBe("yahoo");
+  });
+
+  test("a response with a zero close: that asset fails and keeps its previous quote, the run is partial", async () => {
+    await ingestPrices({ now: () => NOW });
+    const bbca = (await getAssetBySlug("bbca"))!;
+    const before = await getQuote(bbca.id);
+    process.env.PRICES_YAHOO = "live";
+    const { syntheticChart } = await import("@/server/prices/yahoo");
+    const transport = (async (url: string) => {
+      const chart = syntheticChart(decodeURIComponent(/chart\/([^?]+)/.exec(url)![1]), "5d", NOW);
+      if (url.includes("BBCA")) chart.chart.result![0].indicators.quote[0].close[0] = 0;
+      return Response.json(chart);
+    }) as unknown as typeof fetch;
+
+    const outcome = await ingestPrices({ transport, now: () => NOW });
+
+    expect(outcome).toMatchObject({ status: "partial", counts: { assets_failed: 1 } });
+    expect(outcome.error).toContain("bbca (invalid close 0 in the response)");
+    expect(await getQuote(bbca.id)).toMatchObject({ price: before!.price, asOf: before!.asOf });
   });
 
   test("every source failing fails the run", async () => {
@@ -79,8 +110,10 @@ describe("prices job", () => {
     expect(usd).toMatchObject({ source: "frankfurter", asOf: new Date("2026-10-02T00:00:00Z") });
     expect(usd.price).toBeGreaterThan(10000);
     const bbca = (await getQuote((await getAssetBySlug("bbca"))!.id))!;
-    expect(bbca.source).toBe("yahoo");
+    expect(bbca.source).toBe("synthetic"); // fixtures mode: never labelled as Yahoo
     expect(bbca.asOf).toBeInstanceOf(Date);
+    const candles = await db().execute(sql`select distinct c.source from candles c join assets a on a.id = c.asset_id where a.source = 'yahoo'`);
+    expect(candles).toEqual([{ source: "synthetic" }]);
   });
 
   test("USD/IDR is fetched at most every 6 hours", async () => {
