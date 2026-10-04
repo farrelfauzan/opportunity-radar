@@ -445,3 +445,56 @@ export const llmUsage = pgTable(
     index("llm_usage_provider_created_idx").on(t.provider, t.createdAt),
   ],
 );
+
+// Theme vocabulary, docs/opportunities/scoring-v1.md §8 (36 + other).
+export const THEMES = [
+  "ai_adoption", "ai_regulation", "data_centers", "semiconductors", "cybersecurity", "digital_payments",
+  "digital_banking_lending", "interest_rates", "inflation_cost_living", "rupiah_fx", "trade_tariffs",
+  "geopolitics_conflict", "indonesia_policy", "indonesia_budget_subsidy", "downstreaming_minerals", "ev_batteries",
+  "renewable_energy", "oil_gas_coal", "food_security", "healthcare_access", "pharma_biotech", "ecommerce_social",
+  "consumer_spending", "logistics_supply_chain", "infrastructure_construction", "property_housing", "tourism_travel",
+  "education_skills", "startup_funding", "ipo_capital_markets", "halal_islamic_finance", "crypto_assets",
+  "gold_commodities", "labour_wages_layoffs", "climate_disasters", "smes_msme", "other",
+] as const;
+export type Theme = (typeof THEMES)[number];
+
+export const IMPACTS = ["opportunity", "risk", "context"] as const;
+export type Impact = (typeof IMPACTS)[number];
+
+// The AI's reading of one article (OR-14). One row per article, written once:
+// "ok" with every field, or "failed" (the article keeps its feed category).
+export const articleTriage = pgTable(
+  "article_triage",
+  {
+    articleId: bigint("article_id", { mode: "number" })
+      .primaryKey()
+      .references(() => articles.id, { onDelete: "cascade" }),
+    status: text().$type<"ok" | "failed">().notNull(),
+    category: text().$type<Category>(),
+    region: text().$type<Region>(),
+    relevance: integer(),
+    impact: text().$type<Impact>(),
+    whyEn: text("why_en"),
+    whyId: text("why_id"),
+    themes: text().array().$type<Theme[]>().notNull().default(sql`'{}'`),
+    error: text(),
+    triagedAt: timestamp("triaged_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check("article_triage_status_check", sql`${t.status} in ('ok', 'failed')`),
+    check(
+      "article_triage_ok_check",
+      sql`${t.status} <> 'ok' or (${t.category} is not null and ${t.region} is not null and ${t.relevance} is not null
+        and ${t.impact} is not null and ${t.whyEn} is not null and ${t.whyId} is not null
+        and ${t.whyEn} <> '' and ${t.whyId} <> '' and cardinality(${t.themes}) between 1 and 3)`,
+    ),
+    check("article_triage_category_check", sql`${t.category} is null or ${categoryCheck(t.category)}`),
+    check("article_triage_region_check", sql`${t.region} is null or ${regionCheck(t.region)}`),
+    check("article_triage_relevance_check", sql`${t.relevance} between 0 and 100`),
+    check("article_triage_impact_check", sql`${t.impact} in ('opportunity', 'risk', 'context')`),
+    check(
+      "article_triage_themes_check",
+      sql`${t.themes} <@ array[${sql.raw(THEMES.map((x) => `'${x}'`).join(", "))}]::text[]`,
+    ),
+  ],
+);

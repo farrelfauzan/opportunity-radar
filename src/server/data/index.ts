@@ -12,6 +12,8 @@ export {
   HORIZONS,
   CAPITAL_LEVELS,
   OPPORTUNITY_STATUSES,
+  THEMES,
+  IMPACTS,
 } from "./schema.ts";
 export type {
   Region,
@@ -24,6 +26,8 @@ export type {
   FactorScores,
   LlmRole,
   LlmCallStatus,
+  Theme,
+  Impact,
 } from "./schema.ts";
 export * from "./articles.ts";
 export * from "./sources.ts";
@@ -33,3 +37,4 @@ export { addDays, computeTrend, daysBetween, TREND_DAYS } from "./trend.ts";
 export type { Trend } from "./trend.ts";
 export * from "./ventures.ts";
 export * from "./llm-usage.ts";
+export * from "./triage.ts";

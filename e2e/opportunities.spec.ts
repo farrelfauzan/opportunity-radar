@@ -237,8 +237,10 @@ test("1280 px: the first item is selected by default, and choosing another keeps
 
   const first = listed[0];
   await expect(items(page)).toHaveCount(listed.length);
-  await expect(items(page).first().getByRole("link")).toHaveAttribute("aria-current", "true");
-  await expect(items(page).locator('[aria-current="true"]')).toHaveCount(1);
+  // The default selection is a visual mark beside the list; the URL names no opportunity, so no aria-current.
+  await expect(items(page).first().getByRole("link")).toHaveAttribute("data-selected", "true");
+  await expect(items(page).locator('[data-selected="true"]')).toHaveCount(1);
+  await expect(items(page).locator("[aria-current]")).toHaveCount(0);
   await expect(panel(page).getByRole("heading", { level: 2 })).toHaveText(first.title.en);
   await expect(panel(page)).toContainText(first.thesis.en);
   await expect(panel(page)).toContainText("82");
@@ -264,7 +266,7 @@ test("1280 px: the first item is selected by default, and choosing another keeps
   // On the index, the default selection follows the filters.
   await page.goto("/en/opportunities?region=global");
   await expect(panel(page).getByRole("heading", { level: 2 })).toHaveText(third.title.en);
-  await expect(items(page).first().getByRole("link")).toHaveAttribute("aria-current", "true");
+  await expect(items(page).first().getByRole("link")).toHaveAttribute("data-selected", "true");
 });
 
 test("1280 px: a filter without matches shows the empty state and no detail", async ({ page }) => {

@@ -10,6 +10,8 @@ import {
   insertOpportunity,
   lastScoringRun,
   listOpportunities,
+  MAX_LISTED,
+  openOpportunitiesQuery,
   recordOpportunityScore,
   recordSuccessfulRun,
   SCORING_JOB,
@@ -83,6 +85,15 @@ describe("listOpportunities: order", () => {
     await make({ titleEn: "E" }, [[0, 95]]);
 
     expect(await titles()).toEqual(["E", "B", "D", "A", "C"]);
+  });
+
+  test("the query orders by score and then by id, and is limited (read from the generated SQL)", () => {
+    // The index (status, current_score desc, id) returns ties in id order by itself, so the
+    // data alone cannot prove the explicit tie-break: the query text does.
+    const query = openOpportunitiesQuery().toSQL();
+    expect(query.sql).toMatch(/order by "opportunities"\."current_score" desc, "opportunities"\."id" asc/);
+    expect(query.sql).toMatch(/limit \$\d+/);
+    expect(query.params).toContain(MAX_LISTED);
   });
 
   test("each item carries its score and trend", async () => {
@@ -319,6 +330,37 @@ describe("citations and cascade", () => {
     expect(await count("opportunity_scores")).toBe(0);
     expect(await count("opportunity_articles")).toBe(0);
     expect(await count("articles")).toBe(1);
+  });
+
+  test("insertOpportunity stores its citations in the same transaction, or nothing at all", async () => {
+    const source = await upsertSource({
+      slug: "antara",
+      name: "Antara",
+      feedUrl: "https://example.com/feed.xml",
+      region: "indonesia",
+      category: "business",
+    });
+    const cited = [1, 2].map((n) => ({
+      sourceId: source.id,
+      link: `https://example.com/cited-${n}`,
+      region: "indonesia" as const,
+      category: "business" as const,
+      headline: `Cited ${n}`,
+      publishedAt: new Date("2026-10-03T05:00:00Z"),
+    }));
+    const ids = [(await insertArticle(cited[0])).article.id, (await insertArticle(cited[1])).article.id];
+    const count = async (table: string) =>
+      Number((await db().execute(sql.raw(`select count(*) as n from ${table}`)))[0].n);
+
+    const row = await insertOpportunity(base(), score(60), [...ids, ids[0]]); // a repeated id is stored once
+    expect(await count("opportunity_articles")).toBe(2);
+    expect((await getOpportunity(row.id))?.titleEn).toBe(row.titleEn);
+
+    // An article that does not exist makes the whole insert fail: no opportunity, no score, no citations.
+    await expect(insertOpportunity(base(), score(70), [ids[0], 999_999])).rejects.toThrow();
+    expect(await count("opportunities")).toBe(1);
+    expect(await count("opportunity_scores")).toBe(1);
+    expect(await count("opportunity_articles")).toBe(2);
   });
 
   test("a cited article cannot be deleted while an opportunity cites it", async () => {

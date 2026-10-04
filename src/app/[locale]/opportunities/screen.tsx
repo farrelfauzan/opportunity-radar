@@ -155,7 +155,7 @@ export async function OpportunitiesScreen({
       </div>
 
       {banner && (
-        <p role="status" className="rounded-lg border border-destructive px-4 py-3 text-destructive">
+        <p role="status" className="rounded-lg border border-glass-border bg-white/8 px-4 py-3 text-foreground">
           {banner}
         </p>
       )}
@@ -176,7 +176,14 @@ export async function OpportunitiesScreen({
             <ol aria-label={m.page.title.opportunities} className="flex flex-col gap-2">
               {list.map((item) => (
                 <li key={item.id}>
-                  <Item item={item} selected={item.id === selected?.id} query={query} locale={locale} m={m} />
+                  <Item
+                    item={item}
+                    selected={item.id === selected?.id}
+                    current={detail && item.id === selected?.id}
+                    query={query}
+                    locale={locale}
+                    m={m}
+                  />
                 </li>
               ))}
             </ol>
@@ -216,12 +223,16 @@ function meta(item: Opportunity, m: Messages): string {
 function Item({
   item,
   selected,
+  current,
   query,
   locale,
   m,
 }: {
   item: ListedOpportunity;
+  /** Shown beside the list (the first item by default on a desktop): a visual mark, from lg up only. */
   selected: boolean;
+  /** The URL names this opportunity: the page really is about it, so assistive technology is told. */
+  current: boolean;
   query: OpportunityQuery;
   locale: Locale;
   m: Messages;
@@ -231,10 +242,11 @@ function Item({
   return (
     <Link
       href={opportunitiesHref(locale, query, item.id)}
-      aria-current={selected ? "true" : undefined}
+      aria-current={current ? "true" : undefined}
+      data-selected={selected ? "true" : undefined}
       className={cn(
         // The selection is marked from lg up only: on a phone the list is shown without a detail beside it.
-        "flex items-center gap-3 rounded-lg border border-glass-border bg-card px-4 py-3 shadow-glass backdrop-blur-[18px] lg:aria-[current=true]:border-foreground lg:aria-[current=true]:ring-1 lg:aria-[current=true]:ring-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        "flex items-center gap-3 rounded-lg border border-glass-border bg-card px-4 py-3 shadow-glass backdrop-blur-[18px] lg:data-[selected=true]:border-foreground lg:data-[selected=true]:ring-1 lg:data-[selected=true]:ring-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
       )}
     >
       <span className="w-10 shrink-0 font-mono text-xl font-medium text-primary">{item.currentScore}</span>

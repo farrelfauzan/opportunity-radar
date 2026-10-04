@@ -76,11 +76,12 @@ async function trendsOf(rows: Opportunity[], today: string): Promise<Map<number,
  * 30-day trend. Access pattern "Open ones by score" in docs/data-model.md. Closed ones are
  * never listed. `now` is the instant "today" (the WIB day) is taken from.
  */
-export async function listOpportunities(
-  filter: OpportunityFilter = {},
-  now: Date = new Date(),
-): Promise<ListedOpportunity[]> {
-  const rows = await db()
+/** The list shows at most this many open opportunities (the model keeps a few dozen). */
+export const MAX_LISTED = 200;
+
+/** The list query: highest current score first, ties by id. Exported so a test can read its order. */
+export function openOpportunitiesQuery(filter: OpportunityFilter = {}) {
+  return db()
     .select()
     .from(opportunities)
     .where(
@@ -92,7 +93,15 @@ export async function listOpportunities(
         filter.capital ? eq(opportunities.capitalLevel, filter.capital) : undefined,
       ),
     )
-    .orderBy(desc(opportunities.currentScore), asc(opportunities.id));
+    .orderBy(desc(opportunities.currentScore), asc(opportunities.id))
+    .limit(MAX_LISTED);
+}
+
+export async function listOpportunities(
+  filter: OpportunityFilter = {},
+  now: Date = new Date(),
+): Promise<ListedOpportunity[]> {
+  const rows = await openOpportunitiesQuery(filter);
   const trends = await trendsOf(rows, wibDay(now));
   return rows.map((row) => ({ ...row, trend: trends.get(row.id)! }));
 }
@@ -136,7 +145,12 @@ function checkScore(score: NewScore): void {
  * Stores an opportunity together with its first score (an opportunity always has a score:
  * the contract in docs/opportunities/output.schema.json returns the factors with the text).
  */
-export async function insertOpportunity(input: NewOpportunity, firstScore: NewScore): Promise<Opportunity> {
+export async function insertOpportunity(
+  input: NewOpportunity,
+  firstScore: NewScore,
+  /** Articles the opportunity cites: stored in the same transaction, so it never exists without them. */
+  articleIds: number[] = [],
+): Promise<Opportunity> {
   checkScore(firstScore);
   if (new Set(input.sectors).size !== input.sectors.length) throw new Error("Opportunity sectors must not repeat");
   if (!input.sectors.every((sector) => SECTORS.includes(sector))) throw new Error("Unknown sector");
@@ -147,6 +161,11 @@ export async function insertOpportunity(input: NewOpportunity, firstScore: NewSc
       .values({ ...rest, closedAt, status: closedAt ? "closed" : "open", currentScore: firstScore.overall })
       .returning();
     await tx.insert(opportunityScores).values({ ...firstScore, opportunityId: row.id });
+    if (articleIds.length > 0) {
+      await tx
+        .insert(opportunityArticles)
+        .values([...new Set(articleIds)].map((articleId) => ({ opportunityId: row.id, articleId })));
+    }
     return row;
   });
 }

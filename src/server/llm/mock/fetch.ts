@@ -19,7 +19,13 @@ export function mockProvider(job: string): typeof fetch {
       id: `mock-${found.name}`,
       object: "chat.completion",
       model: body.model,
-      choices: [{ index: 0, message: { role: "assistant", content: found.content }, finish_reason: "stop" }],
+      choices: [
+        {
+          index: 0,
+          message: { role: "assistant", content: typeof found.content === "function" ? found.content(text) : found.content },
+          finish_reason: "stop",
+        },
+      ],
       ...(found.usage ? { usage: { ...found.usage, total_tokens: found.usage.prompt_tokens + found.usage.completion_tokens } } : {}),
     });
   }) as typeof fetch;
