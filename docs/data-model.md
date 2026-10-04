@@ -1,7 +1,7 @@
 # Data model v1
 
-Status: **proposed in OR-6, waiting for the Tech Lead's review.** Only `sources`, `articles` and
-`job_runs` exist in the database (migration `drizzle/0000_init.sql`). Every other entity is the
+Status: **proposed in OR-6, waiting for the Tech Lead's review.** Built so far: `sources`,
+`articles`, `job_runs` (OR-6, OR-8) and the venture tables (OR-36, migration `0003_ventures`). Every other entity is the
 plan its ticket follows when it adds its own migration.
 
 Storage is Postgres (local docker compose, see the README). The schema lives in
@@ -40,8 +40,8 @@ Storage is Postgres (local docker compose, see the README). The schema lives in
 | 10 | `signals` | The current signal of one asset for one term (short / long): Buy / Hold / Sell, since when, the checks and their verdicts, rules version, and the written report (EN, ID): summary, risks, what would reverse it | (`asset_id`, `term`) (one current row, overwritten) | Signals of the watchlist for one term; both terms of one asset | Current only; the past is in `signal_history` | Investments (watchlist); Asset report (signal cards, report, checks table); Radar (investment alerts) |
 | 11 | `signal_history` | A change of signal: asset, term, day, new signal, the trigger, the price that day | (`asset_id`, `term`, `day`) | History of one asset, newest first; markers on the chart | Kept | Asset report (signal history, chart markers) |
 | 12 | `alerts` | A message for the user about an asset: signal label, text (EN, ID), created at, read at, where it was sent | `id` (one per signal change or watch notice) | Newest first; unread count | Kept 1 year | Investments (alerts); header bell count; Radar (investment alerts) |
-| 13 | `ventures` | One of the owner's ventures: name, description, where its progress comes from | `slug` | All ventures | Kept | Radar (My ventures) |
-| 14 | `venture_snapshots` | One venture on one WIB day: progress %, board status line, opportunity score for Indonesia and worldwide, tailwind and headwind (EN, ID) | (`venture_id`, `day`) | Latest snapshot and the one before (for the score delta) | Kept | Radar (My ventures); venture view |
+| 13 | `ventures` | One of the owner's ventures: name, description (EN, ID), 1–3 sectors (scoring-v1 §7), news-matching keywords, progress goal (MVP / next release), progress source (Notion or not connected). Edited in `src/server/ventures/config.ts`, seeded. Removing a venture from the config leaves its row and history in the database (the seed only adds and updates) | `slug` | All ventures; one by slug (venture view) | Kept | Radar (My ventures); venture view |
+| 14 | `venture_progress` · `venture_market` · `venture_winds` · `venture_articles` | Replace the single `venture_snapshots` (OR-36), so each job writes its own table with its own failure rule. **Progress** (OR-37): one row per venture per WIB day, only successful reads (%, sprint delivered, next sprint, tickets in QA; the sentence is built per language). **Market** (OR-38): one row per venture, day and region, score and five factors, or null when there is no related news (never invented). **Winds** (OR-38): one tailwind/headwind pair per venture per day (EN, ID), each citing article ids. **Articles** (OR-38): venture ↔ article matches with relevance | progress (`venture_id`, `day`); market (`venture_id`, `day`, `region`); winds (`venture_id`, `day`); articles (`venture_id`, `article_id`) | Latest progress row; latest market row per region and the one before (change vs yesterday, computed on read) and 30 days (trend line); latest winds; matched articles of the last 30 days, newest first, and their count | Progress, market, winds kept; a match is deleted with its article | Radar (My ventures); venture view |
 | 15 | `job_runs` | One run of a job: name, status (running / ok / partial / failed / skipped), started, finished, counts, error summary | `id` | Latest finished ok or partial run of a job ("updated …", stale banner); recent runs of a job | 90 days (pruning with the article pruning job) | Every screen's "updated" time and stale state; `pnpm sources:health` |
 | 16 | `llm_usage` | One AI call: purpose, model, input and output tokens, cost, time | `id` | Total cost this month (budget cap); by purpose | Kept 1 year | No screen; the budget check in the LLM client |
 
@@ -64,6 +64,12 @@ triage (OR-14) can later re-categorise one article without touching its source.
 `error`. A row is written when the run starts (`running`) and updated when it ends, so a crashed
 job leaves a record. Index on (`job`, `finished_at desc`).
 
+**Switched-off sources.** A source with `active = false` (its feed was removed or its terms do not
+allow our use) keeps its articles in the database; deleting them is the Tech Lead's call. Those
+articles are invisible: every read of articles for a screen, a count, the triage queue or
+opportunity/venture matching applies `articleIsVisible` (the source is active) from
+`src/server/data/articles.ts`.
+
 ### Access patterns in code
 
 | Pattern | Function in `@/server/data` | Query |
@@ -82,7 +88,7 @@ Politics & policy, Tech & AI, Markets, Commodities). Regions: `indonesia`, `glob
 |--------------------|------|----------|
 | 1 Radar | Date and "updated 07:00 WIB" | `job_runs` |
 | | Daily brief | `daily_briefs` (see below), built from `articles`, `article_triage`, `opportunity_articles` |
-| | My ventures | `ventures`, `venture_snapshots`, `venture_articles` (see below) |
+| | My ventures | `ventures`, `venture_progress`, `venture_market`, `venture_winds`, `venture_articles` |
 | | Top opportunities | `opportunities`, `opportunity_scores`, `opportunity_articles` |
 | | Investment alerts | `alerts`, `signals`, `assets` |
 | | Market snapshot | `assets`, `quotes`, `candles` |
@@ -103,6 +109,11 @@ Politics & policy, Tech & AI, Markets, Commodities). Regions: `indonesia`, `glob
 | | Signal cards, report, checks | `signals` |
 | | Signal history | `signal_history` |
 | 6 Calculators | Everything | None: runs in the browser on the user's own inputs |
+| 7 Venture view (`docs/design/venture-view.md`) | Header | `ventures` |
+| | Build progress | `venture_progress` |
+| | Market view, Indonesia and Worldwide | `venture_market` |
+| | What helps and what hurts | `venture_winds`, `articles`, `sources` |
+| | Related news, 30 days | `venture_articles`, `articles`, `article_triage`, `sources` |
 | Every screen | Header bell count | `alerts` |
 
 ## Records outside the 16 that the screens need
@@ -112,7 +123,6 @@ Named here so they are not forgotten; each is added by its own ticket.
 | Record | Why | Ticket |
 |--------|-----|--------|
 | `daily_briefs` (one per WIB day: items with category, summary EN/ID, opportunities affected, article and source counts) | The Radar daily brief is AI text and must not be regenerated on a page view | OR-22 |
-| `venture_articles` (venture, article, relevance) | "7 related news items" on a venture card | OR-36 |
 | `shortlist` (opportunity, saved at) | "Save to my shortlist" | OR-41 |
 | `settings` (alert channels on/off) | "Send alerts to: In the app / Telegram / Email" | The alert delivery ticket (D4 is still open) |
 
@@ -124,7 +134,7 @@ Choices that are hard to change later:
    re-categorise an article and the News list stays a one-table query.
 2. **`signals` and `quotes` hold only the current value**; history lives in `signal_history` and
    `candles`. Simple to read, and nothing grows without bound.
-3. **Daily records use the WIB calendar day** (`opportunity_scores`, `venture_snapshots`,
+3. **Daily records use the WIB calendar day** (`opportunity_scores`, `venture_progress`, `venture_market`, `venture_winds`,
    `candles`, `daily_briefs`). US-market candles are stored under the exchange's trading day.
 4. **AI text is stored in both languages at write time** (`_en`, `_id` columns) rather than
    translated on a page view, so a page view never calls the AI.

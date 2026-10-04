@@ -88,6 +88,15 @@ export type ArticleFilter = {
   category?: Category;
 };
 
+/**
+ * The one rule for which stored articles may be shown, counted, triaged or
+ * matched: those whose source is active. Articles of a switched-off source stay
+ * in the database (deleting them is the Tech Lead's call) but are invisible.
+ * Every read of articles joins `sources` and applies this condition, including
+ * the triage queue (OR-14) and opportunity / venture matching (OR-15, OR-38).
+ */
+export const articleIsVisible = eq(sources.active, true);
+
 /** The News-list query, unexecuted (the tie-break test reads its SQL). */
 export function articlesQuery(filter: ArticleFilter) {
   const day = filter.day ?? wibDay();
@@ -102,6 +111,7 @@ export function articlesQuery(filter: ArticleFilter) {
     .innerJoin(sources, eq(articles.sourceId, sources.id))
     .where(
       and(
+        articleIsVisible,
         gte(articles.publishedAt, start),
         lt(articles.publishedAt, new Date(start.getTime() + DAY_MS)),
         filter.region ? eq(articles.region, filter.region) : undefined,

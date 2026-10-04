@@ -200,6 +200,26 @@ describe("listArticles: a WIB calendar day, newest first", () => {
     );
   });
 
+  test("articles of a switched-off source are kept but not listed; switching it on shows them again", async () => {
+    await at("2026-10-03T03:00:00Z", "from-active");
+    const off = {
+      slug: "switched-off",
+      name: "Switched off",
+      feedUrl: "https://example.com/off.xml",
+      region: "global",
+      category: "tech-ai",
+    } as const;
+    const other = await upsertSource(off);
+    await at("2026-10-03T04:00:00Z", "from-inactive", { sourceId: other.id });
+
+    await upsertSource({ ...off, active: false });
+    expect((await listArticles({ day: "2026-10-03" })).map((a) => a.headline)).toEqual(["from-active"]);
+    expect(await count()).toBe(2); // kept in the database
+
+    await upsertSource({ ...off, active: true });
+    expect((await listArticles({ day: "2026-10-03" })).map((a) => a.headline)).toEqual(["from-inactive", "from-active"]);
+  });
+
   test("an invalid day is rejected", async () => {
     await expect(listArticles({ day: "03-10-2026" })).rejects.toThrow("YYYY-MM-DD");
     await expect(listArticles({ day: "2026-13-40" })).rejects.toThrow("YYYY-MM-DD");

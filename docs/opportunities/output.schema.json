@@ -24,7 +24,7 @@
   "properties": {
     "title": { "$ref": "#/$defs/text90" },
     "thesis": { "$ref": "#/$defs/text400" },
-    "region": { "enum": ["indonesia", "worldwide"] },
+    "region": { "enum": ["indonesia", "global"] },
     "theme": { "type": "string", "pattern": "^[a-z_]+$" },
     "sectors": { "type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z_]+$" } },
     "horizon": { "enum": ["0-6m", "6-12m", "1-3y"] },

@@ -3,15 +3,18 @@ import {
   bigint,
   boolean,
   check,
+  date,
   index,
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
+  unique,
 } from "drizzle-orm/pg-core";
 
-// See docs/data-model.md for the whole v1 model. Only the news records exist so far.
+// See docs/data-model.md for the whole v1 model. Built so far: news records and ventures.
 
 export const REGIONS = ["indonesia", "global"] as const;
 export type Region = (typeof REGIONS)[number];
@@ -98,5 +101,161 @@ export const jobRuns = pgTable(
     ),
     // Last successful run of a job.
     index("job_runs_job_finished_idx").on(t.job, t.finishedAt.desc()),
+  ],
+);
+
+// Fixed sector list, docs/opportunities/scoring-v1.md §7.
+export const SECTORS = [
+  "agri_food", "fisheries_maritime", "energy_mining", "renewables_climate", "manufacturing",
+  "logistics", "retail_ecommerce", "fintech_finance", "health_biotech", "education",
+  "property_construction", "tourism_hospitality", "media_creative", "telecom_infra",
+  "ai_software", "hardware_electronics", "govtech_public", "consumer_services",
+] as const;
+export type Sector = (typeof SECTORS)[number];
+
+/** The five factors of docs/opportunities/scoring-v1.md, each an integer 0–100. */
+export type FactorScores = { demand: number; timing: number; competition: number; capital: number; regulatory: number };
+export const FACTOR_KEYS = ["demand", "timing", "competition", "capital", "regulatory"] as const;
+
+/**
+ * A jsonb column holding FactorScores: exactly the five keys, each an integer 0–100.
+ * Wrapped in coalesce because a CHECK that evaluates to NULL (a missing key) would pass.
+ */
+const factorsShape = (column: unknown) => {
+  const key = (k: string) => sql.raw(`'${k}'`);
+  const each = FACTOR_KEYS.map(
+    (k) =>
+      sql`jsonb_typeof(${column}->${key(k)}) = 'number' and (${column}->>${key(k)}) ~ '^[0-9]{1,3}$' and (${column}->>${key(k)})::int <= 100`,
+  );
+  const keys = sql.raw(`array[${FACTOR_KEYS.map((k) => `'${k}'`).join(", ")}]::text[]`);
+  return sql`${column} is null or coalesce(jsonb_typeof(${column}) = 'object' and ${column} - ${keys} = '{}'::jsonb and ${sql.join(each, sql` and `)}, false)`;
+};
+
+// The owner's ventures (OR-36). Edited in src/server/ventures/config.ts and seeded.
+export const ventures = pgTable(
+  "ventures",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    slug: text().notNull().unique(),
+    name: text().notNull(),
+    descriptionEn: text("description_en").notNull(),
+    descriptionId: text("description_id").notNull(),
+    sectors: text().array().$type<Sector[]>().notNull(),
+    keywords: text().array().notNull(),
+    // Which progress label the Radar card shows: "Progress to MVP" or "to next release".
+    progressGoal: text("progress_goal").$type<"mvp" | "release">().notNull(),
+    // Where progress is read from (OR-37); null = "Progress source not connected".
+    progressSource: text("progress_source").$type<"notion" | null>(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check("ventures_descriptions_check", sql`${t.descriptionEn} <> '' and ${t.descriptionId} <> ''`),
+    check(
+      "ventures_sectors_check",
+      sql`cardinality(${t.sectors}) between 1 and 3 and ${t.sectors} <@ array[${sql.raw(SECTORS.map((s) => `'${s}'`).join(", "))}]::text[]`,
+    ),
+    check("ventures_progress_goal_check", sql`${t.progressGoal} in ('mvp', 'release')`),
+    check("ventures_progress_source_check", sql`${t.progressSource} is null or ${t.progressSource} = 'notion'`),
+  ],
+);
+
+// Build progress of a venture on one WIB day (written by OR-37). Only successful
+// reads are stored; the newest row is shown, and an old one means stale. The
+// sentence is built from the numbers in each language.
+export const ventureProgress = pgTable(
+  "venture_progress",
+  {
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    ventureId: integer("venture_id").notNull().references(() => ventures.id),
+    day: date({ mode: "string" }).notNull(),
+    percent: integer().notNull(),
+    sprintDelivered: integer("sprint_delivered"),
+    sprintNext: integer("sprint_next"),
+    ticketsInQa: integer("tickets_in_qa"),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique("venture_progress_venture_day_unique").on(t.ventureId, t.day),
+    check("venture_progress_percent_check", sql`${t.percent} between 0 and 100`),
+    check(
+      "venture_progress_counts_check",
+      sql`${t.sprintDelivered} >= 0 and ${t.sprintNext} >= 0 and ${t.ticketsInQa} >= 0`,
+    ),
+  ],
+);
+
+// Market view of a venture for one region on one WIB day (written by OR-38).
+// No related news in 30 days: score and factors are null, never invented.
+// The change vs yesterday is computed on read from the previous day's row.
+export const ventureMarket = pgTable(
+  "venture_market",
+  {
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    ventureId: integer("venture_id").notNull().references(() => ventures.id),
+    day: date({ mode: "string" }).notNull(),
+    region: text().$type<Region>().notNull(),
+    score: integer(),
+    factors: jsonb().$type<FactorScores>(),
+    relatedArticles: integer("related_articles").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique("venture_market_venture_day_region_unique").on(t.ventureId, t.day, t.region),
+    check("venture_market_region_check", regionCheck(t.region)),
+    check("venture_market_score_check", sql`${t.score} between 0 and 100`),
+    check("venture_market_score_factors_check", sql`(${t.score} is null) = (${t.factors} is null)`),
+    check("venture_market_factors_check", factorsShape(t.factors)),
+    check("venture_market_related_articles_check", sql`${t.relatedArticles} >= 0`),
+  ],
+);
+
+// One tailwind and one headwind per venture per day, not per region (OR-35, OR-38),
+// each citing article ids. Null texts: no related news that day.
+export const ventureWinds = pgTable(
+  "venture_winds",
+  {
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    ventureId: integer("venture_id").notNull().references(() => ventures.id),
+    day: date({ mode: "string" }).notNull(),
+    tailwindEn: text("tailwind_en"),
+    tailwindId: text("tailwind_id"),
+    tailwindArticleIds: bigint("tailwind_article_ids", { mode: "number" }).array().notNull().default(sql`'{}'`),
+    headwindEn: text("headwind_en"),
+    headwindId: text("headwind_id"),
+    headwindArticleIds: bigint("headwind_article_ids", { mode: "number" }).array().notNull().default(sql`'{}'`),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique("venture_winds_venture_day_unique").on(t.ventureId, t.day),
+    // Both languages or neither, and a sentence always cites at least one article.
+    // (Written with explicit "is not null": a CHECK that evaluates to NULL passes.)
+    check(
+      "venture_winds_tailwind_check",
+      sql`(${t.tailwindEn} is null and ${t.tailwindId} is null) or (${t.tailwindEn} is not null and ${t.tailwindId} is not null and ${t.tailwindEn} <> '' and ${t.tailwindId} <> '' and cardinality(${t.tailwindArticleIds}) > 0)`,
+    ),
+    check(
+      "venture_winds_headwind_check",
+      sql`(${t.headwindEn} is null and ${t.headwindId} is null) or (${t.headwindEn} is not null and ${t.headwindId} is not null and ${t.headwindEn} <> '' and ${t.headwindId} <> '' and cardinality(${t.headwindArticleIds}) > 0)`,
+    ),
+  ],
+);
+
+// Articles matched to a venture (OR-38): the "related news" list and count.
+// Deleted with the article when articles are pruned.
+export const ventureArticles = pgTable(
+  "venture_articles",
+  {
+    ventureId: integer("venture_id").notNull().references(() => ventures.id),
+    articleId: bigint("article_id", { mode: "number" })
+      .notNull()
+      .references(() => articles.id, { onDelete: "cascade" }),
+    relevance: integer().notNull(),
+    matchedAt: timestamp("matched_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.ventureId, t.articleId] }),
+    // Deleting (pruning) an article finds its matches without a full scan.
+    index("venture_articles_article_idx").on(t.articleId),
+    check("venture_articles_relevance_check", sql`${t.relevance} between 0 and 100`),
   ],
 );
