@@ -64,6 +64,20 @@
       "when": 1791104020019,
       "tag": "0008_triage_checks",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791106941866,
+      "tag": "0009_prices",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791108651771,
+      "tag": "0010_price_source_checks",
+      "breakpoints": true
     }
   ]
 }
