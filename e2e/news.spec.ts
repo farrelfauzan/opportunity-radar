@@ -490,6 +490,8 @@ test.describe("store unreachable", () => {
           "42P01",
           "__off",
           "ECONNREFUSED",
+          "Failed query", // what the driver's error says, with the SQL
+          "params:",
           "digest",
           "node_modules",
           "    at ",
