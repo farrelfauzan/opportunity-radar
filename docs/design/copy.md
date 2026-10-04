@@ -506,6 +506,8 @@ The watchlist's kind line uses `asset.kind.idx`, `asset.kind.index`, `asset.kind
 | Key | EN | ID |
 |---|---|---|
 | signal.check.rsiInRange | RSI is {rsi}: between 30 and 70 | RSI {rsi}: di antara 30 dan 70 |
+| signal.check.rsiAbove50 | RSI is {rsi}: between 30 and 70, above 50 | RSI {rsi}: di antara 30 dan 70, di atas 50 |
+| signal.check.rsiBelow50 | RSI is {rsi}: between 30 and 70, below 50 | RSI {rsi}: di antara 30 dan 70, di bawah 50 |
 | signal.check.rsiHigh | RSI is {rsi}: above 70 (overbought) | RSI {rsi}: di atas 70 (jenuh beli) |
 | signal.check.rsiLow | RSI is {rsi}: below 30 (oversold) | RSI {rsi}: di bawah 30 (jenuh jual) |
 | signal.check.close50.above | The price ({price}) is above the 50-day average ({sma}) | Harga ({price}) di atas rata-rata 50 hari ({sma}) |
@@ -559,11 +561,15 @@ OR-29 stores the trigger key per history row (the one that best explains the cha
 | signal.reverse.close50.above | A close above {price} (the 50-day average) | Penutupan di atas {price} (rata-rata 50 hari) |
 | signal.reverse.rsiHigh | A close above about {price}, which would lift RSI above 70 | Penutupan di atas sekitar {price}, yang akan menaikkan RSI ke atas 70 |
 | signal.reverse.rsiLow | A close below about {price}, which would push RSI below 30 | Penutupan di bawah sekitar {price}, yang akan menurunkan RSI ke bawah 30 |
+| signal.reverse.rsiBackBelow70 | A close below about {price}, which would bring RSI back under 70 | Penutupan di bawah sekitar {price}, yang akan membawa RSI kembali di bawah 70 |
+| signal.reverse.rsiBackAbove30 | A close above about {price}, which would bring RSI back above 30 | Penutupan di atas sekitar {price}, yang akan membawa RSI kembali di atas 30 |
 | signal.reverse.close200.below | A close below {price} (the 200-day average) | Penutupan di bawah {price} (rata-rata 200 hari) |
 | signal.reverse.close200.above | A close above {price} (the 200-day average) | Penutupan di atas {price} (rata-rata 200 hari) |
 | signal.reverse.smaDown | The 50-day average moving below the 200-day average | Rata-rata 50 hari bergerak ke bawah rata-rata 200 hari |
 | signal.reverse.smaUp | The 50-day average moving above the 200-day average | Rata-rata 50 hari bergerak ke atas rata-rata 200 hari |
 | signal.reverse.none | No price within the usual range would change this signal | Tidak ada harga dalam rentang wajar yang akan mengubah sinyal ini |
+
+Momentum check text: `signal.check.rsiAbove50` / `rsiBelow50` for RSI inside 30–70 ("Supports buy" / "Supports sell"), `rsiInRange` at exactly 50 ("Neutral"), `rsiHigh` / `rsiLow` when stretched ("Neutral"); rules-v1 §3.3. Reversal keys: `rsiHigh` / `rsiLow` when RSI would become stretched (a BUY or SELL turning HOLD); `rsiBackBelow70` / `rsiBackAbove30` when a stretched RSI would come back into range (a HOLD turning BUY or SELL).
 
 Use `asset.reverse.title` ("What would change this to {verdict}") when every listed condition leads to the same verdict, otherwise `asset.reverse.titleAny`. At most two conditions per term (rules-v1 §5).
 
