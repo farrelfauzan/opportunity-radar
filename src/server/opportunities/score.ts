@@ -63,7 +63,7 @@ export async function scoreOpportunities(
   const now = options.now?.() ?? new Date();
   const today = wibDay(now);
   const due = await opportunitiesToRescore(today, MAX_PER_RUN);
-  const counts = { due: due.length, scored: 0, rejected: 0, skipped: 0, wording_rejected: 0 };
+  const counts: Record<string, number> = { due: due.length, scored: 0, rejected: 0, skipped: 0, wording_rejected: 0 };
   const reasons: string[] = [];
   for (const o of due) {
     // A score must rest on evidence: never ask without cited articles (all may be from switched-off sources).
