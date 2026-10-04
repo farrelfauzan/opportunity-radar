@@ -71,28 +71,80 @@ describe("prices job", () => {
     const { syntheticChart } = await import("@/server/prices/yahoo");
     const transport = (async (url: string) => {
       const symbol = decodeURIComponent(/chart\/([^?]+)/.exec(url)![1]);
-      return Response.json(syntheticChart(symbol, "5d", NOW)); // shape only: a stand-in for Yahoo's reply
+      return Response.json(syntheticChart(symbol, "6y", NOW)); // shape only: a stand-in for Yahoo's reply
     }) as unknown as typeof fetch;
     await ingestPrices({ transport, now: () => NOW });
     const bbca = (await getQuote((await getAssetBySlug("bbca"))!.id))!;
     expect(bbca.source).toBe("yahoo");
   });
 
-  test("the first live run after fixtures backfills 6 years and leaves no synthetic day behind", async () => {
-    await ingestPrices({ now: () => NOW }); // fixtures: synthetic history
-    process.env.PRICES_YAHOO = "live";
-    const { syntheticChart } = await import("@/server/prices/yahoo");
+  /** A live stub: Yahoo-shaped replies built per URL by `make` (not Yahoo data). */
+  const liveStub = (make: (symbol: string) => unknown) => {
     const ranges: string[] = [];
     const transport = (async (url: string) => {
       ranges.push(/range=([^&]+)/.exec(url)![1]);
-      return Response.json(syntheticChart(decodeURIComponent(/chart\/([^?]+)/.exec(url)![1]), "6y", NOW));
+      return Response.json(make(decodeURIComponent(/chart\/([^?]+)/.exec(url)![1])));
     }) as unknown as typeof fetch;
+    return { transport, ranges };
+  };
+  const syntheticCount = async (slug: string) =>
+    Number((await db().execute(sql`select count(*) as n from candles c join assets a on a.id = c.asset_id where a.slug = ${slug} and c.source = 'synthetic'`))[0].n);
+
+  test("the first live run backfills 6 years and replaces the synthetic history, also on days the live data lacks", async () => {
+    await ingestPrices({ now: () => NOW }); // fixtures: synthetic history
+    process.env.PRICES_YAHOO = "live";
+    const { syntheticChart } = await import("@/server/prices/yahoo");
+    // Different trading days from the synthetic history: every other day only.
+    const { transport, ranges } = liveStub((symbol) => {
+      const chart = syntheticChart(symbol, "6y", NOW);
+      const r = chart.chart.result![0];
+      const keep = r.timestamp!.map((_, i) => i % 2 === 0);
+      r.timestamp = r.timestamp!.filter((_, i) => keep[i]);
+      for (const k of ["open", "high", "low", "close", "volume"] as const) {
+        r.indicators.quote[0][k] = r.indicators.quote[0][k].filter((_, i) => keep[i]);
+      }
+      return chart;
+    });
 
     await ingestPrices({ transport, now: () => NOW });
 
     expect(ranges).toEqual(["6y", "6y", "6y"]);
+    for (const slug of ["ihsg", "bbca", "sp500"]) expect(await syntheticCount(slug)).toBe(0);
     const sources = await db().execute(sql`select distinct c.source from candles c join assets a on a.id = c.asset_id where a.source = 'yahoo'`);
     expect(sources).toEqual([{ source: "yahoo" }]);
+  });
+
+  test.each([
+    ["an empty series", (chart: { chart: { result: { timestamp?: number[]; indicators: { quote: Record<string, unknown[]>[] } }[] | null } }) => {
+      const r = chart.chart.result![0];
+      r.timestamp = [];
+      for (const k of Object.keys(r.indicators.quote[0])) r.indicators.quote[0][k] = [];
+    }],
+    ["all-null rows", (chart: { chart: { result: { timestamp?: number[]; indicators: { quote: Record<string, unknown[]>[] } }[] | null } }) => {
+      const q = chart.chart.result![0].indicators.quote[0];
+      for (const k of Object.keys(q)) q[k] = q[k].map(() => null);
+    }],
+    ["a one-day series", (chart: { chart: { result: { timestamp?: number[]; indicators: { quote: Record<string, unknown[]>[] } }[] | null } }) => {
+      const r = chart.chart.result![0];
+      r.timestamp = r.timestamp!.slice(-1);
+      for (const k of Object.keys(r.indicators.quote[0])) r.indicators.quote[0][k] = r.indicators.quote[0][k].slice(-1);
+    }],
+  ])("a live backfill with %s fails that asset and keeps its synthetic history", async (_name, damage) => {
+    await ingestPrices({ now: () => NOW });
+    const before = await syntheticCount("bbca");
+    process.env.PRICES_YAHOO = "live";
+    const { syntheticChart } = await import("@/server/prices/yahoo");
+    const { transport } = liveStub((symbol) => {
+      const chart = syntheticChart(symbol, "6y", NOW);
+      damage(chart as never);
+      return chart;
+    });
+
+    const outcome = await ingestPrices({ transport, now: () => NOW });
+
+    expect(outcome).toMatchObject({ status: "partial", counts: { assets_failed: 3 } });
+    expect(outcome.error).toContain("backfill returned");
+    expect(await syntheticCount("bbca")).toBe(before);
   });
 
   test("the database refuses an unknown price source", async () => {
@@ -107,8 +159,8 @@ describe("prices job", () => {
     process.env.PRICES_YAHOO = "live";
     const { syntheticChart } = await import("@/server/prices/yahoo");
     const transport = (async (url: string) => {
-      const chart = syntheticChart(decodeURIComponent(/chart\/([^?]+)/.exec(url)![1]), "5d", NOW);
-      if (url.includes("BBCA")) chart.chart.result![0].indicators.quote[0].close[0] = 0;
+      const chart = syntheticChart(decodeURIComponent(/chart\/([^?]+)/.exec(url)![1]), "6y", NOW);
+      if (url.includes("BBCA")) chart.chart.result![0].indicators.quote[0].close[5] = 0;
       return Response.json(chart);
     }) as unknown as typeof fetch;
 

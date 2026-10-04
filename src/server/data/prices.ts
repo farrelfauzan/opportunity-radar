@@ -22,12 +22,14 @@ export async function getAssetBySlug(slug: string): Promise<Asset | null> {
   return row ?? null;
 }
 
+type Executor = Pick<ReturnType<typeof db>, "insert" | "delete">;
+
 /** Stores daily candles; a day that is already stored is replaced (late corrections). */
-export async function upsertCandles(assetId: number, source: string, rows: Candle[]): Promise<number> {
+export async function upsertCandles(assetId: number, source: string, rows: Candle[], executor: Executor = db()): Promise<number> {
   if (rows.length === 0) return 0;
   const CHUNK = 1000; // stays under Postgres' bind-parameter limit
   for (let i = 0; i < rows.length; i += CHUNK) {
-    await db()
+    await executor
       .insert(candles)
       .values(rows.slice(i, i + CHUNK).map((c) => ({ ...c, assetId, source })))
       .onConflictDoUpdate({
@@ -58,16 +60,20 @@ export async function lastCandleDay(assetId: number, source?: string): Promise<s
 }
 
 /**
- * Removes an asset's synthetic candles (made-up fixtures data). Called after a
- * successful live fetch, so real and made-up days are never mixed in one series.
- * Only rows with source "synthetic" are touched.
+ * The first live backfill of an asset: stores the real candles and removes the
+ * asset's synthetic ones (made-up fixtures data) in one transaction, so a series
+ * is never mixed and never left half-replaced. Only rows with source "synthetic"
+ * are removed.
  */
-export async function removeSyntheticCandles(assetId: number): Promise<number> {
-  const removed = await db()
-    .delete(candles)
-    .where(and(eq(candles.assetId, assetId), eq(candles.source, "synthetic")))
-    .returning({ day: candles.day });
-  return removed.length;
+export async function replaceWithLiveBackfill(assetId: number, rows: Candle[]): Promise<{ stored: number; removed: number }> {
+  return db().transaction(async (tx) => {
+    const stored = await upsertCandles(assetId, "yahoo", rows, tx);
+    const removed = await tx
+      .delete(candles)
+      .where(and(eq(candles.assetId, assetId), eq(candles.source, "synthetic")))
+      .returning({ day: candles.day });
+    return { stored, removed: removed.length };
+  });
 }
 
 /** Daily candles of an asset between two days (inclusive), oldest first. */

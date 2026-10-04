@@ -1,7 +1,7 @@
 // The prices job (OR-26): daily candles and the latest quote of every Yahoo
 // asset, and USD/IDR from Frankfurter. A source that fails keeps its previous
 // quote (same price, same as-of time) and makes the run "partial".
-import { getQuote, lastCandleDay, removeSyntheticCandles, setQuote, upsertAsset, upsertCandles, type Asset } from "@/server/data";
+import { getQuote, lastCandleDay, replaceWithLiveBackfill, setQuote, upsertAsset, upsertCandles, type Asset } from "@/server/data";
 import type { JobOutcome } from "@/server/jobs/runner";
 import { ASSETS } from "./assets.ts";
 import { fetchUsdIdr } from "./frankfurter.ts";
@@ -10,6 +10,8 @@ import { fetchChart, PriceSourceError, yahooMode } from "./yahoo.ts";
 const DAY_MS = 24 * 60 * 60 * 1000;
 const BACKFILL_YEARS = 6; // the 5Y chart needs a 200-day average from its first day
 const FX_CACHE_MS = 6 * 60 * 60 * 1000;
+// A backfill shorter than this is not trusted: the 200-day average needs 200 days.
+const MIN_BACKFILL_CANDLES = 200;
 
 /** The Yahoo range that covers everything since the last stored day (6 years when there is none). */
 export function rangeFor(lastDay: string | null, now: Date): string {
@@ -22,12 +24,21 @@ async function yahooAsset(asset: Asset, transport: typeof fetch | undefined, now
   // The range comes from the newest candle of the source in use, so the first live run
   // backfills 6 years instead of continuing a made-up history.
   const source = yahooMode() === "live" ? "yahoo" : "synthetic";
-  const chart = await fetchChart(asset.symbol, rangeFor(await lastCandleDay(asset.id, source), now), transport);
-  // "synthetic" in fixtures mode: made-up prices must never look like Yahoo's.
-  const stored = await upsertCandles(asset.id, chart.source, chart.candles);
+  const range = rangeFor(await lastCandleDay(asset.id, source), now);
+  const chart = await fetchChart(asset.symbol, range, transport);
+  if (range === "6y" && chart.candles.length < MIN_BACKFILL_CANDLES) {
+    // An empty, all-null or very short reply must not replace a history: the asset keeps what it has.
+    throw new PriceSourceError(`backfill returned ${chart.candles.length} days (at least ${MIN_BACKFILL_CANDLES} needed)`);
+  }
+  let stored: number;
+  if (chart.source === "yahoo" && range === "6y") {
+    // The first live backfill replaces the made-up history in one transaction.
+    stored = (await replaceWithLiveBackfill(asset.id, chart.candles)).stored;
+  } else {
+    // "synthetic" in fixtures mode: made-up prices must never look like Yahoo's.
+    stored = await upsertCandles(asset.id, chart.source, chart.candles);
+  }
   if (chart.quote) await setQuote(asset.id, { ...chart.quote, source: chart.source });
-  // Real data now covers this asset: drop the made-up days so a series is never mixed.
-  if (chart.source === "yahoo") await removeSyntheticCandles(asset.id);
   return stored;
 }
 
