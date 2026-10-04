@@ -76,6 +76,68 @@
       "note": "Hanya judul dan tautan; artikel lengkap dibuka di situs penerbit."
     }
   },
+  "opp": {
+    "summary": "{n} terbuka · dinilai ulang setiap pagi dari berita",
+    "filter": {
+      "region": {
+        "label": "Wilayah",
+        "all": "Semua wilayah",
+        "id": "Indonesia",
+        "global": "Global"
+      },
+      "sector": {
+        "label": "Sektor",
+        "all": "Semua sektor"
+      },
+      "horizon": "Horizon",
+      "any": "Semua",
+      "capital": "Modal"
+    },
+    "horizon": {
+      "short": "0–6 bulan",
+      "mid": "6–12 bulan",
+      "long": "1–3 tahun"
+    },
+    "capital": {
+      "low": "Rendah",
+      "medium": "Sedang",
+      "high": "Tinggi"
+    },
+    "sector": {
+      "agri_food": "Pertanian & Pangan",
+      "fisheries_maritime": "Perikanan & Maritim",
+      "energy_mining": "Energi & Pertambangan",
+      "renewables_climate": "Energi Terbarukan & Iklim",
+      "manufacturing": "Manufaktur & Industri",
+      "logistics": "Logistik & Rantai Pasok",
+      "retail_ecommerce": "Ritel & E-commerce",
+      "fintech_finance": "Fintech & Jasa Keuangan",
+      "health_biotech": "Kesehatan & Bioteknologi",
+      "education": "Pendidikan & Keterampilan",
+      "property_construction": "Properti & Konstruksi",
+      "tourism_hospitality": "Pariwisata & Perhotelan",
+      "media_creative": "Media & Kreatif",
+      "telecom_infra": "Telekomunikasi & Infrastruktur Digital",
+      "ai_software": "AI & Perangkat Lunak",
+      "hardware_electronics": "Perangkat Keras & Elektronik",
+      "govtech_public": "GovTech & Layanan Publik",
+      "consumer_services": "Jasa Konsumen"
+    },
+    "trend": {
+      "new": "Baru",
+      "up": "▲ {n}",
+      "down": "▼ {n}",
+      "flat": "— 0"
+    },
+    "empty": "Tidak ada peluang yang cocok dengan filter ini",
+    "never": "Belum ada peluang — proses pertama pukul 07.00 WIB",
+    "detail": {
+      "meta": "{region} · {sector} · Horizon {horizon}",
+      "score": "skor peluang / 100",
+      "closed": "Peluang ini sudah ditutup atau tidak ada lagi",
+      "back": "Kembali ke peluang"
+    }
+  },
   "state": {
     "loading": "Memuat…",
     "error": {
@@ -91,7 +153,8 @@
       "today": "{what} terakhir diperbarui {time} WIB",
       "earlier": "{what} terakhir diperbarui {date}, {time} WIB",
       "what": {
-        "news": "Berita"
+        "news": "Berita",
+        "opportunities": "Peluang"
       }
     }
   },

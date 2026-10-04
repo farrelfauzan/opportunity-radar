@@ -3,14 +3,18 @@
 // --conditions=react-server lets Node load the server-only data module outside Next.js.
 import { existsSync, writeFileSync } from "node:fs";
 import {
+  citeArticles,
   closeDb,
   insertArticle,
+  insertOpportunity,
+  recordOpportunityScore,
   recordSuccessfulRun,
   upsertSource,
+  type Region,
 } from "../src/server/data/index.ts";
-import { databaseUrl } from "../src/server/data/client.ts";
+import { databaseUrl, sql } from "../src/server/data/client.ts";
 import { loadEnv, migrate, resetTestDatabase, testDatabaseUrl } from "./db-admin.ts";
-import { seedArticles, seedSources } from "./seed-data.ts";
+import { seedArticles, seedOpportunities, seedSources } from "./seed-data.ts";
 
 const args = process.argv.slice(2).filter((arg) => arg !== "--test");
 const onTest = process.argv.includes("--test");
@@ -40,6 +44,7 @@ async function seed(): Promise<void> {
   for (const source of seedSources) ids.set(source.slug, (await upsertSource(source)).id);
   let created = 0;
   const articles = seedArticles();
+  const stored: { id: number; region: Region }[] = [];
   for (const article of articles) {
     const result = await insertArticle({
       sourceId: ids.get(article.source)!,
@@ -51,8 +56,35 @@ async function seed(): Promise<void> {
       publishedAt: article.publishedAt,
     });
     if (result.created) created++;
+    stored.push({ id: result.article.id, region: result.article.region });
   }
-  console.log(`Seed: ${seedSources.length} sources, ${created} new articles (${articles.length - created} already present).`);
+  const opportunities = await seedOpportunityRows(stored);
+  console.log(
+    `Seed: ${seedSources.length} sources, ${created} new articles (${articles.length - created} already present), ` +
+      `${opportunities} new opportunities.`,
+  );
+}
+
+/**
+ * Opportunities with their score history and three cited articles of their own region.
+ * One that is already there (same English title) is left as it is, so the seed can run again.
+ */
+async function seedOpportunityRows(articles: { id: number; region: Region }[]): Promise<number> {
+  let added = 0;
+  for (const [index, { opportunity, scores }] of seedOpportunities().entries()) {
+    const [existing] = await sql()`select id from opportunities where title_en = ${opportunity.titleEn}`;
+    if (existing) continue;
+    const [first, ...rest] = scores;
+    const row = await insertOpportunity(opportunity, first);
+    for (const score of rest) await recordOpportunityScore(row.id, score);
+    const same = articles.filter((a) => a.region === opportunity.region);
+    await citeArticles(
+      row.id,
+      [0, 1, 2].map((k) => same[(index * 3 + k) % same.length].id),
+    );
+    added++;
+  }
+  return added;
 }
 
 async function setLastRun(job?: string, when?: string): Promise<void> {
