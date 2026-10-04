@@ -100,6 +100,14 @@ describe("toArticle", () => {
     expect(future).toMatchObject({ publishedAt: fetchedAt, publishedAtEstimated: false });
   });
 
+  test("an item still escaped after 20 levels of cleaning is skipped", () => {
+    let title = "<b>deep</b>";
+    for (let i = 0; i < 25; i++) title = title.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const item = { title, link: "https://example.com/deep", description: "", date: "" };
+    expect(toArticle(item, feed, 1, fetchedAt)).toBeNull();
+    expect(toArticle({ ...item, title: "R&D; spending & growth" }, feed, 1, fetchedAt)!.headline).toBe("R&D; spending & growth");
+  });
+
   test("a javascript: link, no link or no title means the item is skipped", () => {
     expect(articles("synthetic/rss.xml").slice(5)).toEqual([null, null, null]);
   });
@@ -126,6 +134,11 @@ describe("toArticle", () => {
 });
 
 describe("recorded feeds (one per source, 2026-10-04)", () => {
+  test("Wired is listed but switched off (terms under review)", () => {
+    expect(FEEDS.filter((f) => f.active === false).map((f) => f.slug)).toEqual(["wired"]);
+    expect(FEEDS.filter((f) => f.active !== false)).toHaveLength(11);
+  });
+
   test("there are 12 feeds from 11 publishers", () => {
     expect(FEEDS).toHaveLength(12);
     expect(new Set(FEEDS.map((f) => f.slug)).size).toBe(12);

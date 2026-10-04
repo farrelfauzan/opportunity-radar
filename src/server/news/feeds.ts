@@ -5,6 +5,7 @@ export type Feed = NewSource;
 
 // 12 feeds from 11 publishers, live-tested on 2026-10-04 (docs/research/R-1-data-sources.md).
 // Hacker News was dropped (it answers 419 to our fetcher) and replaced by Wired (OR-8 Log).
+// A feed with `active: false` is kept in the list but never fetched, and its source is switched off.
 export const FEEDS: Feed[] = [
   { slug: "cnbc-indonesia", name: "CNBC Indonesia", feedUrl: "https://www.cnbcindonesia.com/news/rss", region: "indonesia", category: "business" },
   { slug: "antara", name: "Antara", feedUrl: "https://www.antaranews.com/rss/ekonomi-bisnis.xml", region: "indonesia", category: "business" },
@@ -16,6 +17,8 @@ export const FEEDS: Feed[] = [
   { slug: "bbc-technology", name: "BBC Technology", feedUrl: "https://feeds.bbci.co.uk/news/technology/rss.xml", region: "global", category: "tech-ai" },
   { slug: "techcrunch", name: "TechCrunch", feedUrl: "https://techcrunch.com/category/artificial-intelligence/feed/", region: "global", category: "tech-ai" },
   { slug: "the-guardian", name: "The Guardian", feedUrl: "https://www.theguardian.com/uk/business/rss", region: "global", category: "business" },
-  { slug: "wired", name: "Wired", feedUrl: "https://www.wired.com/feed/rss", region: "global", category: "tech-ai" },
+  // Off until the Tech Lead decides: the Condé Nast User Agreement appears to forbid storing
+  // items and sending them to an LLM (docs/research/R-1-data-sources.md, OR-8 Log).
+  { slug: "wired", name: "Wired", feedUrl: "https://www.wired.com/feed/rss", region: "global", category: "tech-ai", active: false },
   { slug: "cnbc", name: "CNBC", feedUrl: "https://www.cnbc.com/id/10001147/device/rss/rss.html", region: "global", category: "business" },
 ];

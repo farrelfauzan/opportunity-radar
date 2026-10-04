@@ -29,6 +29,7 @@ function isPrivateHost(hostname: string): boolean {
     const [a, b] = v4;
     return a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127);
   }
+  if (!host.includes(":")) return false; // a host name such as fda.gov, not an IPv6 literal
   return host === "::" || host === "::1" || /^(fc|fd|fe8|fe9|fea|feb)/.test(host) || host.startsWith("::ffff:");
 }
 
@@ -104,6 +105,8 @@ async function fetchFeed(source: Source, fetcher: typeof fetch): Promise<Fetched
 
 type FeedArticle = NewArticle & { canonicalUrl: string; snippet: string; publishedAtEstimated: boolean };
 
+const STILL_ESCAPED = /&(amp|lt|gt|quot|#\d+|#x[0-9a-f]+);/i;
+
 /**
  * A feed date as a UTC instant. A date written without a time zone is read as
  * UTC, never in the zone of the machine running the job.
@@ -119,8 +122,11 @@ export function parseFeedDate(value: string): Date {
 /** A storable article from a raw feed item, or null when the item must be skipped. */
 export function toArticle(item: FeedItem, feed: Feed, sourceId: number, fetchedAt: Date): FeedArticle | null {
   const headline = cleanText(item.title);
+  const snippetText = cleanText(item.description);
   const canonical = canonicalUrl(item.link);
   if (!headline || !canonical) return null; // no title, no link, or a link that is not http(s)
+  // Still escaped after cleaning means more than 20 levels of escaping: not a real headline.
+  if (STILL_ESCAPED.test(headline) || STILL_ESCAPED.test(snippetText)) return null;
 
   const published = parseFeedDate(item.date);
   const estimated = !item.date.trim() || Number.isNaN(published.getTime());
@@ -131,7 +137,7 @@ export function toArticle(item: FeedItem, feed: Feed, sourceId: number, fetchedA
     region: feed.region,
     category: feed.category,
     headline,
-    snippet: cutSnippet(cleanText(item.description)),
+    snippet: cutSnippet(snippetText),
     // No usable date: the fetch time, flagged. A future date is clamped to the fetch time.
     publishedAt: estimated || published > fetchedAt ? fetchedAt : published,
     publishedAtEstimated: estimated,
@@ -146,7 +152,8 @@ export function toArticle(item: FeedItem, feed: Feed, sourceId: number, fetchedA
 export async function ingestNews(
   options: { feeds?: Feed[]; fetch?: typeof fetch; now?: () => Date } = {},
 ): Promise<JobOutcome> {
-  const { feeds = FEEDS, fetch: fetcher = fetch, now = () => new Date() } = options;
+  const { fetch: fetcher = fetch, now = () => new Date() } = options;
+  const feeds = (options.feeds ?? FEEDS).filter((feed) => feed.active !== false);
   if (feeds.length === 0) throw new Error("No feeds configured; nothing was changed");
   const counts = { sources_ok: 0, sources_failed: 0, stored: 0, duplicates: 0, skipped: 0, estimated_dates: 0 };
   const failures: string[] = [];
