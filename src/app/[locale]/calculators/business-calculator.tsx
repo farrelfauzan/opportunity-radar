@@ -37,11 +37,14 @@ export function BusinessCalculator({
   strings,
   errors,
   units,
+  beyond,
 }: {
   locale: Locale;
   strings: Strings;
   errors: Messages["calc"]["err"];
   units: Messages["calc"]["unit"];
+  /** calc.result.beyond: shown instead of an amount from Rp 1,000 trillion. */
+  beyond: string;
 }) {
   const { fields, texts, valid, checks, anyInvalid, update } = useNumberFields(defaults, ranges, locale);
 
@@ -96,14 +99,14 @@ export function BusinessCalculator({
             <ResultCard
               testId="biz-lowest"
               label={strings.lowest}
-              value={formatRupiahCompact(result.lowest, locale, units)}
+              value={formatRupiahCompact(result.lowest, locale, units, beyond)}
               exact={exactRupiah(result.lowest, locale)}
               valueClassName="text-chart-2"
             />
             <ResultCard
               testId="biz-end"
               label={fill(strings.end[plural], { months: valid.months })}
-              value={formatRupiahCompact(result.end, locale, units)}
+              value={formatRupiahCompact(result.end, locale, units, beyond)}
               exact={exactRupiah(result.end, locale)}
             />
           </div>
@@ -117,8 +120,10 @@ export function BusinessCalculator({
             <LineChart data={data} accessibilityLayer={false} margin={{ top: 8, right: 2, bottom: 8, left: 2 }}>
               <CartesianGrid vertical={false} stroke="var(--glass-border)" />
               {/* Zero is always inside the plot, so the dashed line is always drawn. */}
+              {/* The empty formatter keeps Recharts' off-screen measuring text empty (it would hold "3.5e+48"). */}
               <YAxis
                 hide
+                tickFormatter={() => ""}
                 domain={[(dataMin: number) => Math.min(dataMin, 0), (dataMax: number) => Math.max(dataMax, 0)]}
               />
               <ReferenceLine y={0} stroke="var(--chart-4)" strokeDasharray="4 4" />

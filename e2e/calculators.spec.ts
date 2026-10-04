@@ -412,3 +412,43 @@ test("the business calculator's largest figures fit at 390 px and show no exact 
   });
   expect(overflowing).toBe(0);
 });
+
+for (const locale of ["en", "id"] as const) {
+  test(`${locale}: at the top of every range both calculators say "more than Rp 1,000 trillion", with no exponent or long number anywhere`, async ({
+    page,
+  }) => {
+    const beyond = locale === "en" ? "more than Rp 1,000 trillion" : "lebih dari Rp 1.000 triliun";
+    const big = locale === "en" ? "10,000,000,000,000" : "10.000.000.000.000";
+    const fill = async (labels: string[], values: string[]) => {
+      for (const [i, label] of labels.entries()) await field(page, label).fill(values[i]);
+    };
+    await page.goto(`/${locale}/calculators`);
+
+    const inv = copy[locale];
+    await fill(
+      [inv.start, inv.monthly, inv.years, inv.return, inv.spread],
+      [big, big, "40", locale === "en" ? "100" : "100", locale === "en" ? "50" : "50"],
+    );
+    const biz = bizCopy[locale];
+    await fill(
+      [biz.capital, biz.fixed, biz.revenue, biz.growth, biz.months],
+      [big, big, big, "100", "120"],
+    );
+
+    // Net cash of the business and the optimistic investment value are far beyond Rp 1,000 trillion.
+    await expect(page.getByTestId("biz-end").or(page.locator("main").getByText(beyond).first())).toBeVisible();
+    expect(await page.locator("main").getByText(beyond).count()).toBeGreaterThanOrEqual(2);
+
+    // Nothing on the page, in its text or in its chart markup, shows an exponent or a 16+ digit run.
+    // (The page's own script data is left out: it carries no visible text.)
+    const everything = await page.evaluate(() => {
+      const copy = document.body.cloneNode(true) as HTMLElement;
+      copy.querySelectorAll("script, style").forEach((node) => node.remove());
+      return `${document.body.innerText}\n${copy.innerHTML}`;
+    });
+    const around = (pattern: RegExp) => everything.match(new RegExp(`.{0,60}${pattern.source}.{0,60}`, "s"))?.[0] ?? null;
+    expect(around(/\d[eE]\+\d/), "an exponent").toBeNull();
+    expect(around(/\d{16,}/), "a 16+ digit number").toBeNull();
+    expect(around(/Infinity|NaN/), "Infinity or NaN").toBeNull();
+  });
+}
