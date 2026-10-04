@@ -27,6 +27,7 @@ import {
   upsertSource,
   wibDay,
   type Sector,
+  type Theme,
   type TriageResult,
 } from "../src/server/data/index.ts";
 import { sql } from "../src/server/data/client.ts";
@@ -79,7 +80,7 @@ async function storeEvidence(sourceIds: Map<string, number>) {
     if (e.why) {
       triage.push({
         articleId: article.id, status: "ok", category, region, relevance: 70, impact: "opportunity",
-        whyEn: e.why.en, whyId: e.why.id, themes: ["food_security"],
+        whyEn: e.why.en, whyId: e.why.id, themes: ["other"], // never ranked in the News themes panel, so these rows do not change its counts
       });
     }
   }
@@ -153,8 +154,9 @@ async function fixtures() {
   const ids = await storeSources();
   const evidence = new Map<string, number>();
   if (!args.includes("--no-articles")) {
+    const triage: TriageResult[] = [];
     for (const a of fixtureArticles()) {
-      await insertArticle({
+      const { article } = await insertArticle({
         sourceId: ids.get(a.source)!,
         link: `https://example.com/e2e/${a.path}`,
         region: a.region,
@@ -163,7 +165,24 @@ async function fixtures() {
         snippet: a.snippet,
         publishedAt: a.publishedAt,
       });
+      if (a.key) evidence.set(a.key, article.id); // opportunities cite News articles by this key too
+      if (a.triage?.status === "ok") {
+        triage.push({
+          articleId: article.id,
+          status: "ok",
+          category: a.triage.category, // saveTriage moves the article to this category, as the triage job does
+          region: a.region,
+          relevance: 70,
+          impact: a.triage.impact,
+          whyEn: a.triage.whyEn,
+          whyId: a.triage.whyId,
+          themes: a.triage.themes as Theme[],
+        });
+      } else if (a.triage) {
+        triage.push({ articleId: article.id, status: "failed", error: "Fixture: the reply was not valid" });
+      }
     }
+    await saveTriage(triage);
   }
   if (!args.includes("--no-articles")) for (const [key, id] of await storeEvidence(ids)) evidence.set(key, id);
   const opportunityIds = args.includes("--no-opportunities") ? new Map<string, number>() : await storeOpportunities(evidence);

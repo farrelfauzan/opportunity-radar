@@ -126,6 +126,59 @@
       "licence": {
         "cc-by-nd-4": "CC BY-ND 4.0"
       }
+    },
+    "onlyLinked": "Only news linked to an opportunity",
+    "impact": {
+      "opportunity": "Opportunity",
+      "risk": "Risk",
+      "context": "Context"
+    },
+    "why": "Why it matters",
+    "whyAi": "AI",
+    "whyAiSr": "Written by AI from the article, not by the publisher",
+    "linked": "Linked opportunity: {title}",
+    "themes": {
+      "title": "Trending themes, 7 days",
+      "caption": "Number of articles mentioning each theme."
+    },
+    "theme": {
+      "ai_adoption": "AI adoption in business",
+      "ai_regulation": "AI regulation",
+      "data_centers": "Data centres & cloud",
+      "semiconductors": "Semiconductors & chips",
+      "cybersecurity": "Cybersecurity & scams",
+      "digital_payments": "Digital payments",
+      "digital_banking_lending": "Digital banking & lending",
+      "interest_rates": "Interest rates & central banks",
+      "inflation_cost_living": "Inflation & cost of living",
+      "rupiah_fx": "Rupiah & currency moves",
+      "trade_tariffs": "Trade, tariffs & sanctions",
+      "geopolitics_conflict": "Geopolitical conflict",
+      "indonesia_policy": "Indonesian government policy",
+      "indonesia_budget_subsidy": "State budget & subsidies",
+      "downstreaming_minerals": "Downstreaming & critical minerals",
+      "ev_batteries": "EVs & batteries",
+      "renewable_energy": "Renewable energy & transition",
+      "oil_gas_coal": "Oil, gas & coal",
+      "food_security": "Food security & agriculture",
+      "healthcare_access": "Healthcare access & health-tech",
+      "pharma_biotech": "Pharma & biotech",
+      "ecommerce_social": "E-commerce & social commerce",
+      "consumer_spending": "Consumer spending & middle class",
+      "logistics_supply_chain": "Logistics & supply chain",
+      "infrastructure_construction": "Infrastructure & construction",
+      "property_housing": "Property & housing",
+      "tourism_travel": "Tourism & travel",
+      "education_skills": "Education & workforce skills",
+      "startup_funding": "Startup funding & venture capital",
+      "ipo_capital_markets": "IPOs & capital markets",
+      "halal_islamic_finance": "Halal economy & Islamic finance",
+      "crypto_assets": "Crypto & digital assets",
+      "gold_commodities": "Gold & commodity prices",
+      "labour_wages_layoffs": "Jobs, wages & layoffs",
+      "climate_disasters": "Climate & natural disasters",
+      "smes_msme": "SMEs & MSMEs",
+      "other": "Other"
     }
   },
   "opp": {

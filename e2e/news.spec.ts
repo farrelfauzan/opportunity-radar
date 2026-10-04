@@ -1,9 +1,10 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { e2eDatabaseUrl } from "../scripts/e2e-env";
 import { runDb, resetFixtures } from "./db";
 import { expect, test } from "./fixtures";
 import { expectSkeletonOnNavigation } from "./skeleton";
-import { fixtureSources, headlines, longSourceName, todayStats } from "./news-fixtures";
+import { expectedThemes, fixtureSources, headlines, longSourceName, todayStats } from "./news-fixtures";
+import { fixtureOpportunities } from "./opportunity-fixtures";
 
 const stats = todayStats();
 
@@ -311,8 +312,9 @@ test("the header counts describe the whole day, not the filter", async ({ page }
     await expect(page.locator("main")).toContainText(copy[locale].summary);
     await expect(items(page)).toHaveCount(2);
   }
-  // 77 articles of 7 sources; the 8th configured source and yesterday's article are not counted.
-  expect(stats).toEqual({ articles: 77, sources: 7 });
+  // 77 articles of 7 sources, plus the 5 of OR-21 (none from a new source); the 8th configured source,
+  // yesterday's article and the earlier days' triaged ones (themes only) are not counted.
+  expect(stats).toEqual({ articles: 82, sources: 7 });
   expect(fixtureSources).toHaveLength(8);
 });
 
@@ -395,13 +397,15 @@ test("390 px: no sideways scroll with a very long headline and source name, chip
   expect(panelBox.y).toBeGreaterThanOrEqual(listBox.y + listBox.height);
 });
 
-test("1280 px: the Sources panel sits beside the list", async ({ page }) => {
+test("1280 px: the Sources panel sits beside the list, under the Trending themes panel", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/en/news");
   const listBox = (await page.locator("main ol").boundingBox())!;
+  const themesBox = (await themesCard(page, "en").boundingBox())!;
   const panelBox = (await sourcesCard(page, "en").boundingBox())!;
   expect(panelBox.x).toBeGreaterThanOrEqual(listBox.x + listBox.width);
-  expect(panelBox.y).toBeLessThan(listBox.y + 200);
+  expect(themesBox.y).toBeLessThan(listBox.y + 200);
+  expect(panelBox.y).toBeGreaterThanOrEqual(themesBox.y + themesBox.height);
   expect(await overflows(page)).toBe(false);
 });
 
@@ -652,3 +656,351 @@ test("the category chips form a named group", async ({ page }) => {
   await page.goto("/id/news");
   await expect(page.getByRole("group", { name: "Kategori" }).getByRole("link")).toHaveCount(6);
 });
+
+// ---- OR-21: impact, why it matters, linked opportunity, the toggle and the themes panel ---------------
+
+const oppId = (key: string) => fixtureOpportunities.findIndex((f) => f.key === key) + 1; // stored in this order, ids from 1
+const oppTitle = (key: string, locale: "en" | "id") => fixtureOpportunities[oppId(key) - 1].title[locale];
+
+const why = {
+  en: {
+    tariff: "Lower import costs speed up builds, so suppliers of cooling and power win.",
+    rupiah: "Importers lose margin when the dollar rises.",
+    gold: "Background for anyone pricing gold or cross-border trade.",
+    conversation: "Rice prices shape food costs for every household and for small food businesses.",
+  },
+  id: {
+    tariff: "Biaya impor yang lebih rendah mempercepat pembangunan, sehingga pemasok pendingin dan listrik diuntungkan.",
+    rupiah: "Importir kehilangan margin ketika dolar menguat.",
+    gold: "Latar belakang bagi yang menghitung harga emas atau perdagangan lintas negara.",
+    conversation: "Harga beras memengaruhi biaya pangan setiap rumah tangga dan usaha makanan kecil.",
+  },
+} as const;
+
+const copy2 = {
+  en: {
+    impact: { opportunity: "Opportunity", risk: "Risk", context: "Context" },
+    why: "Why it matters",
+    linked: (title: string) => `Linked opportunity: ${title}`,
+    onlyLinked: "Only news linked to an opportunity",
+    themes: "Trending themes, 7 days",
+    caption: "Number of articles mentioning each theme.",
+    themeNames: [
+      "Data centres & cloud",
+      "AI adoption in business",
+      "Rupiah & currency moves",
+      "Trade, tariffs & sanctions",
+      "Food security & agriculture",
+      "Gold & commodity prices",
+    ],
+    other: ["Other", "Interest rates & central banks"],
+    politics: "Politics & policy",
+    business: "Business",
+    indonesia: "Indonesia",
+  },
+  id: {
+    impact: { opportunity: "Peluang", risk: "Risiko", context: "Konteks" },
+    why: "Mengapa penting",
+    linked: (title: string) => `Peluang terkait: ${title}`,
+    onlyLinked: "Hanya berita yang terkait peluang",
+    themes: "Tema populer, 7 hari",
+    caption: "Jumlah artikel yang menyebut setiap tema.",
+    themeNames: [
+      "Pusat data & cloud",
+      "Adopsi AI di bisnis",
+      "Rupiah & pergerakan kurs",
+      "Perdagangan, tarif & sanksi",
+      "Ketahanan pangan & pertanian",
+      "Emas & harga komoditas",
+    ],
+    other: ["Lainnya", "Suku bunga & bank sentral"],
+    politics: "Politik & kebijakan",
+    business: "Bisnis",
+    indonesia: "Indonesia",
+  },
+} as const;
+
+const item = (page: Page, headline: string) => items(page).filter({ hasText: headline });
+/** The category word of an item: the first span of its card (the source name is not it). */
+const categoryOf = (card: Locator) => card.locator("span").first();
+const themesCard = (page: Page, locale: "en" | "id") =>
+  page.locator('[data-slot="card"]').filter({ has: page.getByRole("heading", { name: copy2[locale].themes }) });
+const linkedToggle = (page: Page, locale: "en" | "id") => page.getByRole("checkbox", { name: copy2[locale].onlyLinked });
+
+// The impact colours of docs/design/News.dc.html: foreground on background.
+const impactColours = {
+  opportunity: ["rgb(94, 234, 212)", "rgb(29, 75, 72)"],
+  risk: ["rgb(253, 186, 116)", "rgb(90, 51, 32)"],
+  context: ["rgb(226, 221, 240)", "rgb(75, 62, 117)"],
+} as const;
+
+for (const locale of ["en", "id"] as const) {
+  const c = copy2[locale];
+  const other = locale === "en" ? "id" : "en";
+
+  test(`${locale}: an item shows its impact word at the right end of the meta row, with its colours`, async ({ page }) => {
+    await page.goto(`/${locale}/news`);
+    for (const [impact, headline] of [
+      ["opportunity", headlines.tariff],
+      ["risk", headlines.rupiah],
+      ["context", headlines.gold],
+    ] as const) {
+      const card = item(page, headline);
+      const pill = card.getByText(c.impact[impact], { exact: true });
+      await expect(pill).toHaveCount(1);
+      const [fg, bg] = impactColours[impact];
+      await expect(pill).toHaveCSS("color", fg);
+      await expect(pill).toHaveCSS("background-color", bg);
+      // margin-left:auto: the word sits at the right end of the card, whatever the width.
+      const box = (await pill.boundingBox())!;
+      const cardBox = (await card.boundingBox())!;
+      expect(box.x + box.width).toBeGreaterThan(cardBox.x + cardBox.width - 24);
+      expect(box.x + box.width).toBeLessThanOrEqual(cardBox.x + cardBox.width);
+      // Never the other languages' word.
+      await expect(card.getByText(copy2[other].impact[impact], { exact: true })).toHaveCount(0);
+    }
+    expect(await overflows(page)).toBe(false);
+  });
+
+  test(`${locale}: the why block is in the current language and apart from the snippet`, async ({ page }) => {
+    await page.goto(`/${locale}/news`);
+    const card = item(page, headlines.tariff);
+    const label = card.getByText(c.why, { exact: true });
+    await expect(label).toHaveCSS("color", "rgb(45, 212, 191)");
+    await expect(card.getByText(why[locale].tariff, { exact: true })).toBeVisible();
+    await expect(card).not.toContainText(why[other].tariff);
+    // Label and text are one block with its own background, not part of the snippet paragraph.
+    const block = label.locator("xpath=ancestor::div[1]");
+    await expect(block).toContainText(why[locale].tariff);
+    await expect(block).toHaveCSS("background-color", /^(rgba\(0, 0, 0, 0\.18\)|oklab\(0 0 0 \/ 0\.18\))$/);
+    await expect(card.locator("p", { hasText: why[locale].tariff })).toHaveCount(0);
+    await expect(card.locator("p").first()).toContainText("Snippet of:");
+    expect(await overflows(page)).toBe(false);
+  });
+
+  test(`${locale}: the linked opportunity is the open one with the highest score, and its link opens that opportunity`, async ({
+    page,
+  }) => {
+    await page.goto(`/${locale}/news`);
+    // Cited by three: Tax tool (71), Earthquake (55) and a closed one with 99, which never links.
+    const card = item(page, headlines.tariff);
+    const link = card.getByRole("link", { name: c.linked(oppTitle("tax", locale)), exact: true });
+    await expect(link).toHaveAttribute("href", `/${locale}/opportunities/${oppId("tax")}`);
+    await expect(card.getByRole("link", { name: /Closed opportunity|Peluang tertutup/ })).toHaveCount(0);
+    await expect(card.getByRole("link")).toHaveCount(2); // the headline and the opportunity
+
+    // Cited by one open and nothing else, and by a closed one only.
+    await expect(item(page, headlines.gold).getByRole("link", { name: c.linked(oppTitle("last-mile", locale)), exact: true })).toHaveAttribute(
+      "href",
+      `/${locale}/opportunities/${oppId("last-mile")}`,
+    );
+    await expect(item(page, headlines.rupiah).getByRole("link")).toHaveCount(1); // only the headline
+
+    await link.click();
+    await expect(page).toHaveURL(`/${locale}/opportunities/${oppId("tax")}`);
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(oppTitle("tax", locale));
+  });
+
+  test(`${locale}: an item without triage has no tag, no why block and no placeholder; a cited one still links`, async ({
+    page,
+  }) => {
+    await page.goto(`/${locale}/news`);
+    const words = new RegExp(`^(${Object.values(c.impact).join("|")})$`);
+    // Never triaged and not cited: headline, source and time only (plus its snippet).
+    for (const [headline, category] of [
+      [headlines.newest, locale === "en" ? "Tech & AI" : "Teknologi & AI"],
+      [headlines.failed, c.business], // triage failed: it keeps its feed category
+    ] as const) {
+      const card = item(page, headline);
+      await expect(card).toHaveCount(1);
+      await expect(categoryOf(card)).toHaveText(category);
+      await expect(card.getByText(words)).toHaveCount(0);
+      await expect(card.getByText(c.why, { exact: true })).toHaveCount(0);
+      await expect(card.getByRole("link")).toHaveCount(1);
+      await expect(card.locator("p")).toHaveCount(1); // the snippet only
+    }
+    // Not triaged yet but cited by two open opportunities with the same score: the lower id links.
+    const cited = item(page, headlines.coldChain);
+    await expect(cited.getByText(words)).toHaveCount(0);
+    await expect(cited.getByText(c.why, { exact: true })).toHaveCount(0);
+    await expect(cited.getByRole("link", { name: c.linked(oppTitle("climate", locale)), exact: true })).toHaveAttribute(
+      "href",
+      `/${locale}/opportunities/${oppId("climate")}`,
+    );
+    await expect(cited.getByRole("link")).toHaveCount(2);
+  });
+
+  test(`${locale}: the category comes from triage, and from the feed when there is none`, async ({ page }) => {
+    await page.goto(`/${locale}/news`);
+    // Stored with the feed category business; triage read it as politics.
+    await expect(categoryOf(item(page, headlines.tariff))).toHaveText(c.politics);
+    // Triage agrees with the feed.
+    await expect(categoryOf(item(page, headlines.rupiah))).toHaveText(locale === "en" ? "Markets" : "Pasar");
+    // No triage, or a failed one: the feed category.
+    await expect(categoryOf(item(page, headlines.newest))).toHaveText(locale === "en" ? "Tech & AI" : "Teknologi & AI");
+    await expect(categoryOf(item(page, headlines.failed))).toHaveText(c.business);
+    // The filters use the same category.
+    await page.goto(`/${locale}/news?category=politics&region=global`);
+    await expect(item(page, headlines.tariff)).toHaveCount(1);
+    await page.goto(`/${locale}/news?category=business&region=global`);
+    await expect(item(page, headlines.tariff)).toHaveCount(0);
+    await expect(item(page, headlines.failed)).toHaveCount(1);
+  });
+
+  test(`${locale}: the Conversation item keeps its snippet exactly as stored next to a why block`, async ({ page }) => {
+    await page.goto(`/${locale}/news?category=politics&region=indonesia`);
+    const card = item(page, headlines.conversation);
+    await expect(card.locator("p").filter({ hasText: "Ringkasan" })).toHaveText("Ringkasan yang dipakai apa adanya.");
+    await expect(card.getByText(why[locale].conversation, { exact: true })).toBeVisible();
+    await expect(card.getByText(c.why, { exact: true })).toBeVisible();
+    await expect(card).toContainText(locale === "en" ? "Source: The Conversation Indonesia · CC BY-ND 4.0" : "Sumber: The Conversation Indonesia · CC BY-ND 4.0");
+    await expect(card.locator("p", { hasText: why[locale].conversation })).toHaveCount(0);
+    await expect(card.getByText(c.impact.context, { exact: true })).toBeVisible();
+  });
+
+  test(`${locale}: the toggle shows only news an open opportunity cites; the URL holds it and combines with the filters`, async ({
+    page,
+  }) => {
+    await page.goto(`/${locale}/news`);
+    const toggle = linkedToggle(page, locale);
+    await expect(toggle).not.toBeChecked();
+    await toggle.check();
+    await expect(page).toHaveURL(`/${locale}/news?linked=1`);
+    await expect(toggle).toBeChecked();
+    // Cited by an open opportunity: three. Cited only by a closed one (rupiah), or by none, do not show.
+    await expect(items(page)).toHaveCount(3);
+    for (const headline of [headlines.tariff, headlines.gold, headlines.coldChain]) await expect(item(page, headline)).toHaveCount(1);
+    await expect(item(page, headlines.rupiah)).toHaveCount(0);
+    // The header still describes the whole day.
+    await expect(page.locator("main")).toContainText(copy[locale].summary);
+
+    await page.reload();
+    await expect(page).toHaveURL(`/${locale}/news?linked=1`);
+    await expect(linkedToggle(page, locale)).toBeChecked();
+    await expect(items(page)).toHaveCount(3);
+
+    // Combined with the category and the region; every link keeps the toggle.
+    await page.getByRole("link", { name: c.business, exact: true }).click();
+    await expect(page).toHaveURL(`/${locale}/news?category=business&linked=1`);
+    await expect(items(page)).toHaveCount(1);
+    await expect(items(page).first()).toContainText(headlines.gold);
+    await page.getByLabel(copy[locale].regionLabel).selectOption("indonesia");
+    await expect(page).toHaveURL(`/${locale}/news?category=business&region=indonesia&linked=1`);
+    await expect(page.locator("main")).toContainText(copy[locale].empty);
+    await expect(items(page)).toHaveCount(0);
+    await expect(page.locator("main")).toContainText(copy[locale].summary);
+    await page.getByRole("link", { name: copy[locale].all, exact: true }).click();
+    await expect(page).toHaveURL(`/${locale}/news?region=indonesia&linked=1`);
+    await expect(items(page)).toHaveCount(1);
+    await expect(items(page).first()).toContainText(headlines.coldChain);
+
+    // Off again: the parameter goes, the other filters stay.
+    await linkedToggle(page, locale).uncheck();
+    await expect(page).toHaveURL(`/${locale}/news?region=indonesia`);
+    await expect(items(page).first()).toBeVisible();
+    expect(await items(page).count()).toBeGreaterThan(3);
+  });
+
+  test(`${locale}: only ?linked=1 turns the toggle on`, async ({ page }) => {
+    for (const value of ["0", "true", "on", "", "11"]) {
+      await page.goto(`/${locale}/news?linked=${value}`);
+      await expect(linkedToggle(page, locale)).not.toBeChecked();
+      await expect(items(page)).toHaveCount(30);
+    }
+  });
+
+  test(`${locale}: the toggle is a real checkbox with a focus ring, a 44px target and keyboard use`, async ({ page }) => {
+    await page.goto(`/${locale}/news`);
+    const toggle = linkedToggle(page, locale);
+    expect((await toggle.locator("xpath=..").boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.getByLabel(copy[locale].regionLabel).focus();
+    await page.keyboard.press("Tab");
+    await expect(toggle).toBeFocused();
+    await expect(toggle).toHaveCSS("outline-style", "solid");
+    await expect(toggle).toHaveCSS("outline-width", "2px");
+    await page.keyboard.press("Space");
+    await expect(page).toHaveURL(`/${locale}/news?linked=1`);
+    await expect(toggle).toBeChecked();
+    await expect(toggle).toBeFocused(); // the keyboard user keeps their place
+    expect(await overflows(page)).toBe(false);
+  });
+
+  test(`${locale}: the themes panel shows the top 6 by article count with bars and the printed number`, async ({ page }) => {
+    await page.goto(`/${locale}/news`);
+    const card = themesCard(page, locale);
+    await expect(card).toHaveCount(1);
+    await expect(card).toContainText(c.caption);
+    const rows = card.getByRole("listitem");
+    await expect(rows).toHaveCount(6);
+    const meters = card.getByRole("meter");
+    await expect(meters).toHaveCount(6);
+    const max = expectedThemes[0].count;
+    for (const [index, { count }] of expectedThemes.entries()) {
+      await expect(meters.nth(index)).toHaveAttribute("aria-label", c.themeNames[index]);
+      await expect(meters.nth(index)).toHaveAttribute("aria-valuemin", "0");
+      await expect(meters.nth(index)).toHaveAttribute("aria-valuemax", String(max));
+      await expect(meters.nth(index)).toHaveAttribute("aria-valuenow", String(count));
+      await expect(rows.nth(index)).toHaveText(`${c.themeNames[index]}${count}`);
+      await expect(meters.nth(index).locator("span")).toHaveAttribute("style", new RegExp(`width:\\s*${Math.round((count / max) * 100)}%`));
+    }
+    // Left out: the theme "other" (the most frequent of all), the 7th theme, and the article 7 days ago.
+    for (const text of c.other) await expect(card).not.toContainText(text);
+    expect(await overflows(page)).toBe(false);
+  });
+
+  test(`${locale}: the themes panel comes before the Sources panel: beside the list on a wide screen, below it on a phone`, async ({
+    page,
+  }) => {
+    await page.goto(`/${locale}/news`);
+    const list = (await page.locator("main ol").boundingBox())!;
+    const sourcesBox = (await sourcesCard(page, locale).boundingBox())!;
+    const themesBox = (await themesCard(page, locale).boundingBox())!;
+    expect(sourcesBox.y).toBeGreaterThanOrEqual(themesBox.y + themesBox.height);
+    expect(themesBox.x).toBeGreaterThanOrEqual(0);
+    expect(themesBox.x + themesBox.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+    if (page.viewportSize()!.width >= 1000) {
+      expect(themesBox.x).toBeGreaterThanOrEqual(list.x + list.width);
+    } else {
+      expect(themesBox.y).toBeGreaterThanOrEqual(list.y + list.height);
+      expect(sourcesBox.y).toBeGreaterThanOrEqual(list.y + list.height);
+    }
+    expect(await overflows(page)).toBe(false);
+  });
+
+  test(`${locale}: with no triaged article in the last 7 days the themes panel is left out`, async ({ page }) => {
+    try {
+      runDb("fixtures", "--no-articles");
+      await page.goto(`/${locale}/news`);
+      await expect(sourcesCard(page, locale)).toHaveCount(1);
+      await expect(page.getByRole("heading", { name: c.themes })).toHaveCount(0);
+      await expect(page.getByRole("meter")).toHaveCount(0);
+    } finally {
+      resetFixtures();
+    }
+  });
+}
+
+test("the language switch keeps the toggle and shows the why in Indonesian", async ({ page }) => {
+  await page.goto("/en/news?linked=1");
+  await page.getByRole("group", { name: "Language" }).getByRole("link", { name: "ID" }).click();
+  await expect(page).toHaveURL("/id/news?linked=1");
+  await expect(linkedToggle(page, "id")).toBeChecked();
+  await expect(items(page)).toHaveCount(3);
+  await expect(item(page, headlines.tariff)).toContainText(why.id.tariff);
+});
+
+for (const locale of ["en", "id"] as const) {
+  test(`${locale}: every "why it matters" text carries the AI mark, and nothing else does`, async ({ page }) => {
+    const label = locale === "en" ? "Why it matters" : "Mengapa penting";
+    const aiSr =
+      locale === "en"
+        ? "Written by AI from the article, not by the publisher"
+        : "Ditulis oleh AI dari artikel, bukan oleh penerbit";
+    await page.goto(`/${locale}/news`);
+    const whys = await page.getByText(label, { exact: true }).count();
+    expect(whys).toBeGreaterThan(0);
+    await expect(page.locator(`[title="${aiSr}"]`)).toHaveCount(whys);
+    // The publisher's snippet and the credit line never carry it.
+    await expect(page.locator("p", { hasText: "Ringkasan yang dipakai apa adanya." }).locator(`[title="${aiSr}"]`)).toHaveCount(0);
+  });
+}

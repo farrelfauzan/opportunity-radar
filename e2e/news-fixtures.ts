@@ -28,9 +28,34 @@ export const headlines = {
   yesterday: "Berita kemarin yang tidak dihitung hari ini",
   conversation: "Mengapa harga beras terus naik di pasar tradisional",
   ecb: "ECB keeps interest rates unchanged",
+  // OR-21: triaged (impact, why), untriaged and failed-triage items.
+  tariff: "New tariff exemptions speed up data centre builds in Southeast Asia",
+  rupiah: "Dollar strength weighs on emerging-market currencies",
+  gold: "Gold holds steady as trade talks continue",
+  coldChain: "Startup rantai dingin gandeng nelayan di Jawa Timur",
+  failed: "Port delays ripple through Asian supply chains",
 };
 
+/** What triage stored for an article (saveTriage also moves its category to `category`). */
+export type FixtureTriage =
+  | {
+      status: "ok";
+      /** The AI's category: shown instead of the feed category of the article. */
+      category: FixtureCategory;
+      impact: "opportunity" | "risk" | "context";
+      whyEn: string;
+      whyId: string;
+      /** Theme ids of docs/opportunities/scoring-v1.md section 8. */
+      themes: string[];
+    }
+  | { status: "failed" };
+
 export type FixtureArticle = {
+  /** Lets an opportunity fixture cite this article (see FixtureOpportunity.cites). */
+  key?: string;
+  triage?: FixtureTriage;
+  /** Published this many WIB days before today (at noon): stored for the themes panel, not part of "today". */
+  daysAgo?: number;
   source: string;
   region: FixtureRegion;
   category: FixtureCategory;
@@ -66,8 +91,10 @@ export function fixtureArticles(now = new Date()): FixtureArticle[] {
     headline: string,
     ageMin: number,
     snippet = `Snippet of: ${headline.slice(0, 40)}`,
+    extra: Pick<FixtureArticle, "key" | "triage"> = {},
   ) =>
     list.push({
+      ...extra,
       source,
       region,
       category,
@@ -102,7 +129,16 @@ export function fixtureArticles(now = new Date()): FixtureArticle[] {
   add("cnbc-indonesia", "indonesia", "commodities", "Harga nikel naik setelah pembatasan ekspor", 119);
   add("antara", "indonesia", "commodities", "Harga emas Antam cetak rekor baru", 117);
   // Licensed sources: they carry a credit line (and The Conversation its licence link).
-  add("conversation-id", "indonesia", "politics", headlines.conversation, 121, "Ringkasan yang dipakai apa adanya.");
+  add("conversation-id", "indonesia", "politics", headlines.conversation, 121, "Ringkasan yang dipakai apa adanya.", {
+    triage: {
+      status: "ok",
+      category: "politics",
+      impact: "context",
+      whyEn: "Rice prices shape food costs for every household and for small food businesses.",
+      whyId: "Harga beras memengaruhi biaya pangan setiap rumah tangga dan usaha makanan kecil.",
+      themes: ["food_security", "other"],
+    },
+  });
   add("ecb", "global", "markets", headlines.ecb, 125, "The Governing Council kept the key rates unchanged.");
   // Yesterday (WIB): stored, but never listed or counted.
   list.push({
@@ -115,11 +151,86 @@ export function fixtureArticles(now = new Date()): FixtureArticle[] {
     publishedAt: new Date(start - 60 * MIN),
     yesterday: true,
   });
+
+  // OR-21, appended after the rest so the counts above stay. Times: just behind the newest article, so
+  // they show on the first page; each pair (category + region) holds no more than 4 items.
+  // A: the feed said business, triage says politics (the triage category is shown and filtered on).
+  add("bbc-business", "global", "business", headlines.tariff, 7, undefined, {
+    key: "tariff",
+    triage: {
+      status: "ok",
+      category: "politics",
+      impact: "opportunity",
+      whyEn: "Lower import costs speed up builds, so suppliers of cooling and power win.",
+      whyId: "Biaya impor yang lebih rendah mempercepat pembangunan, sehingga pemasok pendingin dan listrik diuntungkan.",
+      themes: ["data_centers", "ai_adoption", "trade_tariffs"],
+    },
+  });
+  // B: triage agrees with the feed category.
+  add("techcrunch", "global", "markets", headlines.rupiah, 8, undefined, {
+    key: "rupiah",
+    triage: {
+      status: "ok",
+      category: "markets",
+      impact: "risk",
+      whyEn: "Importers lose margin when the dollar rises.",
+      whyId: "Importir kehilangan margin ketika dolar menguat.",
+      themes: ["rupiah_fx", "other"],
+    },
+  });
+  add("bbc-business", "global", "business", headlines.gold, 9, undefined, {
+    key: "gold",
+    triage: {
+      status: "ok",
+      category: "business",
+      impact: "context",
+      whyEn: "Background for anyone pricing gold or cross-border trade.",
+      whyId: "Latar belakang bagi yang menghitung harga emas atau perdagangan lintas negara.",
+      themes: ["trade_tariffs", "gold_commodities"],
+    },
+  });
+  // Not triaged yet, but an open opportunity cites it.
+  add("cnbc-indonesia", "indonesia", "tech-ai", headlines.coldChain, 10, undefined, { key: "coldchain" });
+  // Triage failed: it keeps its feed category and shows no tag.
+  add("bbc-business", "global", "business", headlines.failed, 11, undefined, { triage: { status: "failed" } });
+  // Triaged articles of the days before today: they only count in the themes panel (7 WIB days, today included).
+  const earlier = (daysAgo: number, themes: string[]) =>
+    list.push({
+      source: "bbc-business",
+      region: "global",
+      category: "business",
+      headline: `Earlier article ${list.length}`,
+      snippet: "Stored for the trending themes only.",
+      path: `earlier/${daysAgo}/${list.length}`,
+      publishedAt: new Date(start - daysAgo * 24 * 60 * MIN + 12 * 60 * MIN),
+      daysAgo,
+      triage: { status: "ok", category: "business", impact: "context", whyEn: "Why.", whyId: "Mengapa.", themes },
+    });
+  earlier(1, ["data_centers", "ai_adoption", "other"]);
+  earlier(2, ["data_centers", "rupiah_fx", "food_security"]);
+  earlier(3, ["data_centers", "trade_tariffs", "other"]);
+  earlier(4, ["rupiah_fx", "interest_rates", "other"]);
+  earlier(5, ["ai_adoption", "other"]);
+  earlier(6, ["data_centers", "ai_adoption", "gold_commodities"]); // the first day of the window
+  earlier(7, ["interest_rates", "food_security", "other"]); // just outside: it would change the order if counted
   return list;
 }
 
+/**
+ * The trending themes the panel must show with these fixtures: today's and the earlier triaged articles,
+ * `other` left out, most articles first, ties by theme id, the top 6 (the 7th, interest_rates, is cut).
+ */
+export const expectedThemes = [
+  { theme: "data_centers", count: 5 },
+  { theme: "ai_adoption", count: 4 },
+  { theme: "rupiah_fx", count: 3 },
+  { theme: "trade_tariffs", count: 3 },
+  { theme: "food_security", count: 2 },
+  { theme: "gold_commodities", count: 2 },
+] as const;
+
 /** What the header says: articles stored for today and sources with at least one of them. */
 export function todayStats(articles = fixtureArticles()) {
-  const today = articles.filter((a) => !a.yesterday);
+  const today = articles.filter((a) => !a.yesterday && a.daysAgo === undefined);
   return { articles: today.length, sources: new Set(today.map((a) => a.source)).size };
 }

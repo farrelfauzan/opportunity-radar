@@ -2,7 +2,7 @@ import type { Locator, Page } from "@playwright/test";
 import { runDb, resetFixtures } from "./db";
 import { expect, test } from "./fixtures";
 import { briefInjection, fixtureBriefLines } from "./radar-fixtures";
-import { todayStats } from "./news-fixtures";
+import { headlines, todayStats } from "./news-fixtures";
 import { evidenceArticles, fixtureOpportunities, listedFixtures, longEvidenceHeadline, openFixtures } from "./opportunity-fixtures";
 import { e2eDatabaseUrl } from "../scripts/e2e-env";
 import { expectSkeletonOnNavigation } from "./skeleton";
@@ -11,8 +11,21 @@ const listed = listedFixtures();
 const top = listed.slice(0, 5);
 const idOf = (key: string) => fixtureOpportunities.findIndex((f) => f.key === key) + 1; // stored in this order, ids from 1
 const evidence = (key: string) => evidenceArticles.find((e) => e.key === key)!;
-/** The linked articles the Radar shows, newest first: the newest five of the cited ones (the long one is the sixth). */
-const linked = ["antara", "conversation", "off", "ecb", "markup"].map(evidence);
+/**
+ * The linked articles the Radar shows, newest first: the newest five of the cited ones. Three are News fixtures
+ * from the last minutes of today (OR-21: tariff and gold triaged, cold chain not), then the two newest opportunity
+ * evidence articles (the "off" one, the ECB one and the rest are older).
+ */
+type Linked = { key: string; headline: string; category: keyof (typeof copy)["en"]["cat"]; region: "indonesia" | "global"; why?: { en: string; id: string }; fresh?: true; ageDays?: number };
+const linked: Linked[] = [
+  { key: "tariff", headline: headlines.tariff, category: "politics", region: "global", fresh: true, why: { en: "Lower import costs speed up builds, so suppliers of cooling and power win.", id: "Biaya impor yang lebih rendah mempercepat pembangunan, sehingga pemasok pendingin dan listrik diuntungkan." } },
+  { key: "gold", headline: headlines.gold, category: "business", region: "global", fresh: true, why: { en: "Background for anyone pricing gold or cross-border trade.", id: "Latar belakang bagi yang menghitung harga emas atau perdagangan lintas negara." } },
+  { key: "coldchain", headline: headlines.coldChain, category: "tech-ai", region: "indonesia", fresh: true },
+  ...["antara", "conversation"].map((key) => {
+    const e = evidence(key);
+    return { key, headline: e.headline, category: e.category ?? "business", region: e.region ?? "indonesia", why: e.why, ageDays: e.ageDays } satisfies Linked;
+  }),
+];
 
 const copy = {
   en: {
@@ -33,6 +46,8 @@ const copy = {
       ai_software: "AI & Software", retail_ecommerce: "Retail & E-commerce", fintech_finance: "Fintech & Financial Services", agri_food: "Agriculture & Food",
     } as Record<string, string>,
     basedOn: (n: number) => `Based on ${n} news ${n === 1 ? "item" : "items"}`,
+    why: "Why it matters",
+    aiSr: "Written by AI from the article, not by the publisher",
     topEmpty: "No opportunities yet. The first morning run is at 07:00 WIB.",
     news: "News that moves opportunities",
     allNews: "All news",
@@ -65,6 +80,8 @@ const copy = {
       ai_software: "AI & Perangkat Lunak", retail_ecommerce: "Ritel & E-commerce", fintech_finance: "Fintech & Jasa Keuangan", agri_food: "Pertanian & Pangan",
     } as Record<string, string>,
     basedOn: (n: number) => `Berdasarkan ${n} berita`,
+    why: "Mengapa penting",
+    aiSr: "Ditulis oleh AI dari artikel, bukan oleh penerbit",
     topEmpty: "Belum ada peluang. Proses pagi pertama berjalan pukul 07.00 WIB.",
     news: "Berita yang menggerakkan peluang",
     allNews: "Semua berita",
@@ -179,7 +196,9 @@ test.describe("a full day", () => {
         await expect(item, f.key).toContainText(f.sectors.map((s) => c.sector[s]).join(", "));
         await expect(item, f.key).toContainText(c.horizon[f.horizon]);
         const citations = (f.cites ?? []).length; // every cited source is switched on
-        await expect(item, f.key).toContainText(c.basedOn(citations));
+        // Nothing is said when no citation is left to count.
+        if (citations > 0) await expect(item, f.key).toContainText(c.basedOn(citations));
+        else await expect(item, f.key).not.toContainText(/Based on|Berdasarkan/);
       }
       // The order is the Opportunities list's: score first, then id.
       expect(top.map((f) => f.key)).toEqual(["cold-chain", "solar", "assistant", "tax", "climate"]);
@@ -198,37 +217,47 @@ test.describe("a full day", () => {
         const item = newsItems(page).nth(index);
         const link = item.locator('a[target="_blank"]').first();
         await expect(link, e.key).toContainText(e.headline);
-        await expect(link, e.key).toHaveAttribute("href", `https://example.com/e2e/evidence/${e.key}`);
+        await expect(link, e.key).toHaveAttribute("href", e.fresh ? /^https:\/\/example\.com\/e2e\// : new RegExp(`^https://example\\.com/e2e/evidence/${e.key}$`));
         await expect(link, e.key).toHaveAttribute("rel", "noopener noreferrer");
-        await expect(item, e.key).toContainText(c.cat[e.category ?? "business"]);
+        await expect(item, e.key).toContainText(c.cat[e.category]);
         // Age: days up to 6, then the WIB date.
-        const days = e.ageDays;
-        const then = wib(new Date(now.getTime() - days * 24 * 3600_000));
-        await expect(item, e.key).toContainText(days < 7 ? c.ago(days) : `${then.day} ${c.short[then.month]}`);
+        if (e.fresh) await expect(item, e.key).toContainText(/\d+ ?(m|mnt|menit) (ago|lalu)/);
+        else {
+          const days = e.ageDays!;
+          const then = wib(new Date(now.getTime() - days * 24 * 3600_000));
+          await expect(item, e.key).toContainText(days < 7 ? c.ago(days) : `${then.day} ${c.short[then.month]}`);
+        }
         await expect(item, e.key).toContainText(e.region === "global" ? "Global" : "Indonesia");
         // The why, in this language, only for an article with an ok triage.
-        if (e.why) await expect(item, e.key).toContainText(c.pick(e.why));
+        if (e.why) {
+          await expect(item, e.key).toContainText(c.pick(e.why));
+          // Labelled, with the AI mark: the text is ours, not the publisher's (screen-reader text and tooltip).
+          await expect(item, e.key).toContainText(c.why);
+          await expect(item.getByText(c.aiSr), e.key).toHaveCount(1);
+          await expect(item.locator(`[title="${c.aiSr}"]`), e.key).toHaveCount(1);
+        } else {
+          await expect(item.getByText(c.aiSr), e.key).toHaveCount(0);
+        }
         // Paragraphs: the why, then the credit line (licensed sources only).
-        const paragraphs = (e.why ? 1 : 0) + (e.key === "conversation" || e.key === "ecb" ? 1 : 0);
+        const paragraphs = (e.why ? 1 : 0) + (e.key === "conversation" ? 1 : 0);
         await expect(item.locator("p"), e.key).toHaveCount(paragraphs);
       }
       await expect(main(page)).not.toContainText(longEvidenceHeadline);
       // Untriaged: no why and no placeholder.
-      await expect(newsItems(page).nth(2)).toContainText(evidence("off").headline);
+      await expect(newsItems(page).nth(2)).toContainText(headlines.coldChain);
       await expect(newsItems(page).nth(2)).not.toContainText(/why|mengapa/i);
       // Credit lines of the licensed sources, the licence as a link to its deed.
-      await expect(newsItems(page).nth(1).locator("p").last()).toHaveText(c.credit.conversation);
-      await expect(newsItems(page).nth(1).getByRole("link", { name: "CC BY-ND 4.0" })).toHaveAttribute("href", "https://creativecommons.org/licenses/by-nd/4.0/");
-      await expect(newsItems(page).nth(3).locator("p").last()).toHaveText(c.credit.ecb);
+      await expect(newsItems(page).nth(4).locator("p").last()).toHaveText(c.credit.conversation);
+      await expect(newsItems(page).nth(4).getByRole("link", { name: "CC BY-ND 4.0" })).toHaveAttribute("href", "https://creativecommons.org/licenses/by-nd/4.0/");
+      // Items without a licence carry no credit line.
+      await expect(newsItems(page).nth(0).getByText(/^(Source|Sumber):/)).toHaveCount(0);
       await expect(section(page, "radar-news").getByRole("link", { name: c.allNews, exact: true })).toHaveAttribute("href", `/${locale}/news`);
     });
 
     test(`${locale}: brief lines, titles, theses, headlines and why show as text and nothing executes`, async ({ page }) => {
       await page.goto(`/${locale}`);
       await expect(briefItems(page).nth(1)).toContainText(briefInjection);
-      const markup = newsItems(page).nth(4);
-      await expect(markup).toContainText(`<b>${locale === "id" ? "Tebal" : "Bold"}</b>`);
-      await expect(markup.locator("b, script, img")).toHaveCount(0);
+      // (The News list and the opportunity evidence cover markup in headlines and why texts.)
       await expect(briefItems(page).locator("script, b")).toHaveCount(0);
       expect(await page.evaluate(() => (window as unknown as { __pwned?: number }).__pwned)).toBeUndefined();
     });

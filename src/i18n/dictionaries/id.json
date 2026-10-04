@@ -126,6 +126,59 @@
       "licence": {
         "cc-by-nd-4": "CC BY-ND 4.0"
       }
+    },
+    "onlyLinked": "Hanya berita yang terkait peluang",
+    "impact": {
+      "opportunity": "Peluang",
+      "risk": "Risiko",
+      "context": "Konteks"
+    },
+    "why": "Mengapa penting",
+    "whyAi": "AI",
+    "whyAiSr": "Ditulis oleh AI dari artikel, bukan oleh penerbit",
+    "linked": "Peluang terkait: {title}",
+    "themes": {
+      "title": "Tema populer, 7 hari",
+      "caption": "Jumlah artikel yang menyebut setiap tema."
+    },
+    "theme": {
+      "ai_adoption": "Adopsi AI di bisnis",
+      "ai_regulation": "Regulasi AI",
+      "data_centers": "Pusat data & cloud",
+      "semiconductors": "Semikonduktor & chip",
+      "cybersecurity": "Keamanan siber & penipuan",
+      "digital_payments": "Pembayaran digital",
+      "digital_banking_lending": "Bank digital & pinjaman",
+      "interest_rates": "Suku bunga & bank sentral",
+      "inflation_cost_living": "Inflasi & biaya hidup",
+      "rupiah_fx": "Rupiah & pergerakan kurs",
+      "trade_tariffs": "Perdagangan, tarif & sanksi",
+      "geopolitics_conflict": "Konflik geopolitik",
+      "indonesia_policy": "Kebijakan pemerintah Indonesia",
+      "indonesia_budget_subsidy": "APBN & subsidi",
+      "downstreaming_minerals": "Hilirisasi & mineral kritis",
+      "ev_batteries": "Kendaraan listrik & baterai",
+      "renewable_energy": "Energi terbarukan & transisi",
+      "oil_gas_coal": "Minyak, gas & batu bara",
+      "food_security": "Ketahanan pangan & pertanian",
+      "healthcare_access": "Akses kesehatan & health-tech",
+      "pharma_biotech": "Farmasi & bioteknologi",
+      "ecommerce_social": "E-commerce & social commerce",
+      "consumer_spending": "Belanja konsumen & kelas menengah",
+      "logistics_supply_chain": "Logistik & rantai pasok",
+      "infrastructure_construction": "Infrastruktur & konstruksi",
+      "property_housing": "Properti & perumahan",
+      "tourism_travel": "Pariwisata & perjalanan",
+      "education_skills": "Pendidikan & keterampilan tenaga kerja",
+      "startup_funding": "Pendanaan startup & modal ventura",
+      "ipo_capital_markets": "IPO & pasar modal",
+      "halal_islamic_finance": "Ekonomi halal & keuangan syariah",
+      "crypto_assets": "Kripto & aset digital",
+      "gold_commodities": "Emas & harga komoditas",
+      "labour_wages_layoffs": "Pekerjaan, upah & PHK",
+      "climate_disasters": "Iklim & bencana alam",
+      "smes_msme": "UMKM",
+      "other": "Lainnya"
     }
   },
   "opp": {

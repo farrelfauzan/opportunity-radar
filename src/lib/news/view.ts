@@ -71,3 +71,12 @@ export const categoryLabel = {
   markets: "markets",
   commodities: "commodities",
 } as const satisfies Record<Category, keyof Messages["news"]["cat"]>;
+/** The articles an open opportunity cites (what "Only news linked to an opportunity" keeps), in their order. */
+export function onlyLinked<T extends { id: number }>(list: T[], enrichment: Map<number, { linked: unknown }>): T[] {
+  return list.filter((article) => enrichment.get(article.id)?.linked != null);
+}
+
+/** Width of a theme bar in percent: the count against the biggest count, so the top theme fills the track. */
+export function themeBarPercent(count: number, max: number): number {
+  return max > 0 ? Math.min(100, Math.max(0, Math.round((count / max) * 100))) : 0;
+}

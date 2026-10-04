@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { CreditLine } from "@/components/credit-line";
+import { WhyLabel } from "@/components/why-label";
 import { focusRing } from "@/components/focus-ring";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -246,7 +247,8 @@ function TopItem({
             <span className={chip}>{item.region === "indonesia" ? m.opp.filter.region.id : m.opp.filter.region.global}</span>
             <span className={cn(chip, wrap)}>{item.sectors.map((sector) => m.opp.sector[sector]).join(", ")}</span>
             <span className={chip}>{fill(m.radar.top.horizon, { h: m.opp.horizon[horizonKey[item.horizon]] })}</span>
-            <span className="text-xs text-muted-foreground">{plural(citations, m.radar.top.basedOn)}</span>
+            {/* Nothing to say when every citation is hidden (a switched-off source). */}
+            {citations > 0 && <span className="text-xs text-muted-foreground">{plural(citations, m.radar.top.basedOn)}</span>}
           </div>
         </div>
       </CardContent>
@@ -307,7 +309,12 @@ function NewsItem({ article, now, locale, m }: { article: LinkedNews; now: Date;
         ) : (
           <span className={cn("py-2.5 text-[15px] font-semibold", wrap)}>{article.headline}</span>
         )}
-        {why && <p className={cn("text-[#E2DDF0]", wrap)}>{why}</p>}
+        {why && (
+          <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+            <WhyLabel label={m.news.why} ai={m.news.whyAi} aiSr={m.news.whyAiSr} />
+            <p className={cn("min-w-0 text-[#E2DDF0]", wrap)}>{why}</p>
+          </div>
+        )}
         <CreditLine sourceSlug={article.sourceSlug} strings={m.news.credit} />
       </div>
       <span className={cn("min-w-0 pt-0.5 text-xs text-muted-foreground", wrap)}>
