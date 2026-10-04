@@ -2,8 +2,12 @@ import type { Page } from "@playwright/test";
 import { runDb, resetFixtures } from "./db";
 import { expect, test } from "./fixtures";
 import {
+  detailOf,
+  evidenceArticles,
+  factorsOf,
   fixtureOpportunities,
   listedFixtures,
+  longEvidenceHeadline,
   longTitle,
   markupThesis,
   markupTitle,
@@ -85,9 +89,11 @@ const MONTHS = {
   id: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
 };
 
-const items = (page: Page) => page.locator("main ol > li");
+// The list is the one ordered list with a label (the first steps of a detail are an ordered list too).
+const listOl = "main ol[aria-label]";
+const items = (page: Page) => page.locator(`${listOl} > li`);
 const select = (page: Page, locale: "en" | "id", name: keyof (typeof copy)["en"]["labels"]) =>
-  page.getByLabel(copy[locale].labels[name]); // the label's text holds the options too, so not exact
+  page.getByRole("combobox", { name: copy[locale].labels[name] }); // the label's text holds the options too, so not exact; combobox keeps the score bars ("Capital efficiency") out
 /** The selected opportunity's panel (only the one that is displayed). */
 const panel = (page: Page) => page.locator("main article");
 const overflows = (page: Page) =>
@@ -214,7 +220,7 @@ for (const locale of ["en", "id"] as const) {
     await expect(panel(page)).toContainText(String(f.history.at(-1)![1]));
     await expect(panel(page)).toContainText(c.scoreLabel);
     await expect(panel(page)).toContainText(locale === "en" ? f.thesis.en : f.thesis.id);
-    await expect(page.locator("main ol")).toBeHidden();
+    await expect(page.locator(listOl)).toBeHidden();
     await expect(select(page, locale, "region")).toBeHidden();
     const back = page.getByRole("link", { name: c.back });
     await expect(back).toBeVisible();
@@ -249,7 +255,7 @@ test("1280 px: the first item is selected by default, and choosing another keeps
   await expect(page.getByRole("link", { name: "Back to opportunities" })).toBeHidden();
 
   // The list and the detail are side by side.
-  const listBox = (await page.locator("main ol").boundingBox())!;
+  const listBox = (await page.locator(listOl).boundingBox())!;
   const panelBox = (await panel(page).boundingBox())!;
   expect(panelBox.x).toBeGreaterThanOrEqual(listBox.x + listBox.width);
   expect(Math.abs(panelBox.y - listBox.y)).toBeLessThan(80);
@@ -348,6 +354,254 @@ test.describe("not found", () => {
     const response = await page.goto(`/en/opportunities/${idOf("cold-chain")}`);
     expect(response?.status()).toBe(200);
   });
+});
+
+// ---- Detail ------------------------------------------------------------------------------------
+
+const factors = ["demand", "timing", "competition", "capital", "regulatory"] as const;
+const detailCopy = {
+  en: {
+    factorLabels: ["Demand", "Timing", "Low competition", "Capital efficiency", "Low regulatory risk"],
+    breakdown: "Score breakdown",
+    note: "Higher is better on every row (low competition and low regulatory risk score high).",
+    aiNote: "Scores are AI estimates from the cited news, scored against a fixed rubric every morning.",
+    facts: ["Starting capital", "Who buys", "Model", "Score, 30 days"],
+    low: "Low",
+    evidence: "Why now — evidence from the news",
+    risks: "Risks",
+    steps: "First steps to validate",
+    related: (text: string) => `Related market exposure: ${text}`,
+    source: (text: string) => `Source: ${text}`,
+    ago: (days: number) => `${days}d ago`,
+    otherLanguage: "ID",
+    languageGroup: "Language",
+  },
+  id: {
+    factorLabels: ["Permintaan", "Waktu", "Persaingan rendah", "Efisiensi modal", "Risiko regulasi rendah"],
+    breakdown: "Rincian skor",
+    note: "Makin tinggi makin baik di setiap baris (persaingan rendah dan risiko regulasi rendah bernilai tinggi).",
+    aiNote: "Skor adalah perkiraan AI dari berita yang dikutip, dinilai dengan rubrik tetap setiap pagi.",
+    facts: ["Modal awal", "Siapa pembelinya", "Model", "Skor, 30 hari"],
+    low: "Rendah",
+    evidence: "Mengapa sekarang — bukti dari berita",
+    risks: "Risiko",
+    steps: "Langkah awal untuk validasi",
+    related: (text: string) => `Eksposur pasar terkait: ${text}`,
+    source: (text: string) => `Sumber: ${text}`,
+    ago: (days: number) => `${days} hari lalu`,
+    otherLanguage: "EN",
+    languageGroup: "Bahasa",
+  },
+} as const;
+
+const fixture = (key: string) => fixtureOpportunities[idOf(key) - 1];
+const evidence = (key: string) => evidenceArticles.find((e) => e.key === key)!;
+const evidenceItems = (page: Page) => panel(page).locator('section[aria-labelledby="opp-evidence"] li');
+const detailUrl = (locale: string, key: string) => `/${locale}/opportunities/${idOf(key)}`;
+
+for (const locale of ["en", "id"] as const) {
+  const c = copy[locale];
+  const d = detailCopy[locale];
+  const pick = (pair: { en: string; id: string }) => pair[locale];
+
+  test(`${locale} AC1: the detail shows the score, five bars each with its number, quick facts, risks, steps and related exposure`, async ({
+    page,
+    baseURL,
+  }) => {
+    const outside: string[] = [];
+    page.on("request", (request) => {
+      if (!/^(data|blob):/.test(request.url()) && new URL(request.url()).origin !== new URL(baseURL!).origin) {
+        outside.push(request.url());
+      }
+    });
+    const f = fixture("cold-chain");
+    const text = detailOf(f);
+    await page.goto(detailUrl(locale, "cold-chain"));
+
+    await expect(panel(page).getByRole("heading", { level: 2 })).toHaveText(pick(f.title));
+    await expect(panel(page)).toContainText(`${c.indonesia} · ${c.logistics}, ${c.fisheries} · ${c.horizonWord} ${c.short}`);
+    await expect(panel(page)).toContainText("82");
+    await expect(panel(page)).toContainText(c.scoreLabel);
+    await expect(panel(page)).toContainText(pick(f.thesis));
+
+    // Score breakdown: five bars in order, each with its number printed and as a meter value.
+    await expect(panel(page).getByRole("heading", { level: 3, name: d.breakdown })).toBeVisible();
+    const meters = panel(page).getByRole("meter");
+    await expect(meters).toHaveCount(5);
+    const values = factorsOf(82);
+    for (const [index, factor] of factors.entries()) {
+      const meter = meters.nth(index);
+      const value = values[factor];
+      await expect(meter).toHaveAttribute("aria-label", d.factorLabels[index]);
+      await expect(meter).toHaveAttribute("aria-valuenow", String(value));
+      await expect(meter).toHaveAttribute("aria-valuemin", "0");
+      await expect(meter).toHaveAttribute("aria-valuemax", "100");
+      expect(await meter.locator("span").getAttribute("style")).toMatch(new RegExp(`^width:\\s*${value}%`)); // the bar is as wide as the number
+      const row = panel(page).locator("li").filter({ hasText: d.factorLabels[index] }).filter({ has: page.getByRole("meter") });
+      await expect(row).toHaveCount(1);
+      await expect(row.locator("span").last()).toHaveText(String(value)); // the number is printed
+    }
+    await expect(panel(page)).toContainText(d.note);
+    await expect(panel(page)).toContainText(d.aiNote);
+
+    // Quick facts.
+    const facts = panel(page).locator("dl");
+    await expect(facts.locator("dt")).toHaveText(d.facts);
+    await expect(facts.locator("dd")).toHaveText([
+      `${d.low} (${pick(text.capitalReason)})`,
+      pick(text.buyer),
+      pick(text.model),
+      "▲ 12",
+    ]);
+
+    // Risks (a bulleted list) and first steps (a numbered list).
+    await expect(panel(page).getByRole("heading", { level: 3, name: d.risks })).toBeVisible();
+    await expect(panel(page).locator("ul").filter({ hasText: text.risks[locale][0] }).locator("li")).toHaveText(
+      text.risks[locale],
+    );
+    await expect(panel(page).getByRole("heading", { level: 3, name: d.steps })).toBeVisible();
+    await expect(panel(page).locator("ol > li")).toHaveText(text.steps[locale]);
+    await expect(panel(page)).toContainText(d.related(pick(text.related!)));
+
+    expect(await overflows(page)).toBe(false);
+    expect(outside, "requests to another origin").toEqual([]);
+  });
+
+  test(`${locale} AC1: the evidence is the 3 cited articles, newest first, each a new-tab link with source and age`, async ({
+    page,
+    baseURL,
+  }) => {
+    const outside: string[] = [];
+    page.on("request", (request) => {
+      if (!/^(data|blob):/.test(request.url()) && new URL(request.url()).origin !== new URL(baseURL!).origin) {
+        outside.push(request.url());
+      }
+    });
+    await page.goto(detailUrl(locale, "cold-chain"));
+    await expect(panel(page).getByRole("heading", { level: 3, name: d.evidence })).toBeVisible();
+    // Stored as ecb, antara, conversation; shown by date: antara (1 day), conversation (3), ecb (6).
+    const order = ["antara", "conversation", "ecb"].map(evidence);
+    await expect(evidenceItems(page)).toHaveCount(3);
+    for (const [index, e] of order.entries()) {
+      const item = evidenceItems(page).nth(index);
+      const link = item.getByRole("link", { name: e.headline });
+      await expect(link).toHaveAttribute("href", `https://example.com/e2e/evidence/${e.key}`);
+      await expect(link).toHaveAttribute("target", "_blank");
+      expect(await link.getAttribute("rel")).toBe("noopener noreferrer");
+      const source = { antara: "Antara", conversation: "The Conversation Indonesia", ecb: "European Central Bank" }[e.key]!;
+      await expect(item).toContainText(`${source} · ${d.ago([1, 3, 6][index])}`);
+    }
+
+    // The credit line: the Conversation names its licence (linked to the deed), the ECB its name, Antara nothing.
+    const conversation = evidenceItems(page).nth(1);
+    await expect(conversation).toContainText(`${d.source("The Conversation Indonesia")} · CC BY-ND 4.0`);
+    const licence = conversation.getByRole("link", { name: "CC BY-ND 4.0" });
+    await expect(licence).toHaveAttribute("href", "https://creativecommons.org/licenses/by-nd/4.0/");
+    await expect(licence).toHaveAttribute("target", "_blank");
+    expect(await licence.getAttribute("rel")).toBe("noopener noreferrer");
+    await expect(evidenceItems(page).nth(2)).toContainText(
+      d.source(locale === "en" ? "European Central Bank" : "Bank Sentral Eropa (ECB)"),
+    );
+    await expect(evidenceItems(page).nth(0)).not.toContainText(d.source(""));
+    await expect(evidenceItems(page)).toHaveCount(3);
+    // The summary of an article is not shown at all.
+    await expect(panel(page)).not.toContainText(evidence("conversation").snippet);
+    // No image, icon or other media.
+    await expect(page.locator("main img, main svg image, main video, main iframe")).toHaveCount(0);
+    expect(outside, "requests to another origin").toEqual([]);
+  });
+
+  test(`${locale}: an article of a switched-off source is not shown as evidence`, async ({ page }) => {
+    try {
+      await page.goto(detailUrl(locale, "solar"));
+      // Shown by date: antara (1 day), the Katadata one (4), markup (8).
+      await expect(evidenceItems(page)).toHaveCount(3);
+      await expect(evidenceItems(page).nth(1)).toContainText(evidence("off").headline);
+
+      runDb("deactivate", "katadata");
+      await page.reload();
+      await expect(evidenceItems(page)).toHaveCount(2);
+      await expect(panel(page)).not.toContainText(evidence("off").headline);
+      await expect(evidenceItems(page).nth(0)).toContainText(evidence("antara").headline);
+    } finally {
+      resetFixtures();
+    }
+  });
+
+  test(`${locale}: an opportunity without a visible citation shows no evidence section, nor a related line without exposure`, async ({
+    page,
+  }) => {
+    await page.goto(detailUrl(locale, "assistant"));
+    await expect(panel(page).getByRole("heading", { level: 2 })).toHaveText(pick(fixture("assistant").title));
+    await expect(panel(page).getByRole("heading", { level: 3, name: d.breakdown })).toBeVisible();
+    await expect(panel(page).getByRole("heading", { level: 3, name: d.evidence })).toHaveCount(0);
+    await expect(panel(page)).not.toContainText(d.related(""));
+  });
+
+  test(`${locale}: reload and the language switch keep the same opportunity in the other language`, async ({ page }) => {
+    const other = locale === "en" ? "id" : "en";
+    const f = fixture("cold-chain");
+    await page.goto(`${detailUrl(locale, "cold-chain")}?region=indonesia`);
+    await page.reload();
+    await expect(page).toHaveURL(`${detailUrl(locale, "cold-chain")}?region=indonesia`);
+    await expect(panel(page).getByRole("heading", { level: 2 })).toHaveText(pick(f.title));
+    await expect(evidenceItems(page)).toHaveCount(3);
+
+    await page.getByRole("group", { name: d.languageGroup }).getByRole("link", { name: d.otherLanguage }).click();
+    await expect(page).toHaveURL(`${detailUrl(other, "cold-chain")}?region=indonesia`);
+    await expect(panel(page).getByRole("heading", { level: 2 })).toHaveText(f.title[other]);
+    await expect(panel(page)).toContainText(f.thesis[other]);
+    await expect(panel(page)).toContainText(detailCopy[other].breakdown);
+    await expect(panel(page)).toContainText(detailOf(f).risks[other][0]);
+    await expect(evidenceItems(page)).toHaveCount(3);
+    await expect(page.locator("html")).toHaveAttribute("lang", other);
+  });
+
+  test(`${locale} 390 px: long text wraps inside the screen, in every part of the detail`, async ({ page }) => {
+    await page.setViewportSize(PHONE);
+    await page.goto(detailUrl(locale, "long"));
+    await expect(panel(page).getByRole("heading", { level: 2 })).toContainText(longTitle.slice(0, 30));
+    await expect(panel(page)).toContainText(longEvidenceHeadline);
+    await expect(evidenceItems(page)).toHaveCount(2);
+    expect(await overflows(page)).toBe(false);
+    // Nothing reaches past the right edge of the screen.
+    for (const element of await panel(page).locator("h2, h3, li, dd, p, a").all()) {
+      const box = await element.boundingBox();
+      if (box) expect(box.x + box.width).toBeLessThanOrEqual(390);
+    }
+    // The same page in the normal case: no sideways scroll either.
+    await page.goto(detailUrl(locale, "cold-chain"));
+    await expect(evidenceItems(page)).toHaveCount(3);
+    expect(await overflows(page)).toBe(false);
+    for (const element of await panel(page).locator("h2, h3, li, dd, p, a").all()) {
+      const box = await element.boundingBox();
+      if (box) expect(box.x + box.width).toBeLessThanOrEqual(390);
+    }
+    expect(c.back).toBeTruthy();
+  });
+}
+
+test("1280 px: on the list route the first item's whole detail sits beside the list", async ({ page }) => {
+  await page.setViewportSize(DESKTOP);
+  await page.goto("/en/opportunities");
+  await expect(panel(page).getByRole("meter")).toHaveCount(5);
+  await expect(evidenceItems(page)).toHaveCount(3);
+  await expect(panel(page).locator("dl dd").last()).toHaveText("▲ 12");
+  // Choosing another one swaps the whole detail, evidence included.
+  await items(page).filter({ hasText: fixture("solar").title.en }).getByRole("link").click();
+  await expect(page).toHaveURL(detailUrl("en", "solar"));
+  await expect(panel(page).getByRole("meter").first()).toHaveAttribute("aria-valuenow", String(factorsOf(78).demand));
+  await expect(evidenceItems(page).first()).toContainText(evidence("antara").headline);
+});
+
+test("detail text and evidence are rendered as text, never as markup", async ({ page }) => {
+  await page.goto(detailUrl("en", "markup"));
+  await expect(panel(page)).toContainText(markupThesis);
+  await expect(panel(page)).toContainText(markupTitle); // headline, buyer and risk: visible characters
+  await expect(evidenceItems(page)).toHaveCount(1);
+  await expect(evidenceItems(page).getByRole("link")).toHaveAttribute("href", "https://example.com/e2e/evidence/markup");
+  await expect(page.locator("main img, main b, main script, main a[href^='javascript']")).toHaveCount(0);
+  expect(await page.evaluate(() => (window as unknown as { __pwned?: number }).__pwned)).toBeUndefined();
 });
 
 // ---- Text is text ------------------------------------------------------------------------------
