@@ -221,14 +221,14 @@ describe("pnpm job", { timeout: 60_000 }, () => {
   test.each(["nope", "constructor"])("an unknown job (%s) exits non-zero, lists the valid jobs and writes nothing", async (name) => {
     const result = job([name]);
     expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain(`Unknown job "${name}". Valid jobs: ingest-news, llm-smoke, prices, triage, news, opportunities, scores, ventures, brief, morning`);
+    expect(result.stderr).toContain(`Unknown job "${name}". Valid jobs: ingest-news, llm-smoke, prices, metals, crypto, triage, news, opportunities, scores, ventures, brief, morning`);
     expect(await runs()).toEqual([]);
   });
 
   test("the test jobs are not registered in production", () => {
     const result = job(["noop"], { NODE_ENV: "production" });
     expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain("Valid jobs: ingest-news, llm-smoke, prices, triage, news, opportunities, scores, ventures, brief, morning\n");
+    expect(result.stderr).toContain("Valid jobs: ingest-news, llm-smoke, prices, metals, crypto, triage, news, opportunities, scores, ventures, brief, morning\n");
   });
 
   test("a failed job exits non-zero with the canary redacted", async () => {

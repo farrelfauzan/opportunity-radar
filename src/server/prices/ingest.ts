@@ -1,17 +1,17 @@
 // The prices job (OR-26): daily candles and the latest quote of every Yahoo
 // asset, and USD/IDR from Frankfurter. A source that fails keeps its previous
 // quote (same price, same as-of time) and makes the run "partial".
-import { getQuote, lastCandleDay, replaceWithLiveBackfill, setQuote, upsertAsset, upsertCandles, type Asset } from "@/server/data";
+import { getQuote, hasRealCandles, lastCandleDay, replaceWithLiveBackfill, setQuote, upsertAsset, upsertCandles, type Asset } from "@/server/data";
 import type { JobOutcome } from "@/server/jobs/runner";
 import { ASSETS } from "./assets.ts";
-import { fetchUsdIdr } from "./frankfurter.ts";
-import { fetchChart, PriceSourceError, yahooMode } from "./yahoo.ts";
+import { fetchUsdIdr, frankfurterMode } from "./frankfurter.ts";
+import { fetchChart, HOLDS_REAL, PriceSourceError, yahooMode } from "./yahoo.ts";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-const BACKFILL_YEARS = 6; // the 5Y chart needs a 200-day average from its first day
+export const DAY_MS = 24 * 60 * 60 * 1000;
+export const BACKFILL_YEARS = 6; // the 5Y chart needs a 200-day average from its first day
 const FX_CACHE_MS = 6 * 60 * 60 * 1000;
 // A backfill shorter than this is not trusted: the 200-day average needs 200 days.
-const MIN_BACKFILL_CANDLES = 200;
+export const MIN_BACKFILL_CANDLES = 200;
 
 /** The Yahoo range that covers everything since the last stored day (6 years when there is none). */
 export function rangeFor(lastDay: string | null, now: Date): string {
@@ -24,6 +24,7 @@ async function yahooAsset(asset: Asset, transport: typeof fetch | undefined, now
   // The range comes from the newest candle of the source in use, so the first live run
   // backfills 6 years instead of continuing a made-up history.
   const source = yahooMode() === "live" ? "yahoo" : "synthetic";
+  if (source === "synthetic" && (await hasRealCandles(asset.id))) throw new PriceSourceError(HOLDS_REAL);
   const range = rangeFor(await lastCandleDay(asset.id, source), now);
   const chart = await fetchChart(asset.symbol, range, transport);
   if (range === "6y" && chart.candles.length < MIN_BACKFILL_CANDLES) {
@@ -42,7 +43,7 @@ async function yahooAsset(asset: Asset, transport: typeof fetch | undefined, now
   return stored;
 }
 
-async function fxAsset(asset: Asset, transport: typeof fetch | undefined, now: Date) {
+export async function fxAsset(asset: Asset, transport: typeof fetch | undefined, now: Date) {
   // ECB rates change once a day: fetch at most every 6 hours.
   const quote = await getQuote(asset.id);
   if (quote && now.getTime() - quote.fetchedAt.getTime() < FX_CACHE_MS) return 0;
@@ -58,6 +59,8 @@ async function fxAsset(asset: Asset, transport: typeof fetch | undefined, now: D
 
 export async function ingestPrices(options: { transport?: typeof fetch; now?: () => Date } = {}): Promise<JobOutcome> {
   const now = options.now?.() ?? new Date();
+  yahooMode(); // a wrong switch fails the run before anything is fetched
+  frankfurterMode();
   const counts = { assets_ok: 0, assets_failed: 0, candles: 0 };
   const failures: string[] = [];
   for (const config of ASSETS) {
