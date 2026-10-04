@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
 import en from "@/i18n/dictionaries/en.json";
 import id from "@/i18n/dictionaries/id.json";
-import { isNeverIngested, isStale, safeHref, staleBanner, STALE_AFTER_MS } from "./view";
+import { THEMES, type NewsEnrichment } from "@/server/data";
+import { themeBarPercent, isNeverIngested, isStale, onlyLinked, safeHref, staleBanner, STALE_AFTER_MS } from "./view";
 
 const now = new Date("2026-10-03T12:00:00Z"); // 19:00 WIB
 const ago = (ms: number) => new Date(now.getTime() - ms);
@@ -78,5 +79,43 @@ describe("safeHref", () => {
     "not a url",
   ])("rejects %j", (link) => {
     expect(safeHref(link)).toBeNull();
+  });
+});
+
+describe("onlyLinked", () => {
+  const linked: NewsEnrichment = { triage: null, linked: { id: 1, titleEn: "A", titleId: "B" } };
+  const enrichment = new Map<number, NewsEnrichment>([
+    [1, linked],
+    [2, { triage: { impact: "risk", whyEn: "w", whyId: "w" }, linked: null }],
+    [4, linked],
+  ]);
+
+  test("keeps the articles with a linked opportunity, in their order", () => {
+    expect(onlyLinked([{ id: 4 }, { id: 3 }, { id: 2 }, { id: 1 }], enrichment)).toEqual([{ id: 4 }, { id: 1 }]);
+  });
+
+  test("an article with only a triage, or none at all, is dropped", () => {
+    expect(onlyLinked([{ id: 2 }, { id: 3 }], enrichment)).toEqual([]);
+    expect(onlyLinked([], enrichment)).toEqual([]);
+  });
+});
+
+describe("themeBarPercent", () => {
+  test.each([
+    [31, 31, 100],
+    [27, 31, 87],
+    [1, 3, 33],
+    [0, 5, 0],
+    [5, 0, 0],
+    [9, 5, 100],
+  ])("%d of %d is %d%%", (count, max, percent) => {
+    expect(themeBarPercent(count, max)).toBe(percent);
+  });
+});
+
+describe("theme labels", () => {
+  test("every theme id of the vocabulary has a label in both dictionaries, and nothing else does", () => {
+    expect(Object.keys(en.news.theme).sort()).toEqual([...THEMES].sort());
+    expect(Object.keys(id.news.theme).sort()).toEqual([...THEMES].sort());
   });
 });

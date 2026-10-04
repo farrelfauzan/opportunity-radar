@@ -140,6 +140,8 @@ Exchange holidays come from a small holiday list in config; until it exists, wee
 | news.impact.risk | Risk | Risiko |
 | news.impact.context | Context | Konteks |
 | news.why | Why it matters | Mengapa penting |
+| news.whyAi | AI | AI |
+| news.whyAiSr | Written by AI from the article, not by the publisher | Ditulis oleh AI dari artikel, bukan oleh penerbit |
 | news.linked | Linked opportunity: {title} | Peluang terkait: {title} |
 | news.themes.title | Trending themes, 7 days | Tema populer, 7 hari |
 | news.themes.caption | Number of articles mentioning each theme. | Jumlah artikel yang menyebut setiap tema. |
@@ -172,9 +174,11 @@ Rules
 - The Conversation (CC BY-ND, no derivatives): its summary is shown as stored (tags stripped, entities decoded, cut at 500 characters; no other change), never translated, rewritten or summarised by the LLM, also on `/id`. "Why it matters" and other AI text stay visually separate and labelled as ours, so they are commentary, not an altered version.
 - Sources without a reuse licence keep the existing meta line (`news.item.meta`) and no credit line.
 
+AI mark on "Why it matters" (OR-21 review): the label `news.why` is followed by `news.whyAi`, a small word in muted text with a solid 1px outline (the dashed outline stays reserved for `sample.badge`), and `news.whyAiSr` as screen-reader text. The visible tooltip is `news.whyAiSr` too. Applies wherever the "why it matters" text is shown: News items (OR-21), Radar "News that moves opportunities" (OR-23), venture related news (OR-51) if it shows the text. The publisher's snippet never carries the mark.
+
 Partial state (OR-9 follow-up): when the news is not stale but at least one active source failed on the latest ingestion run (status not ok and not 304), the Sources panel shows `state.partial` at its top and `news.sources.notUpdated` after each affected source name. No page-level banner; the stale banner (§2) takes precedence when both apply.
 
-Region shown on an item uses `news.region.id` / `news.region.global`. Category and region filters live in the URL query. OR-21 adds the impact, why, linked and themes strings; OR-9 uses the rest.
+Region shown on an item uses `news.region.id` / `news.region.global`. Category and region filters live in the URL query. OR-21 adds the impact, why, linked and themes strings; OR-9 uses the rest. Theme labels are `news.theme.<id>`, one per id in `docs/opportunities/scoring-v1.md` §8 with the EN and ID text from that table (not repeated here, like the sector labels in §6). The Trending themes card ranks the last 7 days' triaged articles by theme, leaves `other` out of the ranking, and is omitted entirely when nothing is left to rank. Right column on desktop: Trending themes first, Sources second (as in the design).
 
 ## 4. Calculators (OR-24, OR-25, OR-40)
 
@@ -627,7 +631,7 @@ Used only to pre-fill the business calculator (within OR-25's input range).
 
 - Shell: nav wraps onto a second line; language switch stays on the first line at the right; no horizontal scroll at 360 px.
 - Radar: one column in the §5 section order; venture cards stack; market snapshot rows keep price and change on one line, sparkline below.
-- News: category chips wrap; region select full width; the Sources and Trending themes panels move below the list.
+- News: category chips wrap; region select full width; the Trending themes and Sources panels move below the list, in that order.
 - Opportunities: list only; tapping an item opens `/[locale]/opportunities/[id]` with a back link; filters collapse into a wrapped row of selects.
 - Investments: risk cards one per row; the watchlist becomes cards (name + kind, price + change, signal word, risk), no table scroll.
 - Asset report: header, then range buttons above a full-width chart, then the two signal cards stacked, then the report sections.
