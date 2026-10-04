@@ -170,9 +170,9 @@ describe("pipeline", () => {
     expect(results.map((r) => r.status).sort()).toEqual(["ok", "skipped"]);
   });
 
-  test("the morning pipeline is triage → opportunities → scores → brief", () => {
+  test("the morning pipeline is triage → opportunities → scores → ventures → brief", () => {
     const morning = jobs.morning as { steps: string[] };
-    expect(pipelineOrder([...morning.steps].reverse(), jobs)).toEqual(["triage", "opportunities", "scores", "brief"]);
+    expect(pipelineOrder([...morning.steps].reverse(), jobs)).toEqual(["triage", "opportunities", "scores", "ventures", "brief"]);
   });
 
   test("steps that depend on each other are an error, not an endless loop", () => {
@@ -221,14 +221,14 @@ describe("pnpm job", { timeout: 60_000 }, () => {
   test.each(["nope", "constructor"])("an unknown job (%s) exits non-zero, lists the valid jobs and writes nothing", async (name) => {
     const result = job([name]);
     expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain(`Unknown job "${name}". Valid jobs: ingest-news, llm-smoke, triage, news, opportunities, scores, brief, morning`);
+    expect(result.stderr).toContain(`Unknown job "${name}". Valid jobs: ingest-news, llm-smoke, triage, news, opportunities, scores, ventures, brief, morning`);
     expect(await runs()).toEqual([]);
   });
 
   test("the test jobs are not registered in production", () => {
     const result = job(["noop"], { NODE_ENV: "production" });
     expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain("Valid jobs: ingest-news, llm-smoke, triage, news, opportunities, scores, brief, morning\n");
+    expect(result.stderr).toContain("Valid jobs: ingest-news, llm-smoke, triage, news, opportunities, scores, ventures, brief, morning\n");
   });
 
   test("a failed job exits non-zero with the canary redacted", async () => {
@@ -280,6 +280,7 @@ describe("pnpm job", { timeout: 60_000 }, () => {
       ["triage", "ok"],
       ["opportunities", "ok"],
       ["scores", "failed"],
+      ["ventures", "skipped"],
       ["brief", "skipped"],
     ]);
   });

@@ -1,5 +1,6 @@
 import { callLlm } from "@/server/llm/client";
 import { ingestNews } from "@/server/news/ingest";
+import { assessVentures } from "@/server/ventures/market";
 import { generateOpportunities } from "@/server/opportunities/generate";
 import { scoreOpportunities } from "@/server/opportunities/score";
 import { triageNews } from "@/server/news/triage";
@@ -93,7 +94,9 @@ export const jobs: Registry = {
   opportunities: step("opportunities", { timeoutSeconds: 600, after: ["triage"], run: () => generateOpportunities() }),
   // OR-16: re-score open opportunities with new evidence.
   scores: step("scores", { timeoutSeconds: 900, after: ["opportunities"], run: () => scoreOpportunities() }),
-  brief: stub("brief", ["scores"]),
-  morning: { steps: ["triage", "opportunities", "scores", "brief"] },
+  // OR-38: the market view of each venture (before the brief, which may mention it).
+  ventures: step("ventures", { timeoutSeconds: 600, after: ["scores"], run: () => assessVentures() }),
+  brief: stub("brief", ["ventures"]),
+  morning: { steps: ["triage", "opportunities", "scores", "ventures", "brief"] },
   ...(production ? {} : testJobs),
 };
