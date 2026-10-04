@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "description": "Business opportunities and investment signals from the news."
+  },
+  "home": {
+    "heading": "Today's radar",
+    "intro": "Business opportunities and investment signals from the news.",
+    "note": "The screens arrive with the next tickets."
+  },
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "{n}m ago",
+    "hoursAgo": "{n}h ago",
+    "daysAgo": "{n}d ago"
+  }
+}

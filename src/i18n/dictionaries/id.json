@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "description": "Peluang bisnis dan sinyal investasi dari berita."
+  },
+  "home": {
+    "heading": "Radar hari ini",
+    "intro": "Peluang bisnis dan sinyal investasi dari berita.",
+    "note": "Layar-layar lain menyusul di tiket berikutnya."
+  },
+  "time": {
+    "justNow": "baru saja",
+    "minutesAgo": "{n} mnt lalu",
+    "hoursAgo": "{n} jam lalu",
+    "daysAgo": "{n} hari lalu"
+  }
+}
