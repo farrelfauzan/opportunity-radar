@@ -416,13 +416,25 @@ Sector labels come from the fixed sector list in `docs/opportunities/scoring-v1.
 | inv.alerts.report | Read the full report | Baca laporan lengkap |
 | inv.alerts.empty | No signal changes yet | Belum ada perubahan sinyal |
 | inv.addAsset | Add asset | Tambah aset |
+| inv.add.symbolLabel | Symbol | Simbol |
+| inv.add.symbolHelp | IDX stocks end in .JK (e.g. TLKM.JK), US stocks as listed (e.g. AAPL), crypto as a Binance pair (e.g. SOLUSDT). | Saham BEI diakhiri .JK (mis. TLKM.JK), saham AS seperti tercatat (mis. AAPL), kripto sebagai pasangan Binance (mis. SOLUSDT). |
+| inv.add.submit | Add | Tambah |
+| inv.add.added | {name} added. Its prices and signal appear after the next price run. | {name} ditambahkan. Harga dan sinyalnya muncul setelah pembaruan harga berikutnya. |
+| inv.add.error.unknown | Symbol not found at the price source | Simbol tidak ditemukan di sumber harga |
+| inv.add.error.duplicate | This asset is already on the watchlist | Aset ini sudah ada di daftar pantau |
+| inv.add.error.market | Only IDX stocks, US stocks and Binance crypto pairs can be added | Hanya saham BEI, saham AS, dan pasangan kripto Binance yang bisa ditambahkan |
+| inv.add.error.tooSmall | Prices below {min} are not supported by the signal rules yet | Harga di bawah {min} belum didukung aturan sinyal |
+| inv.remove | Remove from watchlist | Hapus dari daftar pantau |
+| inv.removed | {name} removed. Its history is kept. | {name} dihapus. Riwayatnya tetap disimpan. |
 | inv.alertsTo.label | Send alerts to | Kirim peringatan ke |
 | inv.alertsTo.app | In the app | Di aplikasi |
 | inv.alertsTo.telegram | Telegram | Telegram |
 | inv.alertsTo.email | Email | Email |
 | inv.disclaimer | Signals are produced by fixed, published rules on price data. They are information for your own decision, not financial advice, and past behaviour does not guarantee future results. | Sinyal dihasilkan oleh aturan tetap yang dipublikasikan atas data harga. Ini informasi untuk keputusan Anda sendiri, bukan nasihat keuangan, dan perilaku masa lalu tidak menjamin hasil di masa depan. |
 
-Not shipped in v1: `inv.addAsset` (OR-44 decides), `inv.alertsTo.*` (alerts are in-app only, D4; Telegram OR-42, email OR-43). Keys exist so the dictionaries stay complete.
+Not shipped in v1: `inv.alertsTo.*` (alerts are in-app only, D4; Telegram OR-42, email OR-43). Keys exist so the dictionaries stay complete.
+
+Add an asset (OR-44): `inv.addAsset` opens a small form (`inv.add.*`) under the watchlist, not a dialog. The symbol is checked on the server against its price source. Allowed: IDX stocks (stored with exchange `IDX`), US stocks, Binance crypto pairs; any other market gives `inv.add.error.market`, since staleness time zones exist only for these (rules-v1 §4). A latest price below 0.05 (`{min}`, formatted per locale) gives `inv.add.error.tooSmall`, because reversal prices use a 0.01 grid (rules-v1 §5). On success `inv.add.added`; the new row shows "Not enough history" until the next price and signal runs. Removing uses `inv.remove`, then `inv.removed` (history kept).
 
 The disclaimer drops "plus a news check" from the canvas: in rules v1 the news check is context and never moves the verdict (OR-10, D10).
 
