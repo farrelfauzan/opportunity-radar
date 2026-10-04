@@ -126,7 +126,9 @@ export function normalise(text: string): string {
   return text
     .normalize("NFKC")
     .replace(/[­​-‍⁠﻿]/g, "")
-    .replace(/<[^>]*>/g, " ")
+    // Only real tags, bounded: "Rates fell < 5% so … > 3 days" keeps its words, and many "<" stay fast.
+    // ("<you should buy gold now>" is not a tag: only known tag names are removed).
+    .replace(/<\/?(?:a|b|i|u|s|em|strong|span|p|br|div|sup|sub|small|mark|code|del|ins|font|li|ul|ol)\b[^<>]{0,200}>/gi, " ")
     .replace(/[*`~]/g, "")
     .replace(/[_\-‐‑]/g, " ")
     .replace(/[‘’]/g, "'")

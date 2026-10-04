@@ -230,6 +230,21 @@ describe("OR-64: normalisation, clause breaks, forecast forms, the authority exc
     expect(wordingHit("Investors must sell bank stocks.")).toMatchObject({ id: "mandate" });
   });
 
+  test("a comparison sign is not a tag: the words between < and > are still checked", () => {
+    for (const line of ["Rates fell < 5% so you should buy gold > 3 days", "<you should buy gold now>", "Prices <fell and the rupiah will fall> again"]) {
+      expect(bannedWording(line)).not.toBeNull();
+    }
+    expect(bannedWording("buy<b></b> now")).not.toBeNull(); // a real tag is still removed
+  });
+
+  test("many < characters stay fast", () => {
+    for (const text of ["<".repeat(100_000), "<a ".repeat(33_000)]) {
+      const started = performance.now();
+      bannedWording(text);
+      expect(performance.now() - started).toBeLessThan(1000);
+    }
+  });
+
   test("WORDING_RULE, the prompt sentence, passes its own guard", () => {
     expect(bannedWording(WORDING_RULE)).toBeNull();
   });
