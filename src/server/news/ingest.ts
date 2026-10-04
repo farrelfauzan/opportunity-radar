@@ -1,7 +1,14 @@
-import { insertArticle, recordSourceCheck, upsertSource, type NewArticle, type Source } from "@/server/data";
+import {
+  deactivateSourcesExcept,
+  insertArticle,
+  recordSourceCheck,
+  upsertSource,
+  type NewArticle,
+  type Source,
+} from "@/server/data";
 import type { JobOutcome } from "@/server/jobs/runner";
 import { canonicalUrl, cleanText, cutSnippet } from "./clean.ts";
-import { FEEDS, sourceOf, type Feed } from "./feeds.ts";
+import { FEEDS, type Feed } from "./feeds.ts";
 import { decodeFeed, FeedError, parseFeed, type FeedItem } from "./parse.ts";
 
 export const USER_AGENT =
@@ -70,7 +77,7 @@ export function toArticle(item: FeedItem, feed: Feed, sourceId: number, fetchedA
     region: feed.region,
     category: feed.category,
     headline,
-    snippet: feed.noSnippet ? "" : cutSnippet(cleanText(item.description)),
+    snippet: cutSnippet(cleanText(item.description)),
     // No usable date: the fetch time, flagged. A future date is clamped to the fetch time.
     publishedAt: estimated || published > fetchedAt ? fetchedAt : published,
     publishedAtEstimated: estimated,
@@ -90,7 +97,9 @@ export async function ingestNews(
   const failures: string[] = [];
 
   const sources = [];
-  for (const feed of feeds) sources.push(await upsertSource(sourceOf(feed)));
+  for (const feed of feeds) sources.push(await upsertSource({ ...feed, active: true }));
+  // A feed removed from the config stops showing in source health; its articles stay.
+  await deactivateSourcesExcept(feeds.map((feed) => feed.slug));
   const results = await Promise.allSettled(sources.map((source) => fetchFeed(source, fetcher)));
 
   // Stored in feed order, so when two feeds carry the same article the first feed wins.

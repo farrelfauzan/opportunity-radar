@@ -231,7 +231,7 @@ describe("the fixture run: all 12 recorded feeds plus the synthetic ones", () =>
     }
 
     const outcome = await ingestNews({ feeds: [...FEEDS, ...synthetic], fetch: fakeFetch(replies).fetcher, now });
-    expect(outcome).toMatchObject({ status: "ok", counts: { sources_ok: 17, sources_failed: 0 } });
+    expect(outcome).toMatchObject({ status: "ok", counts: { sources_ok: 16, sources_failed: 0 } });
     expect(await articleCount()).toBeGreaterThanOrEqual(36);
 
     // The same query is in the README for QA: it must return no rows.
@@ -239,9 +239,25 @@ describe("the fixture run: all 12 recorded feeds plus the synthetic ones", () =>
     expect(await db().execute(sql.raw(query))).toEqual([]);
 
     const sources = await db().execute(sql`select count(distinct source_id) as n from articles`);
-    expect(Number(sources[0].n)).toBe(17);
+    expect(Number(sources[0].n)).toBe(16);
     const latin = await db().execute(sql`select headline from articles where link = 'https://example.com/latin1'`);
     expect(latin[0].headline).toBe("Café société: crédit à la hausse");
+  });
+});
+
+describe("removing a feed from the config", () => {
+  test("switches its source off, keeps its articles, and health no longer lists it", async () => {
+    const body = { body: readFixture("synthetic/atom.xml") };
+    await ingestNews({ feeds: [feed("kept"), feed("dropped")], fetch: fakeFetch({
+      "https://feeds.test/kept.xml": { body: readFixture("synthetic/rss.xml") },
+      "https://feeds.test/dropped.xml": body,
+    }).fetcher, now });
+
+    await ingestNews({ feeds: [feed("kept")], fetch: fakeFetch({ "https://feeds.test/kept.xml": { status: 304 } }).fetcher, now });
+
+    expect((await listSources()).map((s) => [s.slug, s.active])).toEqual([["dropped", false], ["kept", true]]);
+    expect((await sourceHealth()).map((s) => s.slug)).toEqual(["kept"]);
+    expect(await articleCount()).toBe(7);
   });
 });
 

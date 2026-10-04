@@ -1,9 +1,9 @@
-import { and, asc, count, eq, gte } from "drizzle-orm";
+import { and, asc, count, eq, gte, notInArray } from "drizzle-orm";
 import { db } from "./client.ts";
 import { articles, sources } from "./schema.ts";
 
 export type Source = typeof sources.$inferSelect;
-export type NewSource = Pick<Source, "slug" | "name" | "feedUrl" | "region" | "category">;
+export type NewSource = Pick<Source, "slug" | "name" | "feedUrl" | "region" | "category"> & { active?: boolean };
 
 /** Creates the source, or updates it when the slug already exists. */
 export async function upsertSource(input: NewSource): Promise<Source> {
@@ -13,6 +13,11 @@ export async function upsertSource(input: NewSource): Promise<Source> {
     .onConflictDoUpdate({ target: sources.slug, set: input })
     .returning();
   return row;
+}
+
+/** Switches off every source whose slug is not in the list. */
+export async function deactivateSourcesExcept(slugs: string[]): Promise<void> {
+  await db().update(sources).set({ active: false }).where(notInArray(sources.slug, slugs));
 }
 
 export async function listSources(): Promise<Source[]> {

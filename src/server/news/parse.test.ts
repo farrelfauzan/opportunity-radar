@@ -97,18 +97,17 @@ describe("toArticle", () => {
     expect(long!.snippet.isWellFormed()).toBe(true); // no half emoji
   });
 
-  test("a feed marked noSnippet stores an empty snippet", () => {
-    const hackerNews = FEEDS.find((f) => f.slug === "hacker-news")!;
-    const [item] = parseFeed(readFixture("hacker-news/feed-2026-10-04.xml"));
-    expect(toArticle(item, hackerNews, 1, fetchedAt)!.snippet).toBe("");
+  test("an item without a description stores an empty snippet", () => {
+    const [, second] = parseFeed(readFixture("synthetic/atom.xml"));
+    expect(toArticle(second, feed, 1, fetchedAt)!.snippet).toBe("");
   });
 });
 
 describe("recorded feeds (one per source, 2026-10-04)", () => {
-  test("there are 12 feeds from 11 publishers", () => {
-    expect(FEEDS).toHaveLength(12);
-    expect(new Set(FEEDS.map((f) => f.slug)).size).toBe(12);
-    expect(new Set(FEEDS.map((f) => f.name.replace(/^BBC .*/, "BBC"))).size).toBe(11);
+  test("there are 11 feeds from 10 publishers", () => {
+    expect(FEEDS).toHaveLength(11);
+    expect(new Set(FEEDS.map((f) => f.slug)).size).toBe(11);
+    expect(new Set(FEEDS.map((f) => f.name.replace(/^BBC .*/, "BBC"))).size).toBe(10);
   });
 
   test.each(FEEDS)("$slug parses into clean articles", (source) => {
