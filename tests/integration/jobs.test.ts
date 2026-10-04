@@ -269,14 +269,15 @@ describe("pnpm job", { timeout: 60_000 }, () => {
   });
 
   test("the morning pipeline with a failing second step", async () => {
-    const result = job(["morning"], { STUB_FAIL: "opportunities" });
+    // triage and opportunities are real jobs now (nothing to do on an empty store); scores is still a stub.
+    const result = job(["morning"], { STUB_FAIL: "scores" });
     expect(result.status).not.toBe(0);
-    expect(result.stdout).toContain('morning: failed (step "opportunities" failed');
+    expect(result.stdout).toContain('morning: failed (step "scores" failed');
     expect((await runs()).map((r) => [r.job, r.status])).toEqual([
       ["morning", "failed"],
       ["triage", "ok"],
-      ["opportunities", "failed"],
-      ["scores", "skipped"],
+      ["opportunities", "ok"],
+      ["scores", "failed"],
       ["brief", "skipped"],
     ]);
   });
