@@ -89,6 +89,37 @@ describe("database checks on the venture tables", () => {
     await fails(sql`insert into venture_market (venture_id, day, region) values (${ventureId}, '2026-10-04', 'asia')`);
   });
 
+  test("venture_market: factors are exactly the five keys, each an integer 0–100", async () => {
+    const valid = { demand: 80, timing: 70, competition: 60, capital: 50, regulatory: 90 };
+    const insert = (day: string, factors: unknown) =>
+      sql`insert into venture_market (venture_id, day, region, score, factors)
+        values (${ventureId}, ${day}, 'global', 70, ${JSON.stringify(factors)}::jsonb)`;
+
+    await db().execute(insert("2026-09-01", valid));
+    const { regulatory: _, ...missing } = valid;
+    void _;
+    await fails(insert("2026-09-02", missing));
+    await fails(insert("2026-09-03", { ...valid, extra: 1 }));
+    await fails(insert("2026-09-04", { ...valid, demand: 101 }));
+    await fails(insert("2026-09-05", { ...valid, demand: -1 }));
+    await fails(insert("2026-09-06", { ...valid, demand: 50.5 }));
+    await fails(insert("2026-09-07", { ...valid, demand: "50" }));
+    await fails(insert("2026-09-08", [1, 2, 3, 4, 5]));
+    await fails(sql`insert into venture_market (venture_id, day, region, related_articles)
+      values (${ventureId}, '2026-09-09', 'global', -1)`);
+  });
+
+  test("venture_progress: counts are never negative (they may be unknown)", async () => {
+    await db().execute(sql`insert into venture_progress (venture_id, day, percent) values (${ventureId}, '2026-09-01', 10)`);
+    await fails(sql`insert into venture_progress (venture_id, day, percent, tickets_in_qa) values (${ventureId}, '2026-09-02', 10, -1)`);
+    await fails(sql`insert into venture_progress (venture_id, day, percent, sprint_next) values (${ventureId}, '2026-09-03', 10, -2)`);
+  });
+
+  test("venture_articles has an index on article_id (pruning)", async () => {
+    const rows = await db().execute(sql`select indexname from pg_indexes where tablename = 'venture_articles'`);
+    expect(rows.map((r) => r.indexname)).toContain("venture_articles_article_idx");
+  });
+
   test("venture_winds: one pair per venture per day, both languages, at least one citation", async () => {
     await db().execute(sql`insert into venture_winds (venture_id, day, tailwind_en, tailwind_id, tailwind_article_ids)
       values (${ventureId}, '2026-10-03', 'Stricter enforcement.', 'Penegakan makin ketat.', ${`{${articleId}}`}::bigint[])`);

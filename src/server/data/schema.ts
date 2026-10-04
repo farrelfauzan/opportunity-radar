@@ -115,6 +115,21 @@ export type Sector = (typeof SECTORS)[number];
 
 /** The five factors of docs/opportunities/scoring-v1.md, each an integer 0–100. */
 export type FactorScores = { demand: number; timing: number; competition: number; capital: number; regulatory: number };
+export const FACTOR_KEYS = ["demand", "timing", "competition", "capital", "regulatory"] as const;
+
+/**
+ * A jsonb column holding FactorScores: exactly the five keys, each an integer 0–100.
+ * Wrapped in coalesce because a CHECK that evaluates to NULL (a missing key) would pass.
+ */
+const factorsShape = (column: unknown) => {
+  const key = (k: string) => sql.raw(`'${k}'`);
+  const each = FACTOR_KEYS.map(
+    (k) =>
+      sql`jsonb_typeof(${column}->${key(k)}) = 'number' and (${column}->>${key(k)}) ~ '^[0-9]{1,3}$' and (${column}->>${key(k)})::int <= 100`,
+  );
+  const keys = sql.raw(`array[${FACTOR_KEYS.map((k) => `'${k}'`).join(", ")}]::text[]`);
+  return sql`${column} is null or coalesce(jsonb_typeof(${column}) = 'object' and ${column} - ${keys} = '{}'::jsonb and ${sql.join(each, sql` and `)}, false)`;
+};
 
 // The owner's ventures (OR-36). Edited in src/server/ventures/config.ts and seeded.
 export const ventures = pgTable(
@@ -162,6 +177,10 @@ export const ventureProgress = pgTable(
   (t) => [
     unique("venture_progress_venture_day_unique").on(t.ventureId, t.day),
     check("venture_progress_percent_check", sql`${t.percent} between 0 and 100`),
+    check(
+      "venture_progress_counts_check",
+      sql`${t.sprintDelivered} >= 0 and ${t.sprintNext} >= 0 and ${t.ticketsInQa} >= 0`,
+    ),
   ],
 );
 
@@ -185,6 +204,8 @@ export const ventureMarket = pgTable(
     check("venture_market_region_check", regionCheck(t.region)),
     check("venture_market_score_check", sql`${t.score} between 0 and 100`),
     check("venture_market_score_factors_check", sql`(${t.score} is null) = (${t.factors} is null)`),
+    check("venture_market_factors_check", factorsShape(t.factors)),
+    check("venture_market_related_articles_check", sql`${t.relatedArticles} >= 0`),
   ],
 );
 
@@ -233,6 +254,8 @@ export const ventureArticles = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.ventureId, t.articleId] }),
+    // Deleting (pruning) an article finds its matches without a full scan.
+    index("venture_articles_article_idx").on(t.articleId),
     check("venture_articles_relevance_check", sql`${t.relevance} between 0 and 100`),
   ],
 );
