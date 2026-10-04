@@ -20,6 +20,26 @@ describe("cleanText", () => {
   });
 });
 
+describe("cleanText keeps tickers in angle brackets (OR-57)", () => {
+  test.each([
+    ["Apple <AAPL> beats estimates", "Apple (AAPL) beats estimates"],
+    ["Saham <BBCA.JK> naik", "Saham (BBCA.JK) naik"],
+    ["Alibaba <9988> rebounds", "Alibaba (9988) rebounds"],
+    ["Berkshire <BRK.B> and HK <9988.HK>", "Berkshire (BRK.B) and HK (9988.HK)"],
+    ["escaped: Apple &lt;AAPL&gt; beats", "escaped: Apple (AAPL) beats"],
+    ["escaped twice: &amp;lt;TSLA&amp;gt;", "escaped twice: (TSLA)"],
+    ["<b>Bold</b> stays text", "Bold stays text"],
+    ['<a href="x">link</a> text', "link text"],
+    ["<SCRIPT>alert(1)</SCRIPT>after", "after"],
+    ["<B>Upper bold</B>", "Upper bold"],
+    ["<A HREF=x>upper link</A>", "upper link"],
+    ["too long <ABCDEFG> is a tag", "too long is a tag"],
+    ["lower case <aapl> is a tag", "lower case is a tag"],
+  ])("%s → %s", (input, expected) => {
+    expect(cleanText(input)).toBe(expected);
+  });
+});
+
 describe("cleanText on deeply escaped markup", () => {
   const escape = (text: string, levels: number) => {
     for (let i = 0; i < levels; i++) text = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
