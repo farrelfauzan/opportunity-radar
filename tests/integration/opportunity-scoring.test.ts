@@ -28,8 +28,8 @@ const factors = (values: Record<string, number>) => ({
 const GOOD = factors({ demand: 88, timing: 90, competition: 70, capital: 62, regulatory: 84 });
 
 let counter = 0;
-/** An opportunity first scored on `lastDay` (overall 60), citing 2 articles fetched at `fetchedAt`. */
-async function opportunity(lastDay: string, fetchedAt = new Date(), headline = "Headline"): Promise<number> {
+/** An opportunity first scored on `lastDay` (overall 60), citing 2 articles at `citedAt`. */
+async function opportunity(lastDay: string, citedAt = new Date(), headline = "Headline"): Promise<number> {
   const source = await upsertSource({ slug: "s", name: "S", feedUrl: "https://example.com/f.xml", region: "indonesia", category: "business" });
   const ids: number[] = [];
   for (let i = 0; i < 2; i++) {
@@ -39,8 +39,9 @@ async function opportunity(lastDay: string, fetchedAt = new Date(), headline = "
     });
     ids.push(article.id);
   }
-  await db().execute(sql`update articles set fetched_at = ${fetchedAt.toISOString()} where id in (${ids[0]}, ${ids[1]})`);
-  return (await insertOpportunity(fields, score(lastDay, 60), ids)).id;
+  const id = (await insertOpportunity(fields, score(lastDay, 60), ids)).id;
+  await db().execute(sql`update opportunity_articles set cited_at = ${citedAt.toISOString()} where opportunity_id = ${id}`);
+  return id;
 }
 
 function provider(...replies: unknown[]) {

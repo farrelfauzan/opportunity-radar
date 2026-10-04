@@ -2,17 +2,34 @@
 // triaged news into themes and writes one opportunity per theme, citing the
 // articles it used. Each opportunity is checked against the OR-11 contract;
 // one that breaks it is rejected and logged, and nothing is stored for it.
-// Matching to existing opportunities, updating and closing are OR-50.
-import { FACTOR_KEYS, insertOpportunity, opportunityCandidates, wibDay, type FactorScores, type NewOpportunity } from "@/server/data";
+// A theme that matches an open opportunity updates it instead (OR-50), and
+// opportunities without new evidence for 30 days are closed.
+import {
+  closeStaleOpportunities,
+  FACTOR_KEYS,
+  MAX_CITATIONS as MAX_STORED_CITATIONS,
+  insertOpportunity,
+  listOpenForMatching,
+  opportunityCandidates,
+  refreshOpportunity,
+  wibDay,
+  type FactorScores,
+  type NewOpportunity,
+} from "@/server/data";
 import type { JobOutcome } from "@/server/jobs/runner";
 import { callLlm, type LlmCall } from "@/server/llm/client";
 import { fenceUntrusted } from "@/server/llm/fence";
 import { checkOpportunity, type OpportunityOutput } from "./contract.ts";
+import { findMatch } from "./match.ts";
 
 const WINDOW_DAYS = 7;
-const MAX_INPUT_ARTICLES = 150; // newest first; keeps the prompt well under the client's input guard
+const MAX_INPUT_ARTICLES = 150;
+// The data block's size budget: with the instructions it stays under the LLM
+// client's 200,000-character input guard even when every article is long.
+const MAX_DATA_CHARS = 150_000;
+const MAX_REASON_CHARS = 200;
 const MAX_OPPORTUNITIES = 10; // per run
-const MAX_CITATIONS = 20; // stored per opportunity
+const MAX_CITATIONS = 20; // used from one reply item (an opportunity stores at most MAX_STORED_CITATIONS in total)
 const MAX_TOKENS = 8000;
 
 /** Overall score (scoring-v1 §1): the equal-weight mean of the five factors, Math.round, computed in code. */
@@ -35,6 +52,17 @@ Answer with JSON only, exactly {"opportunities": [ ... ]}, where each item has:
 Every text is given in English ("en") and Bahasa Indonesia ("id").`;
 
 type Candidate = Awaited<ReturnType<typeof opportunityCandidates>>[number];
+
+/** What the LLM sees of one article (untrusted text, fenced). */
+const inputItem = ({ article, triage }: Candidate) => ({
+  id: String(article.id),
+  headline: article.headline,
+  snippet: article.snippet,
+  region: article.region,
+  category: article.category,
+  why: triage.whyEn,
+  themes: triage.themes,
+});
 
 function toFields(o: OpportunityOutput): NewOpportunity {
   return {
@@ -72,22 +100,30 @@ export async function generateOpportunities(
 ): Promise<JobOutcome> {
   const now = options.now?.() ?? new Date();
   const since = new Date(now.getTime() - WINDOW_DAYS * 24 * 60 * 60 * 1000);
-  const candidates: Candidate[] = (await opportunityCandidates(since)).slice(0, MAX_INPUT_ARTICLES);
-  const counts = { candidates: candidates.length, created: 0, rejected: 0 };
+  // Most relevant first (newest on ties), at most 150 and only as many as fit the size budget.
+  const ranked = (await opportunityCandidates(since)).sort(
+    (a, b) => (b.triage.relevance ?? 0) - (a.triage.relevance ?? 0) || b.article.publishedAt.getTime() - a.article.publishedAt.getTime(),
+  );
+  const candidates: Candidate[] = [];
+  let size = 2;
+  for (const c of ranked.slice(0, MAX_INPUT_ARTICLES)) {
+    const itemSize = JSON.stringify(inputItem(c)).length + 1;
+    if (size + itemSize > MAX_DATA_CHARS) break;
+    candidates.push(c);
+    size += itemSize;
+  }
+  const counts = { candidates: candidates.length, candidates_available: ranked.length, created: 0, matched: 0, rejected: 0, closed: 0, citations_skipped: 0 };
+  const closeStale = async () => {
+    const closed = await closeStaleOpportunities(now);
+    counts.closed = closed.length;
+    for (const id of closed) console.info(`opportunities: closed #${id} (no new evidence for 30 days)`);
+  };
+  console.info(`opportunities: ${candidates.length} of ${ranked.length} candidates used`);
+  // Nothing to judge by (no news, a dead ingestion or triage job, a machine that was off):
+  // no call, and nothing is closed, since a closed opportunity is never reopened.
   if (candidates.length < 2) return { status: "ok", counts }; // no theme can have 2 citations
 
-  const fence = fenceUntrusted(
-    "ARTICLES",
-    candidates.map(({ article, triage }) => ({
-      id: String(article.id),
-      headline: article.headline,
-      snippet: article.snippet,
-      region: article.region,
-      category: article.category,
-      why: triage.whyEn,
-      themes: triage.themes,
-    })),
-  );
+  const fence = fenceUntrusted("ARTICLES", candidates.map(inputItem));
   const items = await callLlm({
     job: "opportunities",
     role: "report",
@@ -102,23 +138,47 @@ export async function generateOpportunities(
 
   const inputIds = new Set(candidates.map(({ article }) => String(article.id)));
   const reasons: string[] = [];
+  const open = await listOpenForMatching();
+  if (items.length > MAX_OPPORTUNITIES) {
+    console.warn(`opportunities: reply has ${items.length} items; only the first ${MAX_OPPORTUNITIES} are used`);
+  }
   for (const [index, raw] of items.slice(0, MAX_OPPORTUNITIES).entries()) {
     const checked = checkOpportunity(raw, inputIds);
     if (!checked.ok) {
       counts.rejected++;
-      reasons.push(`#${index + 1}: ${checked.reason}`);
-      console.warn(`opportunities: rejected #${index + 1}: ${checked.reason}`);
+      const reason = checked.reason.slice(0, MAX_REASON_CHARS);
+      reasons.push(`#${index + 1}: ${reason}`);
+      console.warn(`opportunities: rejected #${index + 1}: ${reason}`);
       continue;
     }
     const o = checked.value;
+    const citations = o.citations.slice(0, MAX_CITATIONS).map(Number);
+    const match = findMatch({ theme: o.theme, region: o.region, sectors: o.sectors, citations }, open);
+    if (match) {
+      // Same opportunity: it keeps its id, gains the new citations and fresh texts. Re-scoring is OR-16's.
+      const { theme: _t, region: _r, sectors: _s, ...refreshed } = toFields(o);
+      void [_t, _r, _s];
+      // The text is replaced only when the theme is the same and the item cites an article the
+      // opportunity already cites (Designer, OR-50); otherwise only the citations are added.
+      const known = open.find((x) => x.id === match.id)!;
+      const refreshText = known.theme === o.theme && citations.some((c) => known.citations.includes(c));
+      const { added, skipped } = await refreshOpportunity(match.id, refreshText ? refreshed : null, citations);
+      counts.citations_skipped += skipped;
+      known.citations = [...new Set([...known.citations, ...citations])];
+      counts.matched++;
+      console.info(
+        `opportunities: theme ${o.theme}/${o.region} → matched #${match.id} (${match.reason}; ${refreshText ? "text refreshed" : "citations only"}; ${added} new citations` +
+          (skipped ? `, ${skipped} left out at the ${MAX_STORED_CITATIONS}-citation limit)` : ")"),
+      );
+      continue;
+    }
     const factors = Object.fromEntries(FACTOR_KEYS.map((key) => [key, o.factors[key].score])) as FactorScores;
-    await insertOpportunity(
-      toFields(o),
-      { day: wibDay(now), overall: overallScore(o.factors), ...factors },
-      o.citations.slice(0, MAX_CITATIONS).map(Number),
-    );
+    const created = await insertOpportunity(toFields(o), { day: wibDay(now), overall: overallScore(o.factors), ...factors }, citations);
+    open.push({ id: created.id, theme: o.theme, region: o.region, sectors: o.sectors, citations });
     counts.created++;
+    console.info(`opportunities: theme ${o.theme}/${o.region} → new #${created.id} (no open opportunity matches)`);
   }
+  await closeStale();
   return reasons.length
     ? { status: "partial", counts, error: `${reasons.length} rejected: ${reasons.join("; ")}` }
     : { status: "ok", counts };
