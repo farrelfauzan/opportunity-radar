@@ -324,6 +324,8 @@ Section order (desktop and phone): brief → My ventures → Top opportunities �
 | opp.detail.model | Model | Model |
 | opp.detail.trend30 | Score, 30 days | Skor, 30 hari |
 | opp.detail.evidence | Why now — evidence from the news | Mengapa sekarang — bukti dari berita |
+| opp.detail.evidenceMeta | {source} · {ago} | {source} · {ago} |
+| opp.detail.aiNote | Scores are AI estimates from the cited news, scored against a fixed rubric every morning. | Skor adalah perkiraan AI dari berita yang dikutip, dinilai dengan rubrik tetap setiap pagi. |
 | opp.detail.risks | Risks | Risiko |
 | opp.detail.steps | First steps to validate | Langkah awal untuk validasi |
 | opp.detail.save | Save to my shortlist | Simpan ke daftar pendek |
@@ -334,6 +336,8 @@ Section order (desktop and phone): brief → My ventures → Top opportunities �
 | opp.detail.closed | This opportunity is closed or no longer exists | Peluang ini sudah ditutup atau tidak ada lagi |
 | opp.detail.closedTag | Closed | Ditutup |
 | opp.detail.back | Back to opportunities | Kembali ke peluang |
+
+Evidence items under "Why now" show the headline (link to the original), then `opp.detail.evidenceMeta`; items from open-licence sources add the credit line (§3.1). `opp.detail.aiNote` sits under the score breakdown in muted text.
 
 Not shipped in v1: `opp.detail.print` (OR-45; replaces the canvas "Full report (PDF)").
 
