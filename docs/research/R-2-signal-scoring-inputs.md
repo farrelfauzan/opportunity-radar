@@ -161,8 +161,14 @@ Capital level for the contract: Low ≤ Rp 100 m, Medium Rp 100 m–1 bn, High >
 | smes_msme | SMEs & MSMEs | UMKM |
 | other | Other | Lainnya |
 
-### Two-scorer check (AC1)
-Sample themes with real articles: `R-2-samples/themes.json`. Scorers are two agent sessions (Designer = A, Researcher = B), not two people; QA asked that this be stated. Scorer B scored at 2026-10-04T01:17:30Z before seeing A's scores. Scores and differences are added to this section once A's scores arrive. [pending]
+### Two-scorer check (AC1) — result: 14 of 15 within 15, one miss
+Sample themes with real articles: `R-2-samples/themes.json`. Scorers are two agent sessions (Designer = A, Researcher = B), not two people. Both scored blind: A at 2026-10-04T01:19:43Z, B at 2026-10-04T01:17:30Z (files `scores-A.json`, `scores-B.json`; A's numbers are copied from the Designer's message, not verified by me). Order: demand, timing, low competition, capital efficiency, low regulatory risk.
+| theme | A | B | differences | mean A / B |
+|---|---|---|---|---|
+| a, farming resilience, Indonesia | 70, 75, 60, 45, 70 | 70, 75, 50, 50, 55 | 0, 0, 10, 5, 15 | 64 / 60 |
+| b, fuel and supply chain, Worldwide | 65, 70, 35, 65, 75 | 70, 50, 30, 70, 70 | 5, **20**, 5, 5, 5 | 62 / 58 |
+| c, scam protection, Indonesia | 75, 65, 40, 70, 45 | 80, 65, 35, 65, 50 | 5, 0, 5, 5, 5 | 59 / 59 |
+The AC (every factor differs by at most 15) is **not met as written**: theme b, timing, differs by 20 (A 70, B 50). Cause (my reading, not tested): the timing anchor does not say whether a shock that officials are already acting to reverse (G7 oil release) counts as an open window. A counted the trigger; B discounted for transience. Neither score was changed after the comparison. Overall scores differ by 4, 4 and 0 points. Options: clarify the timing anchor and re-run on new themes as a recorded second round, or accept 14/15 with this note.
 
 ## 3. Data-source terms and limits
 
@@ -182,7 +188,7 @@ Spot vs futures today [L]: gold-api XAU 4141.80 vs Yahoo GC=F 4162.30 (+0.5%); X
 | Signal on Yahoo GC=F / SI=F futures, display spot from gold-api | none | 200+ closes on day 1 | futures ≠ spot (roll, basis); same Yahoo terms issue |
 | Build own spot history from gold-api polling | none | true spot | long-term signal unavailable for ~10 months, short-term after ~50 trading days |
 | Paid history API | money, key | clean | needs Tech Lead approval (keys, paid plans) |
-Recommendation: first option, with the signal screen saying "based on COMEX futures closes".
+Recommendation: first option, with the signal screen saying "based on COMEX futures closes". **Decided by the Designer in the ticket on 2026-10-04** (signal on GC=F / SI=F converted to IDR per gram with the same-day USD/IDR; quote shown from gold-api.com). Two caveats for OR-27/OR-29 [I]: Yahoo's continuous futures series can jump on contract rolls, which moves SMA and RSI without a real price move (check for gaps near roll months in the recorded fixtures); Frankfurter rates exist only on ECB business days, so say which rate is used on a day without one (suggest: the latest rate on or before that date).
 
 ## Confidence and what is unverified
 - High: indicator definitions and fixtures (two independent implementations agree); live endpoint results above on the day.
