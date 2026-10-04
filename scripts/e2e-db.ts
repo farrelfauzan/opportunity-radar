@@ -6,8 +6,9 @@
 //   fixtures [--last-run=<minutes ago | ISO time | never>] [--no-articles]
 //            [--scores-run=<minutes ago | ISO time | never>] [--brief-run=<minutes ago | ISO time | never>] [--no-opportunities] [--no-brief]
 //            [--brief-day=<days from today, e.g. -1>] [--no-market]
-//            [--no-ventures] [--no-venture-market] [--ventures-run=<minutes ago | ISO time | never>]
-//                                         (the ventures behind the Radar's "My ventures"; --no-venture-market stores them unscored)
+//            [--no-ventures] [--no-venture-market] [--ventures-run=<minutes ago | ISO time | never>] [--venture-market-age=<days>]
+//                                         (the ventures behind the Radar's "My ventures" and the venture view; --no-venture-market stores them
+//                                         unscored; --venture-market-age moves their market rows and winds that many days back)
 //            [--prices-run=<...>] [--metals-run=<...>] [--crypto-run=<...>]   (the jobs behind the market snapshot, default 5)
 //                                         empty the tables, then store the News fixtures, the
 //                                         Opportunities fixtures, today's daily brief and the market snapshot's prices
@@ -190,9 +191,11 @@ async function storeMarket(): Promise<Date> {
  * The ventures with their progress, market rows (today and yesterday), winds and article matches (the first
  * stored articles, in order). Progress and yesterday's market rows are inserted directly (progress has no writer yet, OR-37).
  */
-async function storeVentures(withMarket: boolean) {
-  const today = wibDay();
+async function storeVentures(withMarket: boolean, sourceIds: Map<string, number>, evidence: Map<string, number>) {
+  // --venture-market-age=<days>: the market rows and winds are that many days older (the Radar's "As of" date).
+  const today = addDays(wibDay(), -Number(option("venture-market-age") ?? 0));
   const articleIds = (await sql()`select id from articles order by id`).map((r) => r.id as number);
+  const withArticles = articleIds.length > 0; // false with --no-articles
   for (const f of fixtureVentures) {
     const venture = await upsertVenture({
       slug: f.slug,
@@ -206,22 +209,52 @@ async function storeVentures(withMarket: boolean) {
     });
     if (f.progress) {
       await sql()`insert into venture_progress (venture_id, day, percent, sprint_delivered, sprint_next, tickets_in_qa)
-        values (${venture.id}, ${today}, ${f.progress.percent}, ${f.progress.sprintDelivered}, ${f.progress.sprintNext}, ${f.progress.ticketsInQa})`;
+        values (${venture.id}, ${wibDay()}, ${f.progress.percent}, ${f.progress.sprintDelivered}, ${f.progress.sprintNext}, ${f.progress.ticketsInQa})`;
     }
     for (const [index, relevance] of f.matches.entries()) {
       if (articleIds[index] === undefined) continue; // --no-articles
       await sql()`insert into venture_articles (venture_id, article_id, relevance) values (${venture.id}, ${articleIds[index]}, ${relevance})`;
     }
+    // OR-51: matches to the keyed News articles, then the filler articles of the days before today (newest first), at the end.
+    const matched: [number, number][] = (f.matchKeys ?? []).flatMap((key) => evidence.get(key) ?? []).map((id) => [id, 80]);
+    if (withArticles && f.fillers) {
+      const start = new Date(`${wibDay()}T00:00:00+07:00`).getTime();
+      for (let i = 0; i <= f.fillers; i++) {
+        // The last one (i = fillers) is rated 49: it is not related news.
+        const { article } = await insertArticle({
+          sourceId: sourceIds.get("antara")!,
+          link: `https://example.com/e2e/venture-filler/${f.slug}/${i}`,
+          region: "indonesia",
+          category: "business",
+          headline: `Berita pasar ${String(i + 1).padStart(2, "0")}`,
+          snippet: "Stored for the venture view only.",
+          publishedAt: new Date(start - (i + 1) * 3 * 60 * 60_000),
+        });
+        matched.push([article.id, i === f.fillers ? 49 : 70]);
+      }
+    }
+    for (const [id, relevance] of matched) {
+      await sql()`insert into venture_articles (venture_id, article_id, relevance) values (${venture.id}, ${id}, ${relevance})`;
+    }
     if (!withMarket) continue;
     const factors = (v: number) => ({ demand: v, timing: v, competition: v, capital: v, regulatory: v });
     const rows = (["indonesia", "global"] as const).map((region) => ({ region, ...f.market[region] }));
+    for (const region of ["indonesia", "global"] as const) {
+      for (const [ago, score] of f.earlier?.[region] ?? []) {
+        await sql()`insert into venture_market (venture_id, day, region, score, factors, related_articles)
+          values (${venture.id}, ${addDays(today, -ago)}, ${region}, ${score}, ${score === null ? null : JSON.stringify(factors(score))}::jsonb, 0)`;
+      }
+    }
     // Yesterday's rows first, then today's through the same writer the morning step uses.
     for (const row of rows) {
       if (row.yesterday === null) continue;
       await sql()`insert into venture_market (venture_id, day, region, score, factors, related_articles)
         values (${venture.id}, ${addDays(today, -1)}, ${row.region}, ${row.yesterday}, ${JSON.stringify(factors(row.yesterday))}::jsonb, 0)`;
     }
-    const wind = (pair: { en: string; id: string } | null) => (pair ? { ...pair, articleIds: [articleIds[0] ?? 1] } : null);
+    // The articles a wind cites: the first stored article unless the fixture names others ("first" is that one).
+    const cited = (keys: string[] | undefined) => (keys ?? ["first"]).flatMap((key) => (key === "first" ? articleIds[0] : evidence.get(key)) ?? []);
+    const wind = (pair: { en: string; id: string } | null, keys: string[] | undefined) =>
+      pair ? { ...pair, articleIds: cited(keys).length > 0 ? cited(keys) : [1] } : null;
     await saveVentureView(venture.id, today, {
       candidateIds: [],
       articles: [],
@@ -230,7 +263,7 @@ async function storeVentures(withMarket: boolean) {
         global: rows[1].today === null ? null : { score: rows[1].today, factors: factors(rows[1].today) },
       },
       relatedArticles: 0,
-      winds: { tailwind: wind(f.winds.tailwind), headwind: wind(f.winds.headwind) },
+      winds: { tailwind: wind(f.winds.tailwind, f.cites?.tailwind), headwind: wind(f.winds.headwind, f.cites?.headwind) },
     });
   }
 }
@@ -273,7 +306,7 @@ async function fixtures() {
   if (!args.includes("--no-articles")) for (const [key, id] of await storeEvidence(ids)) evidence.set(key, id);
   const opportunityIds = args.includes("--no-opportunities") ? new Map<string, number>() : await storeOpportunities(evidence);
   if (!args.includes("--no-brief")) await storeBrief(opportunityIds, evidence);
-  if (!args.includes("--no-ventures")) await storeVentures(!args.includes("--no-venture-market"));
+  if (!args.includes("--no-ventures")) await storeVentures(!args.includes("--no-venture-market"), ids, evidence);
   const lastRun = timeOption("last-run", "5");
   if (lastRun) await recordSuccessfulRun("ingest-news", lastRun);
   const scoresRun = timeOption("scores-run", "5");

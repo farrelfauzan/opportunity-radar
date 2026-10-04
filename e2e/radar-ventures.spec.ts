@@ -19,7 +19,7 @@ const copy = {
     never: ["No data yet", "The first update runs at 07:00 WIB."],
     stale: (when: string) => `Venture data last updated ${when} WIB`,
     short: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    open: /Open venture view/i,
+    open: (n: number) => `Open venture view · ${n} related news ${n === 1 ? "item" : "items"}`,
     pick: (pair: { en: string; id: string }) => pair.en,
     clock: ":",
   },
@@ -38,7 +38,7 @@ const copy = {
     never: ["Belum ada data", "Pembaruan pertama berjalan pukul 07.00 WIB."],
     stale: (when: string) => `Data usaha terakhir diperbarui ${when} WIB`,
     short: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
-    open: /Buka tampilan usaha/i,
+    open: (n: number) => `Buka tampilan usaha · ${n} berita terkait`,
     pick: (pair: { en: string; id: string }) => pair.id,
     clock: ".",
   },
@@ -115,8 +115,8 @@ for (const locale of ["en", "id"] as const) {
       await expect(score(connected.slug, "indonesia")).toContainText("/ 100");
       await expect(score(connected.slug, "indonesia").locator("[data-trend]")).toHaveText("▲ 5");
       // The "76 / 100" notation is hidden from screen readers, which get "76 out of 100" instead.
-      await expect(score(connected.slug, "indonesia").locator('[aria-hidden="true"]')).toContainText("76");
-      await expect(score(connected.slug, "indonesia").locator(".sr-only")).toHaveText(locale === "en" ? "76 out of 100" : "76 dari 100");
+      await expect(score(connected.slug, "indonesia").locator('[aria-hidden="true"]').first()).toContainText("76");
+      await expect(score(connected.slug, "indonesia").locator(".sr-only").first()).toHaveText(locale === "en" ? "76 out of 100" : "76 dari 100");
       await expect(score(connected.slug, "global")).toContainText(c.oppWorld);
       await expect(score(connected.slug, "global")).toContainText("68");
       await expect(score(connected.slug, "global").locator("[data-trend]")).toHaveText("▼ 2");
@@ -137,19 +137,35 @@ for (const locale of ["en", "id"] as const) {
       }
     });
 
-    test("the count of related news (relevance 50 or more) as plain text; none says there is none", async ({ page }) => {
+    test("the count of related news (relevance 50 or more) is the link to the venture view; none says there is none, without a link", async ({ page }) => {
       expect(relatedCount(connected)).toBe(2);
       await page.goto(`/${locale}`);
-      await expect(card(page, connected.slug).locator("[data-venture-news]")).toHaveText(c.related(2));
+      const open = card(page, connected.slug).locator("[data-venture-news]");
+      await expect(open).toHaveText(c.open(2));
+      await expect(open).toHaveAttribute("href", `/${locale}/ventures/${connected.slug}`);
+      expect((await box(open)).height).toBeGreaterThanOrEqual(44);
       await expect(card(page, notConnected.slug).locator("[data-venture-news]")).toHaveText(c.noNews);
-      await expect(card(page, notConnected.slug)).not.toContainText(c.related(0));
+      await expect(card(page, notConnected.slug)).not.toContainText(c.open(0));
+      await expect(card(page, notConnected.slug).getByRole("link")).toHaveCount(0);
+      // One link per venture with related news, and no other link to a venture screen on the page.
+      await expect(ventures(page).getByRole("link")).toHaveCount(fixtureVentures.filter((v) => relatedCount(v) > 0).length);
+      await expect(page.locator('a[href*="/ventures"]')).toHaveCount(fixtureVentures.filter((v) => relatedCount(v) > 0).length);
     });
 
-    test("no 'Open venture view' text and no link to a venture screen anywhere on the page", async ({ page }) => {
+    test("a score that is not from today or yesterday says so; today's and yesterday's do not", async ({ page }) => {
       await page.goto(`/${locale}`);
-      await expect(page.locator("body")).not.toContainText(c.open);
-      await expect(page.locator('a[href*="/ventures"]')).toHaveCount(0);
-      await expect(ventures(page).getByRole("link")).toHaveCount(0);
+      await expect(ventures(page).locator("[data-score-asof]")).toHaveCount(0);
+      try {
+        // Move every market row 9 days back: the newest rows are then old.
+        runDb("fixtures", "--venture-market-age=9");
+        await page.goto(`/${locale}`);
+        const asOf = card(page, connected.slug).locator('[data-venture-score="indonesia"] [data-score-asof]');
+        await expect(asOf).toHaveText(new RegExp(`^${locale === "en" ? "As of" : "Per"} \\d{1,2} ${c.short.join("|")}$`));
+        // A region without a score shows no date.
+        await expect(card(page, notConnected.slug).locator('[data-venture-score="global"] [data-score-asof]')).toHaveCount(0);
+      } finally {
+        resetFixtures();
+      }
     });
 
     test("descriptions and winds are text: markup shows as written and nothing executes", async ({ page, baseURL }) => {
@@ -179,7 +195,7 @@ for (const locale of ["en", "id"] as const) {
       try {
         runDb("fixtures", `--ventures-run=${25 * 60}`);
         await page.goto(`/${locale}`);
-        await expect(ventures(page).locator("li[data-venture]")).toHaveCount(2);
+        await expect(ventures(page).locator("li[data-venture]")).toHaveCount(fixtureVentures.length);
         await expect(page.getByRole("status")).toHaveCount(0);
 
         const { venturesRun } = JSON.parse(runDb("fixtures", `--ventures-run=${27 * 60}`));

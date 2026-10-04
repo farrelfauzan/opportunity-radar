@@ -60,6 +60,16 @@
     "ventures": {
       "title": "My ventures",
       "scoreLabel": "{score} out of 100",
+      "scoreAsOf": "As of {date}",
+      "deltaUp": {
+        "one": "up {n} point vs yesterday",
+        "other": "up {n} points vs yesterday"
+      },
+      "deltaDown": {
+        "one": "down {n} point vs yesterday",
+        "other": "down {n} points vs yesterday"
+      },
+      "deltaFlat": "unchanged vs yesterday",
       "subtitle": "Progress from each project's board · market view re-scored daily from the news",
       "progressMvp": "Progress to MVP",
       "progressRelease": "Progress to next release",
@@ -68,6 +78,10 @@
       "oppWorld": "Opportunity · Worldwide",
       "tailwind": "Tailwind",
       "headwind": "Headwind",
+      "open": {
+        "one": "Open venture view · {n} related news item",
+        "other": "Open venture view · {n} related news items"
+      },
       "noNews": "No related news this month",
       "related": {
         "one": "{n} related news item",
@@ -323,8 +337,33 @@
     "partial": "{ok} of {total} sources updated · not updated: {names}"
   },
   "venture": {
+    "back": "← Radar",
+    "progress": {
+      "title": "Build progress",
+      "source": "From {source} · updated {time} WIB",
+      "notConnectedBody": "Connect this venture's project board to show build progress.",
+      "delivered": "Sprint {n} delivered",
+      "next": "Next: sprint {n}",
+      "inQa": {
+        "one": "{n} ticket in QA",
+        "other": "{n} tickets in QA"
+      }
+    },
     "market": {
-      "noScore": "No score yet: no related news in the last 30 days"
+      "title": "Market view from the news",
+      "subtitle": "AI-scored every morning from the news of the last 30 days",
+      "score": "score / 100",
+      "vsYesterday": "{change} vs yesterday",
+      "noScore": "No score yet: no related news in the last 30 days",
+      "trend": "Last {n} days: from {first} to {last}"
+    },
+    "winds": {
+      "title": "What helps and what hurts",
+      "evidence": "Evidence"
+    },
+    "news": {
+      "title": "Related news, 30 days",
+      "empty": "No related news in the last 30 days"
     }
   },
   "calc": {
