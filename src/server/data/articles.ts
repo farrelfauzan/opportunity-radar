@@ -16,6 +16,8 @@ export type NewArticle = {
   headline: string;
   snippet?: string;
   publishedAt: Date;
+  /** The feed gave no usable date; `publishedAt` is the fetch time. */
+  publishedAtEstimated?: boolean;
 };
 
 const SNIPPET_MAX = 500;
@@ -58,6 +60,7 @@ export async function insertArticle(input: NewArticle): Promise<{ article: Artic
       headline,
       snippet,
       publishedAt: input.publishedAt,
+      publishedAtEstimated: input.publishedAtEstimated ?? false,
     })
     .onConflictDoNothing({ target: articles.canonicalUrl })
     .returning();

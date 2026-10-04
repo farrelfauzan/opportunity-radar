@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Example Atom</title>
+  <link href="https://example.org/"/>
+  <updated>2026-10-03T10:00:00Z</updated>
+  <entry>
+    <title type="html">Atom &amp;amp; entry</title>
+    <link rel="self" href="https://example.org/feed/1"/>
+    <link rel="alternate" href="https://example.org/posts/1"/>
+    <summary type="html">&lt;p&gt;Atom summary&lt;/p&gt;</summary>
+    <published>2026-10-03T08:00:00+07:00</published>
+    <updated>2026-10-03T09:00:00+07:00</updated>
+  </entry>
+  <entry>
+    <title>Second entry, no summary</title>
+    <link href="https://example.org/posts/2"/>
+    <updated>2026-10-03T02:00:00Z</updated>
+  </entry>
+</feed>

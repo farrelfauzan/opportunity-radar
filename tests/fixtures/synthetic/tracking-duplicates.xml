@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Duplicates</title>
+  <item><title>Same article, first</title><link>https://example.com/story/one?utm_source=rss&amp;utm_medium=feed</link><pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate></item>
+  <item><title>Same article, tracking</title><link>https://example.com/story/one?fbclid=abc&amp;gclid=def&amp;ref=home&amp;ref_src=x&amp;mc_cid=1&amp;mc_eid=2</link><pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate></item>
+  <item><title>Same article, fragment</title><link>https://example.com/story/one#comments</link><pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate></item>
+  <item><title>Same article, host case</title><link>https://EXAMPLE.com/story/one</link><pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate></item>
+  <item><title>Same article, http</title><link>http://example.com/story/one</link><pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate></item>
+  <item><title>Same article, trailing slash</title><link>https://example.com/story/one/</link><pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate></item>
+  <item><title>Different article</title><link>https://example.com/story/two?page=2&amp;id=7</link><pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate></item>
+  <item><title>Different article, parameters reordered</title><link>https://example.com/story/two?id=7&amp;page=2&amp;utm_campaign=x</link><pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate></item>
+</channel></rss>
