@@ -105,7 +105,7 @@ async function viewOf(
   venture: Venture,
   news: Candidate[],
   transport: LlmCall<unknown>["fetch"] | undefined,
-  counts: { wording_rejected: number },
+  counts: Record<string, number>,
 ): Promise<VentureMarketInput> {
   const matches = keywordMatcher(venture.keywords);
   const candidates = news.filter((a) => matches(`${a.headline} ${a.snippet}`)).slice(0, MAX_CANDIDATES);
@@ -148,7 +148,7 @@ export async function assessVentures(options: { transport?: LlmCall<unknown>["fe
   const now = options.now?.() ?? new Date();
   const day = wibDay(now);
   const news = await ventureNewsCandidates(new Date(now.getTime() - WINDOW_DAYS * 24 * 60 * 60 * 1000));
-  const counts = { ventures: 0, scored: 0, no_news: 0, rejected: 0, wording_rejected: 0 };
+  const counts: Record<string, number> = { ventures: 0, scored: 0, no_news: 0, rejected: 0, wording_rejected: 0 };
   const reasons: string[] = [];
   for (const venture of await listVentures()) {
     counts.ventures++;

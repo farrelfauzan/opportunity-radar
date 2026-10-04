@@ -25,8 +25,11 @@ export type LlmCall<T> = {
   /** Which model: LLM_MODEL_TRIAGE (cheap, many calls) or LLM_MODEL_REPORT. */
   role: LlmRole;
   messages: Message[];
-  /** Checks the parsed JSON and returns it typed; throws when it does not fit. */
-  parse: (value: unknown) => T;
+  /**
+   * Checks the parsed JSON and returns it typed; throws when it does not fit. `attempt` is 1 for the
+   * first reply and 2 for the retry, also when the first reply was not even JSON.
+   */
+  parse: (value: unknown, context: { attempt: number }) => T;
   maxTokens?: number;
   /** Tests only: the transport instead of the network or the mock. */
   fetch?: typeof fetch;
@@ -304,7 +307,7 @@ export async function callLlm<T>(call: LlmCall<T>): Promise<T> {
 
       let value: T;
       try {
-        value = call.parse(parseModelJson(completion.content));
+        value = call.parse(parseModelJson(completion.content), { attempt });
       } catch (error) {
         await record("invalid_output", tokens);
         if (attempt === 2) {

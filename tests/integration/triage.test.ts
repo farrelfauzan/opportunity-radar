@@ -351,7 +351,7 @@ describe("wording guard (OR-63)", () => {
     expect(outcome.counts).toMatchObject({ ok: 2, failed: 1, wording_rejected: 2 }); // the first reply, and the item in the retry
     const rows = await triageRows();
     expect(rows[1]).toMatchObject({ article_id: ids[1], status: "failed", category: "business" });
-    expect(rows[1].error).toMatch(/^why has advice wording "/);
+    expect(rows[1].error).toMatch(/^why: advice wording \(rule "/); // the rule id, not the text
     expect((await db().execute(sql`select why_en from article_triage where article_id = ${ids[1]}`))[0].why_en).toBeNull();
   });
 
@@ -368,6 +368,20 @@ describe("wording guard (OR-63)", () => {
     const outcome = await triageNews({ transport: wrapped });
 
     expect(outcome.counts).toMatchObject({ ok: 2, failed: 0 });
+  });
+
+  test("an invalid first reply, then one advice item in the retry: only that article fails (OR-64)", async () => {
+    const ids = await addArticles(5);
+    let n = 0;
+    const { transport } = triageProvider((batch) => (n++ === 0 ? "not JSON at all" : { items: batch.map((id) => (id === ids[2] ? advice(id) : goodItem(id))) }));
+
+    const outcome = await triageNews({ transport });
+
+    expect(outcome.counts).toMatchObject({ ok: 4, failed: 1, wording_rejected: 1 });
+    const rows = await triageRows();
+    expect(rows.filter((r) => r.status === "failed").map((r) => r.article_id)).toEqual([ids[2]]);
+    // Counted by the matched list entry's id (the should/need-to + buy/sell pattern), not by the text.
+    expect(Object.entries(outcome.counts ?? {}).filter(([k]) => k.startsWith("wording:")).map(([, v]) => v)).toEqual([1]);
   });
 
   test("checkItem rejects advice in either language", () => {

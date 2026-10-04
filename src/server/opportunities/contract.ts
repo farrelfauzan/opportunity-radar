@@ -2,7 +2,7 @@
 // the shape of output.schema.json, then the code rules. Written by hand so no
 // JSON-Schema library is needed; tests run every case of contract-examples.json.
 import { FACTOR_KEYS, SECTORS, THEMES, type FactorScores, type Region, type Sector, type Theme } from "@/server/data";
-import { bannedWording } from "@/server/llm/wording";
+import { wordingHit } from "@/server/llm/wording";
 
 export type Text = { en: string; id: string };
 export type Horizon = "0-6m" | "6-12m" | "1-3y";
@@ -48,8 +48,8 @@ function text(value: unknown, path: string, max: number): Text {
     if (typeof s !== "string") fail(`${path}.${lang}`, "must be a string");
     if ((s as string).trim() === "") fail(`${path}.${lang}`, "is empty");
     if (Array.from(s as string).length > max) fail(`${path}.${lang}`, `is longer than ${max} characters`);
-    const advice = bannedWording(s as string); // describe, never instruct (OR-63)
-    if (advice) fail(`${path}.${lang}`, `has advice wording "${advice}"`);
+    const advice = wordingHit(s as string); // describe, never instruct (OR-63)
+    if (advice) fail(`${path}.${lang}`, `has advice wording (rule "${advice.id}"; describe, never instruct)`);
   }
   return { en: object.en as string, id: object.id as string };
 }
