@@ -14,7 +14,7 @@ Build news on RSS; prices on Yahoo's chart endpoint (stocks), gold-api.com (meta
 | IDX stocks, IHSG | Yahoo chart endpoint (BBCA.JK, ^JKSE, 10y daily OK) [L] | GoAPI.io (unverified), EODHD paid | No | unofficial / ~10 min [I] | Unofficial, personal-use terms [I]; `v7/quote` needs a crumb (401) [L] | Med |
 | US/global stocks | Yahoo chart (AAPL OK) [L] | Finnhub [S], Twelve Data 800 credits/day [P] | Fallbacks yes | ~15 min [I] | Same as above | Med |
 | Gold / silver spot USD | gold-api.com [L] | Yahoo GC=F / SI=F (futures) [L] | No | "no rate limiting" [P] / seconds | Small vendor, terms not read | Med |
-| Gold IDR per gram | XAU_USD ÷ 31.1034768 × USD/IDR | — | No | — | Antam retail carries a premium over spot | Med |
+| Gold IDR per gram | XAU_USD ÷ 31.1035 × USD/IDR | — | No | — | Antam retail carries a premium over spot | Med |
 | Antam / Pegadaian retail | None usable (Cloudflare 403) [L] | Manual entry | — | — | No official API | High |
 | Crypto | Binance `data-api.binance.vision` + Indodax (IDR pairs, OHLC) [L] | CoinGecko demo: 10k credits/month, attribution [P] | No | real time | `api.binance.com` failed; use the vision host | High |
 | USD/IDR | Frankfurter `api.frankfurter.dev/v1` [L] | open.er-api.com (attribution) | No | daily (ECB) | `exchangerate.host` now needs a key | High |
