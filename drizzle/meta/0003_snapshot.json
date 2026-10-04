@@ -1,0 +1,912 @@
+{
+  "id": "67018b95-97cf-4fd9-8db4-df3276084ec6",
+  "prevId": "fa991c95-963b-43ee-9cd1-b65002b8eb81",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.articles": {
+      "name": "articles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "articles_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canonical_url": {
+          "name": "canonical_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "link": {
+          "name": "link",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "region": {
+          "name": "region",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "headline": {
+          "name": "headline",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "snippet": {
+          "name": "snippet",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "published_at": {
+          "name": "published_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "published_at_estimated": {
+          "name": "published_at_estimated",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "fetched_at": {
+          "name": "fetched_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "articles_published_idx": {
+          "name": "articles_published_idx",
+          "columns": [
+            {
+              "expression": "published_at",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "articles_source_id_sources_id_fk": {
+          "name": "articles_source_id_sources_id_fk",
+          "tableFrom": "articles",
+          "tableTo": "sources",
+          "columnsFrom": [
+            "source_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "articles_canonical_url_unique": {
+          "name": "articles_canonical_url_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "canonical_url"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "articles_region_check": {
+          "name": "articles_region_check",
+          "value": "\"articles\".\"region\" in ('indonesia', 'global')"
+        },
+        "articles_category_check": {
+          "name": "articles_category_check",
+          "value": "\"articles\".\"category\" in ('business', 'politics', 'tech-ai', 'markets', 'commodities')"
+        },
+        "articles_headline_check": {
+          "name": "articles_headline_check",
+          "value": "\"articles\".\"headline\" <> '' and char_length(\"articles\".\"headline\") <= 300"
+        },
+        "articles_snippet_check": {
+          "name": "articles_snippet_check",
+          "value": "char_length(\"articles\".\"snippet\") <= 500"
+        },
+        "articles_link_check": {
+          "name": "articles_link_check",
+          "value": "\"articles\".\"link\" ~* '^https?://'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.job_runs": {
+      "name": "job_runs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "job_runs_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "job": {
+          "name": "job",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'running'"
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "finished_at": {
+          "name": "finished_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "counts": {
+          "name": "counts",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "error": {
+          "name": "error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "job_runs_job_finished_idx": {
+          "name": "job_runs_job_finished_idx",
+          "columns": [
+            {
+              "expression": "job",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "finished_at",
+              "isExpression": false,
+              "asc": false,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "job_runs_status_check": {
+          "name": "job_runs_status_check",
+          "value": "\"job_runs\".\"status\" in ('running', 'ok', 'partial', 'failed', 'skipped')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.sources": {
+      "name": "sources",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "sources_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "feed_url": {
+          "name": "feed_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "region": {
+          "name": "region",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "etag": {
+          "name": "etag",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_modified": {
+          "name": "last_modified",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_status": {
+          "name": "last_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_checked_at": {
+          "name": "last_checked_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_success_at": {
+          "name": "last_success_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "sources_slug_unique": {
+          "name": "sources_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "sources_region_check": {
+          "name": "sources_region_check",
+          "value": "\"sources\".\"region\" in ('indonesia', 'global')"
+        },
+        "sources_category_check": {
+          "name": "sources_category_check",
+          "value": "\"sources\".\"category\" in ('business', 'politics', 'tech-ai', 'markets', 'commodities')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.venture_articles": {
+      "name": "venture_articles",
+      "schema": "",
+      "columns": {
+        "venture_id": {
+          "name": "venture_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "article_id": {
+          "name": "article_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "relevance": {
+          "name": "relevance",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "matched_at": {
+          "name": "matched_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "venture_articles_venture_id_ventures_id_fk": {
+          "name": "venture_articles_venture_id_ventures_id_fk",
+          "tableFrom": "venture_articles",
+          "tableTo": "ventures",
+          "columnsFrom": [
+            "venture_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "venture_articles_article_id_articles_id_fk": {
+          "name": "venture_articles_article_id_articles_id_fk",
+          "tableFrom": "venture_articles",
+          "tableTo": "articles",
+          "columnsFrom": [
+            "article_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "venture_articles_venture_id_article_id_pk": {
+          "name": "venture_articles_venture_id_article_id_pk",
+          "columns": [
+            "venture_id",
+            "article_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "venture_articles_relevance_check": {
+          "name": "venture_articles_relevance_check",
+          "value": "\"venture_articles\".\"relevance\" between 0 and 100"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.venture_market": {
+      "name": "venture_market",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "venture_market_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "venture_id": {
+          "name": "venture_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "day": {
+          "name": "day",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "region": {
+          "name": "region",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "score": {
+          "name": "score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "factors": {
+          "name": "factors",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "related_articles": {
+          "name": "related_articles",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "venture_market_venture_id_ventures_id_fk": {
+          "name": "venture_market_venture_id_ventures_id_fk",
+          "tableFrom": "venture_market",
+          "tableTo": "ventures",
+          "columnsFrom": [
+            "venture_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "venture_market_venture_day_region_unique": {
+          "name": "venture_market_venture_day_region_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "venture_id",
+            "day",
+            "region"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "venture_market_region_check": {
+          "name": "venture_market_region_check",
+          "value": "\"venture_market\".\"region\" in ('indonesia', 'global')"
+        },
+        "venture_market_score_check": {
+          "name": "venture_market_score_check",
+          "value": "\"venture_market\".\"score\" between 0 and 100"
+        },
+        "venture_market_score_factors_check": {
+          "name": "venture_market_score_factors_check",
+          "value": "(\"venture_market\".\"score\" is null) = (\"venture_market\".\"factors\" is null)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.venture_progress": {
+      "name": "venture_progress",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "venture_progress_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "venture_id": {
+          "name": "venture_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "day": {
+          "name": "day",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "percent": {
+          "name": "percent",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sprint_delivered": {
+          "name": "sprint_delivered",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sprint_next": {
+          "name": "sprint_next",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tickets_in_qa": {
+          "name": "tickets_in_qa",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fetched_at": {
+          "name": "fetched_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "venture_progress_venture_id_ventures_id_fk": {
+          "name": "venture_progress_venture_id_ventures_id_fk",
+          "tableFrom": "venture_progress",
+          "tableTo": "ventures",
+          "columnsFrom": [
+            "venture_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "venture_progress_venture_day_unique": {
+          "name": "venture_progress_venture_day_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "venture_id",
+            "day"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "venture_progress_percent_check": {
+          "name": "venture_progress_percent_check",
+          "value": "\"venture_progress\".\"percent\" between 0 and 100"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.venture_winds": {
+      "name": "venture_winds",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "venture_winds_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "venture_id": {
+          "name": "venture_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "day": {
+          "name": "day",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tailwind_en": {
+          "name": "tailwind_en",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tailwind_id": {
+          "name": "tailwind_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tailwind_article_ids": {
+          "name": "tailwind_article_ids",
+          "type": "bigint[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "headwind_en": {
+          "name": "headwind_en",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "headwind_id": {
+          "name": "headwind_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "headwind_article_ids": {
+          "name": "headwind_article_ids",
+          "type": "bigint[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "venture_winds_venture_id_ventures_id_fk": {
+          "name": "venture_winds_venture_id_ventures_id_fk",
+          "tableFrom": "venture_winds",
+          "tableTo": "ventures",
+          "columnsFrom": [
+            "venture_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "venture_winds_venture_day_unique": {
+          "name": "venture_winds_venture_day_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "venture_id",
+            "day"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "venture_winds_tailwind_check": {
+          "name": "venture_winds_tailwind_check",
+          "value": "(\"venture_winds\".\"tailwind_en\" is null and \"venture_winds\".\"tailwind_id\" is null) or (\"venture_winds\".\"tailwind_en\" is not null and \"venture_winds\".\"tailwind_id\" is not null and \"venture_winds\".\"tailwind_en\" <> '' and \"venture_winds\".\"tailwind_id\" <> '' and cardinality(\"venture_winds\".\"tailwind_article_ids\") > 0)"
+        },
+        "venture_winds_headwind_check": {
+          "name": "venture_winds_headwind_check",
+          "value": "(\"venture_winds\".\"headwind_en\" is null and \"venture_winds\".\"headwind_id\" is null) or (\"venture_winds\".\"headwind_en\" is not null and \"venture_winds\".\"headwind_id\" is not null and \"venture_winds\".\"headwind_en\" <> '' and \"venture_winds\".\"headwind_id\" <> '' and cardinality(\"venture_winds\".\"headwind_article_ids\") > 0)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.ventures": {
+      "name": "ventures",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "ventures_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description_en": {
+          "name": "description_en",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description_id": {
+          "name": "description_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sectors": {
+          "name": "sectors",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "keywords": {
+          "name": "keywords",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "progress_goal": {
+          "name": "progress_goal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "progress_source": {
+          "name": "progress_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "ventures_slug_unique": {
+          "name": "ventures_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "ventures_descriptions_check": {
+          "name": "ventures_descriptions_check",
+          "value": "\"ventures\".\"description_en\" <> '' and \"ventures\".\"description_id\" <> ''"
+        },
+        "ventures_sectors_check": {
+          "name": "ventures_sectors_check",
+          "value": "cardinality(\"ventures\".\"sectors\") between 1 and 3 and \"ventures\".\"sectors\" <@ array['agri_food', 'fisheries_maritime', 'energy_mining', 'renewables_climate', 'manufacturing', 'logistics', 'retail_ecommerce', 'fintech_finance', 'health_biotech', 'education', 'property_construction', 'tourism_hospitality', 'media_creative', 'telecom_infra', 'ai_software', 'hardware_electronics', 'govtech_public', 'consumer_services']::text[]"
+        },
+        "ventures_progress_goal_check": {
+          "name": "ventures_progress_goal_check",
+          "value": "\"ventures\".\"progress_goal\" in ('mvp', 'release')"
+        },
+        "ventures_progress_source_check": {
+          "name": "ventures_progress_source_check",
+          "value": "\"ventures\".\"progress_source\" is null or \"ventures\".\"progress_source\" = 'notion'"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
