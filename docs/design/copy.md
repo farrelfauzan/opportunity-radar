@@ -137,6 +137,34 @@ Exchange holidays come from a small holiday list in config; until it exists, wee
 | news.themes.title | Trending themes, 7 days | Tema populer, 7 hari |
 | news.themes.caption | Number of articles mentioning each theme. | Jumlah artikel yang menyebut setiap tema. |
 
+### 3.1 Source credit for open-licence sources (PR 22)
+
+Four sources are reused under licences that require a credit and a link to the original wherever an item is shown (`licence` field in `src/server/news/feeds.ts`). The headline already links to the original; the credit line adds the publisher and, where there is one, the licence.
+
+| Key | EN | ID |
+|---|---|---|
+| news.credit.line | Source: {publisher} | Sumber: {publisher} |
+| news.credit.lineLicence | Source: {publisher} · {licence} | Sumber: {publisher} · {licence} |
+| news.credit.original | Read the original | Baca artikel asli |
+| news.credit.publisher.conversation-id | The Conversation Indonesia | The Conversation Indonesia |
+| news.credit.publisher.conversation-global | The Conversation | The Conversation |
+| news.credit.publisher.federal-reserve | Federal Reserve Board | Federal Reserve Board |
+| news.credit.publisher.ecb | European Central Bank | Bank Sentral Eropa (ECB) |
+| news.credit.licence.cc-by-nd-4 | CC BY-ND 4.0 | CC BY-ND 4.0 |
+
+| Source slug | Credit line shown (EN) | Licence link |
+|---|---|---|
+| conversation-id | Source: The Conversation Indonesia · CC BY-ND 4.0 | https://creativecommons.org/licenses/by-nd/4.0/ |
+| conversation-global | Source: The Conversation · CC BY-ND 4.0 | https://creativecommons.org/licenses/by-nd/4.0/ |
+| federal-reserve | Source: Federal Reserve Board | — |
+| ecb | Source: European Central Bank | — |
+
+Rules
+- Where: on every surface that shows one of these items: News list (OR-9, OR-21), Radar "News that moves opportunities" (OR-23), opportunity evidence (OR-18), venture related news and wind evidence (OR-51), daily-brief citations if shown. The app has no article detail page: the headline opens the publisher's original in a new tab, which is the required link. `news.credit.original` is used only where a surface shows no clickable headline.
+- How: one line under the snippet (or under the headline where no snippet is shown), muted text, the licence name as a link to the licence deed. Shown in both locales; publisher and licence names are not translated except "European Central Bank" in ID.
+- The Conversation (CC BY-ND, no derivatives): its summary is shown as stored (tags stripped, entities decoded, cut at 500 characters; no other change), never translated, rewritten or summarised by the LLM, also on `/id`. "Why it matters" and other AI text stay visually separate and labelled as ours, so they are commentary, not an altered version.
+- Sources without a reuse licence keep the existing meta line (`news.item.meta`) and no credit line.
+
 Region shown on an item uses `news.region.id` / `news.region.global`. Category and region filters live in the URL query. OR-21 adds the impact, why, linked and themes strings; OR-9 uses the rest.
 
 ## 4. Calculators (OR-24, OR-25, OR-40)

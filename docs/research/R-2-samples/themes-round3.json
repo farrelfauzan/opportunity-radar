@@ -1,0 +1,179 @@
+{
+ "note": "Round 3 sample themes for the OR-11 two-scorer check. Articles are real items from the live RSS feeds on 2026-10-04 (headline, source, link, RSS snippet cut at 200 characters). Theme text is written by the Researcher. Round 3 uses the competition line: government programmes, NGO services and free public tools count as substitutes when they serve the same buyer at no cost.",
+ "themes": [
+  {
+   "id": "theme-g",
+   "title": "Earthquake and flood resilience services for Indonesian buildings and small businesses",
+   "thesis": "Strong quakes hit Sumba and Aceh Jaya, experts warn about shifting megathrust zones, and flash floods hit Solok: sell building-safety inspections, retrofit advice and low-cost disaster-cover enrolment to small property owners and shop owners in high-risk regions.",
+   "region": "Indonesia",
+   "sectors": [
+    "property_construction",
+    "fintech_finance"
+   ],
+   "horizon": "6–12 months",
+   "articles": [
+    {
+     "id": "g1",
+     "source": "CNBC Indonesia",
+     "lang": "id",
+     "title": "Gempa Besar Guncang Berbagai Wilayah RI Pagi Ini, Sumba M 6,1",
+     "published": "Sun, 04 Oct 2026",
+     "url": "https://www.cnbcindonesia.com/news/20261004065214-4-773104/gempa-besar-guncang-berbagai-wilayah-ri-pagi-ini-sumba-m-61",
+     "snippet": "BMKG mencatat guncangan gempa berkekuatan besar terjadi di berbagai wilayah Indonesia pada pagi ini, Minggu (4/10/2026)."
+    },
+    {
+     "id": "g2",
+     "source": "CNBC Indonesia",
+     "lang": "id",
+     "title": "Warga RI Diminta Mulai Siaga, Gempa Besar-Megathrust Ancam Sumatra",
+     "published": "Fri, 02 Oct 2026",
+     "url": "https://www.cnbcindonesia.com/news/20261002134104-4-772891/warga-ri-diminta-mulai-siaga-gempa-besar-megathrust-ancam-sumatra",
+     "snippet": "Warga Indonesia diimbau siap menghadapi ancaman gempa, termasuk megathrust. Kesiapsiagaan dan pemahaman jalur evakuasi sangat penting untuk mengurangi risiko."
+    },
+    {
+     "id": "g3",
+     "source": "CNBC Indonesia",
+     "lang": "id",
+     "title": "Zona Megathrust Kepung RI Berubah, Ahli Jepang Tunjuk Wilayah Bahaya",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://www.cnbcindonesia.com/news/20261003160401-4-773057/zona-megathrust-kepung-ri-berubah-ahli-jepang-tunjuk-wilayah-bahaya",
+     "snippet": "Peta Sumber dan Bahaya Gempa Indonesia 2024 menunjukkan 14 zona megathrust baru. Ahli Jepang menekankan pentingnya pemantauan untuk mitigasi bencana."
+    },
+    {
+     "id": "g4",
+     "source": "CNBC Indonesia",
+     "lang": "id",
+     "title": "Pertamina Dorong Upaya Pemulihan Pasca Banjir Bandang Kabupaten Solok",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://www.cnbcindonesia.com/news/20261003203808-4-773083/pertamina-dorong-upaya-pemulihan-pasca-banjir-bandang-kabupaten-solok",
+     "snippet": "Pertamina terus berupaya memulihkan pasca banjir bandang Kabupaten Solok"
+    },
+    {
+     "id": "g5",
+     "source": "IDX Channel",
+     "lang": "id",
+     "title": "Gempa Bumi M5,9 Landa Aceh Jaya, Tidak Berpotensi Tsunami",
+     "published": "Sun, 04 Oct 2026",
+     "url": "https://www.idxchannel.com/news/gempa-bumi-m59-landa-aceh-jaya-tidak-berpotensi-tsunami",
+     "snippet": "Badan Meteorologi, Klimatologi, dan Geofisika (BMKG) menyatakan adanya gempa bumi dengan kekuatan 5,9 magnitudo di Kabupaten Aceh Jaya. (Foto: Dok. BMKG)"
+    }
+   ]
+  },
+  {
+   "id": "theme-h",
+   "title": "Household energy-saving and rooftop-solar advice for cost-pressed consumers",
+   "thesis": "UK energy bills are forecast to rise by the most in four years and suppliers are pressing the government, while a US oil region adopts solar: sell home energy audits, tariff switching help and small solar installs to households squeezed by bills.",
+   "region": "Worldwide",
+   "sectors": [
+    "renewables_climate",
+    "consumer_services"
+   ],
+   "horizon": "0–6 months",
+   "articles": [
+    {
+     "id": "h1",
+     "source": "BBC Business",
+     "lang": "en",
+     "title": "Household energy bills forecast to see biggest rise in four years",
+     "published": "Wed, 30 Sep 2026",
+     "url": "https://www.bbc.co.uk/news/articles/cwz0zvj4m1myo?at_medium=RSS&at_campaign=rss",
+     "snippet": "A typical household faces an annual gas and electricity bill of £1,999 from January, based on a key forecast."
+    },
+    {
+     "id": "h2",
+     "source": "BBC Business",
+     "lang": "en",
+     "title": "Energy bills are rising by £60 a year - here's how you can bring that down",
+     "published": "Thu, 01 Oct 2026",
+     "url": "https://www.bbc.co.uk/news/articles/crm4rygl4m3o?at_medium=RSS&at_campaign=rss",
+     "snippet": "Household energy bills have risen again but there are ways to keep a lid on your expenditure."
+    },
+    {
+     "id": "h3",
+     "source": "BBC Business",
+     "lang": "en",
+     "title": "Suppliers pile pressure on government over energy bills",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://www.bbc.co.uk/news/articles/cq0ld88kzxw8o?at_medium=RSS&at_campaign=rss",
+     "snippet": "Immediate action is needed to help households struggling with bills this winter, says trade body Energy UK."
+    },
+    {
+     "id": "h4",
+     "source": "BBC Business",
+     "lang": "en",
+     "title": "How the oil capital of the US welcomed a solar power boom",
+     "published": "Wed, 23 Sep 2026",
+     "url": "https://www.bbc.co.uk/news/articles/cmx2zxv6936zo?at_medium=RSS&at_campaign=rss",
+     "snippet": "Texas is now the country's biggest producer of solar-farmed electricity."
+    },
+    {
+     "id": "h5",
+     "source": "BBC Business",
+     "lang": "en",
+     "title": "Rising energy costs add to cost of living for Northern Ireland's consumers",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://www.bbc.co.uk/news/articles/c5j9x99yep92o?at_medium=RSS&at_campaign=rss",
+     "snippet": "Households across Northern Ireland face increasing pressure on the cost of living as energy price hikes have come into effect."
+    }
+   ]
+  },
+  {
+   "id": "theme-i",
+   "title": "Compliance and fleet tools for ride-hailing motorbike drivers and small transport operators",
+   "thesis": "The government is moving motorbike taxis (ojol) into the public-transport category, preparing upper and lower fare limits for more modes and a new operator certificate requirement: sell permit tracking, fare-limit checks and driver-group management software to operators and driver communities.",
+   "region": "Indonesia",
+   "sectors": [
+    "logistics",
+    "govtech_public"
+   ],
+   "horizon": "0–6 months",
+   "articles": [
+    {
+     "id": "i1",
+     "source": "CNN Indonesia",
+     "lang": "id",
+     "title": "Alasan Pemerintah Masukkan Ojol ke Transportasi Umum di Aturan Baru",
+     "published": "Sun, 04 Oct 2026",
+     "url": "https://www.cnnindonesia.com/ekonomi/20261003211011-92-1411327/alasan-pemerintah-masukkan-ojol-ke-transportasi-umum-di-aturan-baru",
+     "snippet": "Kemenhub menjelaskan alasan ojek online dikategorikan transportasi umum dalam RUU LLAJ. Regulasi ini bertujuan untuk meningkatkan keselamatan pengguna."
+    },
+    {
+     "id": "i2",
+     "source": "Republika",
+     "lang": "id",
+     "title": "Ojol Bakal Masuk Kategori Transportasi Umum, Kemenhub Ungkap Progresnya",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://ekonomi.republika.co.id/berita/tmbldk423/ojol-bakal-masuk-kategori-transportasi-umum-kemenhub-ungkap-progresnya",
+     "snippet": "REPUBLIKA.CO.ID, BANDUNG -- Menteri Perhubungan (Menhub) Dudy Purwagandhi menjelaskan rencana pemerintah dan DPR yang ingin menjadikan ojek online (ojol) masuk kategori transportasi umum. Hal ini tert"
+    },
+    {
+     "id": "i3",
+     "source": "CNN Indonesia",
+     "lang": "id",
+     "title": "Menhub Godok Aturan Tarif Batas Atas-Bawah Transportasi Selain Pesawat",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://www.cnnindonesia.com/ekonomi/20261003183322-92-1411291/menhub-godok-aturan-tarif-batas-atas-bawah-transportasi-selain-pesawat",
+     "snippet": "Menhub Dudy Purwagandhi mengkaji kebijakan tarif batas atas dan bawah untuk transportasi umum, termasuk penyeberangan, demi keselamatan penumpang."
+    },
+    {
+     "id": "i4",
+     "source": "CNN Indonesia",
+     "lang": "id",
+     "title": "Kemenhub Bakal Wajibkan Perusahaan Angkutan Umum Miliki Sertifikat Ini",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://www.cnnindonesia.com/ekonomi/20261003143235-92-1411221/kemenhub-bakal-wajibkan-perusahaan-angkutan-umum-miliki-sertifikat-ini",
+     "snippet": "Kemenhub mewajibkan direksi perusahaan angkutan umum memiliki sertifikat SMK PAU untuk meningkatkan keselamatan. Aturan ini berlaku mulai pekan kedua Oktober."
+    },
+    {
+     "id": "i5",
+     "source": "CNBC Indonesia",
+     "lang": "id",
+     "title": "Video: Tarif Transjakarta Bakal Naik, DPRD Jamin Tak Memberatkan Warga",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://www.cnbcindonesia.com/news/20261002094545-8-772764/video-tarif-transjakarta-bakal-naik-dprd-jamin-tak-memberatkan-warga",
+     "snippet": "Tarif Transjakarta Bakal Naik, DPRD Jamin Tak Memberatkan Warga"
+    }
+   ]
+  }
+ ]
+}

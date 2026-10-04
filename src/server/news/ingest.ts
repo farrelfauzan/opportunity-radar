@@ -8,7 +8,7 @@ import {
 } from "@/server/data";
 import type { JobOutcome } from "@/server/jobs/runner";
 import { canonicalUrl, cleanText, cutSnippet } from "./clean.ts";
-import { FEEDS, type Feed } from "./feeds.ts";
+import { FEEDS, sourceOf, type Feed } from "./feeds.ts";
 import { decodeFeed, FeedError, parseFeed, type FeedItem } from "./parse.ts";
 
 export const USER_AGENT =
@@ -159,7 +159,7 @@ export async function ingestNews(
   const failures: string[] = [];
 
   const sources = [];
-  for (const feed of feeds) sources.push(await upsertSource({ ...feed, active: true }));
+  for (const feed of feeds) sources.push(await upsertSource({ ...sourceOf(feed), active: true }));
   // A feed removed from the config stops showing in source health; its articles stay.
   await deactivateSourcesExcept(feeds.map((feed) => feed.slug));
   const results = await Promise.allSettled(sources.map((source) => fetchFeed(source, fetcher)));
