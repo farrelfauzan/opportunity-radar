@@ -1,6 +1,7 @@
 import { callLlm } from "@/server/llm/client";
 import { ingestNews } from "@/server/news/ingest";
 import { generateOpportunities } from "@/server/opportunities/generate";
+import { scoreOpportunities } from "@/server/opportunities/score";
 import { triageNews } from "@/server/news/triage";
 import type { Job, Registry } from "./runner.ts";
 
@@ -15,6 +16,18 @@ const stub = (name: string, after?: string[]): Job => ({
   after,
   async run() {
     if (!production && process.env.STUB_FAIL === name) throw new Error(`stub step "${name}" failed on request`);
+  },
+});
+
+/**
+ * A morning step that, outside production, fails on request with STUB_FAIL=<step>,
+ * so the pipeline's stop-on-failure can be shown from the command line (OR-7 AC).
+ */
+const step = (name: string, job: Job): Job => ({
+  ...job,
+  async run(context) {
+    if (!production && process.env.STUB_FAIL === name) throw new Error("failed on request (STUB_FAIL)");
+    return job.run(context);
   },
 });
 
@@ -74,11 +87,12 @@ export const jobs: Registry = {
   // Morning pipeline: triage → opportunities → scores → brief. Each stub is
   // replaced by the real job when its ticket lands (OR-14, OR-15/OR-50, OR-16, OR-22).
   // OR-14. Also the second step of `news` (ingest, then triage), the command to run every 30 minutes.
-  triage: { timeoutSeconds: 600, after: ["ingest-news"], run: () => triageNews() },
+  triage: step("triage", { timeoutSeconds: 600, after: ["ingest-news"], run: () => triageNews() }),
   news: { steps: ["ingest-news", "triage"] },
   // OR-15 (matching, update and close come with OR-50).
-  opportunities: { timeoutSeconds: 600, after: ["triage"], run: () => generateOpportunities() },
-  scores: stub("scores", ["opportunities"]),
+  opportunities: step("opportunities", { timeoutSeconds: 600, after: ["triage"], run: () => generateOpportunities() }),
+  // OR-16: re-score open opportunities with new evidence.
+  scores: step("scores", { timeoutSeconds: 900, after: ["opportunities"], run: () => scoreOpportunities() }),
   brief: stub("brief", ["scores"]),
   morning: { steps: ["triage", "opportunities", "scores", "brief"] },
   ...(production ? {} : testJobs),
