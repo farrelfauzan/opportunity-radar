@@ -13,7 +13,7 @@ export type FixtureOpportunity = {
   history: [number, number][];
   /** Closed this many days ago: never listed. */
   closedDaysAgo?: number;
-  /** Keys of `evidenceArticles` this opportunity cites. */
+  /** Keys of `evidenceArticles`, or of the News fixture articles with a `key`, this opportunity cites. */
   cites?: string[];
   /** Replaces parts of the detail text (see detailOf). */
   detail?: Partial<DetailText>;
@@ -95,11 +95,11 @@ export const fixtureOpportunities: FixtureOpportunity[] = [
   }), // ▲ 12
   o("solar", "Rooftop solar leasing for factories", "Sewa panel surya atap untuk pabrik", "indonesia", ["renewables_climate"], "6-12m", "high", [[45, 90], [30, 85], [0, 78]], { cites: ["off", "antara", "markup"] }), // ▼ 7
   o("assistant", "AI assistant for online shops", "Asisten AI untuk toko online", "global", ["ai_software", "retail_ecommerce"], "0-6m", "low", [[45, 75], [30, 75], [0, 75]]), // — 0
-  o("tax", "Tax tool for online sellers", "Alat pajak untuk penjual online", "indonesia", ["retail_ecommerce", "fintech_finance"], "0-6m", "low", [[30, 62], [0, 71]]), // first scored 30 days ago: ▲ 9
-  o("climate", "Climate-resilient farming services", "Layanan pertanian tahan iklim", "indonesia", ["agri_food"], "6-12m", "medium", [[29, 58], [0, 66]]), // first scored 29 days ago: New
-  o("bootcamp", "Digital skills bootcamps", "Bootcamp keterampilan digital", "indonesia", ["education"], "6-12m", "low", [[3, 60], [0, 66]]), // first scored 3 days ago: New
-  o("last-mile", "Last-mile delivery for rural areas", "Pengiriman jarak terakhir untuk desa", "indonesia", ["logistics"], "6-12m", "medium", [[10, 50], [0, 60]]), // New
-  o("quake", "Earthquake and flood resilience", "Ketahanan gempa dan banjir", "indonesia", ["property_construction", "govtech_public"], "1-3y", "high", [[45, 62], [30, 60], [0, 55]]), // ▼ 5
+  o("tax", "Tax tool for online sellers", "Alat pajak untuk penjual online", "indonesia", ["retail_ecommerce", "fintech_finance"], "0-6m", "low", [[30, 62], [0, 71]], { cites: ["tariff"] }), // first scored 30 days ago: ▲ 9
+  o("climate", "Climate-resilient farming services", "Layanan pertanian tahan iklim", "indonesia", ["agri_food"], "6-12m", "medium", [[29, 58], [0, 66]], { cites: ["coldchain"] }), // first scored 29 days ago: New
+  o("bootcamp", "Digital skills bootcamps", "Bootcamp keterampilan digital", "indonesia", ["education"], "6-12m", "low", [[3, 60], [0, 66]], { cites: ["coldchain"] }), // first scored 3 days ago: New
+  o("last-mile", "Last-mile delivery for rural areas", "Pengiriman jarak terakhir untuk desa", "indonesia", ["logistics"], "6-12m", "medium", [[10, 50], [0, 60]], { cites: ["gold"] }), // New
+  o("quake", "Earthquake and flood resilience", "Ketahanan gempa dan banjir", "indonesia", ["property_construction", "govtech_public"], "1-3y", "high", [[45, 62], [30, 60], [0, 55]], { cites: ["tariff"] }), // ▼ 5
   o("long", longTitle, longTitle, "global", ["logistics", "ai_software"], "1-3y", "medium", [[45, 40], [30, 45], [0, 50]], {
     cites: ["long", "antara"],
     detail: {
@@ -119,7 +119,7 @@ export const fixtureOpportunities: FixtureOpportunity[] = [
       risks: { en: [markupThesis, markupTitle], id: [markupThesis, markupTitle] },
     },
   }), // New
-  o("closed", "Closed opportunity that must not be listed", "Peluang tertutup yang tidak boleh tampil", "indonesia", ["logistics"], "0-6m", "low", [[40, 90], [10, 99]], { closedDaysAgo: 10 }),
+  o("closed", "Closed opportunity that must not be listed", "Peluang tertutup yang tidak boleh tampil", "indonesia", ["logistics"], "0-6m", "low", [[40, 90], [10, 99]], { closedDaysAgo: 10, cites: ["tariff", "rupiah"] }),
 ];
 
 export const openFixtures = () => fixtureOpportunities.filter((f) => f.closedDaysAgo === undefined);

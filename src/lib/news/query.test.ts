@@ -14,6 +14,20 @@ describe("parseNewsQuery", () => {
     expect(parseNewsQuery({ region }).region).toBe(region);
   });
 
+  test("linked is on only for ?linked=1", () => {
+    expect(parseNewsQuery({ linked: "1" }).linked).toBe(true);
+    expect(parseNewsQuery({ linked: "1", category: "markets", region: "global", shown: "60" })).toEqual({
+      category: "markets",
+      region: "global",
+      linked: true,
+      shown: 60,
+    });
+    // Any other value, or a repeated parameter, is off, and the key is absent.
+    for (const linked of ["0", "true", "on", "", "11", " 1", ["1", "1"], undefined]) {
+      expect(Object.keys(parseNewsQuery({ linked })), JSON.stringify(linked)).not.toContain("linked");
+    }
+  });
+
   test("invalid values fall back to All without an error", () => {
     const query = parseNewsQuery({ category: "xyz", region: "1", shown: "abc" });
     expect(query).toEqual({ category: undefined, region: undefined, shown: 30 });
@@ -55,6 +69,14 @@ describe("newsHref", () => {
   test("leaves out the default values", () => {
     expect(newsHref("en", {})).toBe("/en/news");
     expect(newsHref("id", { shown: 30 })).toBe("/id/news");
+  });
+
+  test("linked goes after the region and before the page size; off leaves it out", () => {
+    expect(newsHref("en", { linked: true })).toBe("/en/news?linked=1");
+    expect(newsHref("id", { category: "markets", region: "global", linked: true, shown: 60 })).toBe(
+      "/id/news?category=markets&region=global&linked=1&shown=60",
+    );
+    expect(newsHref("en", { category: "markets", linked: undefined })).toBe("/en/news?category=markets");
   });
 
   test("keeps the filters and the page size", () => {

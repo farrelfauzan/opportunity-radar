@@ -18,10 +18,13 @@ import {
   insertOpportunity,
   recordOpportunityScore,
   recordSuccessfulRun,
+  saveTriage,
   SCORING_JOB,
   upsertSource,
   wibDay,
   type Sector,
+  type Theme,
+  type TriageResult,
 } from "../src/server/data/index.ts";
 import { sql } from "../src/server/data/client.ts";
 import { detailOf, evidenceArticles, factorsOf, fixtureOpportunities } from "../e2e/opportunity-fixtures.ts";
@@ -115,8 +118,9 @@ async function fixtures() {
   const ids = await storeSources();
   const evidence = new Map<string, number>();
   if (!args.includes("--no-articles")) {
+    const triage: TriageResult[] = [];
     for (const a of fixtureArticles()) {
-      await insertArticle({
+      const { article } = await insertArticle({
         sourceId: ids.get(a.source)!,
         link: `https://example.com/e2e/${a.path}`,
         region: a.region,
@@ -125,7 +129,24 @@ async function fixtures() {
         snippet: a.snippet,
         publishedAt: a.publishedAt,
       });
+      if (a.key) evidence.set(a.key, article.id); // opportunities cite News articles by this key too
+      if (a.triage?.status === "ok") {
+        triage.push({
+          articleId: article.id,
+          status: "ok",
+          category: a.triage.category, // saveTriage moves the article to this category, as the triage job does
+          region: a.region,
+          relevance: 70,
+          impact: a.triage.impact,
+          whyEn: a.triage.whyEn,
+          whyId: a.triage.whyId,
+          themes: a.triage.themes as Theme[],
+        });
+      } else if (a.triage) {
+        triage.push({ articleId: article.id, status: "failed", error: "Fixture: the reply was not valid" });
+      }
     }
+    await saveTriage(triage);
   }
   if (!args.includes("--no-articles")) for (const [key, id] of await storeEvidence(ids)) evidence.set(key, id);
   if (!args.includes("--no-opportunities")) await storeOpportunities(evidence);
