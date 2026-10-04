@@ -31,17 +31,38 @@ export function triggerFor(term: Term, previous: Signal | null, evaluation: Eval
 export async function computeSignals(options: { now?: () => Date } = {}): Promise<JobOutcome> {
   const now = options.now?.() ?? new Date();
   const day = wibDay(now);
-  const counts = { assets: 0, changes: 0, initial: 0, no_verdict: 0, synthetic: 0, invalid: 0 };
+  const counts = { assets: 0, changes: 0, initial: 0, no_verdict: 0, synthetic: 0, invalid: 0, failed: 0 };
+  const failures: string[] = [];
+  let attempted = 0;
   const usdIdrAsset = await getAssetBySlug("usd-idr");
   const usdIdr = usdIdrAsset ? (await closesForSignals(usdIdrAsset.id)).map(({ day, close }) => ({ day, close })) : [];
 
   for (const asset of await listAssets()) {
     const assetClass = classOf(asset);
     if (!assetClass) continue; // USD/IDR is context, not a signal
+    attempted++;
+    try {
+      await signalsFor(asset, assetClass, { now, day, usdIdr, counts });
+    } catch (error) {
+      // One asset failing does not stop the others; the run is partial (every asset failing: failed).
+      counts.failed++;
+      failures.push(`${asset.slug} (${(error as Error).message.slice(0, 120)})`);
+    }
+  }
+  if (failures.length > 0 && attempted === failures.length) throw new Error(`every asset failed: ${failures.join(", ")}`);
+  return failures.length ? { status: "partial", counts, error: `${failures.length} assets failed: ${failures.join(", ")}` } : { status: "ok", counts };
+}
+
+async function signalsFor(
+  asset: Asset,
+  assetClass: AssetClass,
+  { now, day, usdIdr, counts }: { now: Date; day: string; usdIdr: { day: string; close: number }[]; counts: Record<string, number> },
+) {
+  {
     let rows = await closesForSignals(asset.id);
     // Crypto's running UTC day is not a final close (it is fetched again on the next run).
     if (assetClass === "crypto") rows = rows.filter((r) => r.day < now.toISOString().slice(0, 10));
-    if (rows.length === 0) continue; // a quote-only asset (Indodax IDR prices)
+    if (rows.length === 0) return; // a quote-only asset (Indodax IDR prices)
     counts.assets++;
     const synthetic = rows.some((r) => r.source === "synthetic");
     if (synthetic) counts.synthetic++;
@@ -94,5 +115,4 @@ export async function computeSignals(options: { now?: () => Date } = {}): Promis
       );
     }
   }
-  return { status: "ok", counts };
 }

@@ -50,6 +50,7 @@ const copy = {
     aiSr: "Written by AI from the article, not by the publisher",
     topEmpty: "No opportunities yet. The first morning run is at 07:00 WIB.",
     news: "News that moves opportunities",
+    market: "Market snapshot",
     allNews: "All news",
     ago: (days: number) => `${days}d ago`,
     credit: { conversation: "Source: The Conversation Indonesia · CC BY-ND 4.0", ecb: "Source: European Central Bank" },
@@ -86,6 +87,7 @@ const copy = {
     aiSr: "Ditulis oleh AI dari artikel, bukan oleh penerbit",
     topEmpty: "Belum ada peluang. Proses pagi pertama berjalan pukul 07.00 WIB.",
     news: "Berita yang menggerakkan peluang",
+    market: "Ringkasan pasar",
     allNews: "Semua berita",
     ago: (days: number) => `${days} hari lalu`,
     credit: { conversation: "Sumber: The Conversation Indonesia · CC BY-ND 4.0", ecb: "Sumber: Bank Sentral Eropa (ECB)" },
@@ -134,8 +136,8 @@ const overflows = (page: Page) => page.evaluate(() => document.documentElement.s
 const headings = (page: Page) => main(page).getByRole("heading").allInnerTexts();
 const box = async (locator: Locator) => (await locator.boundingBox())!;
 
-/** The pattern of the sections that are not built yet (investments, ventures, alerts, market snapshot). */
-const notBuilt = /investment|investasi|alert|peringatan|market snapshot|ringkasan pasar|my ventures|usaha saya|financial advice|nasihat/i;
+/** The pattern of the sections that are not built yet (investment alerts, ventures). The market snapshot is built (OR-28). */
+const notBuilt = /investment|investasi|alert|peringatan|my ventures|usaha saya|financial advice|nasihat/i;
 
 // ---- A full day ------------------------------------------------------------------------------------
 
@@ -148,7 +150,7 @@ test.describe("a full day", () => {
   for (const locale of ["en", "id"] as const) {
     const c = copy[locale];
 
-    test(`${locale}: the header, then the brief, the top opportunities and the news, in that order and nothing else`, async ({ page, baseURL }) => {
+    test(`${locale}: the header, then the brief, the top opportunities, the news and the market snapshot, in that order and nothing else`, async ({ page, baseURL }) => {
       // Nothing is requested from outside the app.
       const outside: string[] = [];
       page.on("request", (request) => {
@@ -162,7 +164,7 @@ test.describe("a full day", () => {
       await expect(main(page).getByText(c.updated(longDate(new Date(), locale), clockOf(scoresRun, locale)), { exact: true })).toBeVisible();
       await expect(page.getByRole("status")).toHaveCount(0); // fresh: no banner
 
-      expect(await headings(page)).toEqual([c.title, c.brief, c.top, c.news]);
+      expect(await headings(page)).toEqual([c.title, c.brief, c.top, c.news, c.market]);
       expect(await main(page).innerText()).not.toMatch(notBuilt);
       expect(outside).toEqual([]);
     });
@@ -289,13 +291,14 @@ test.describe("a full day", () => {
     });
   }
 
-  test("one column in the order brief, top opportunities, news; no sideways scroll even with very long texts; links are 44 px tall", async ({ page }) => {
+  test("one column in the order brief, top opportunities, news, market snapshot; no sideways scroll even with very long texts; links are 44 px tall", async ({ page }) => {
     await page.goto("/en");
     const y = async (id: string) => (await box(section(page, id))).y;
     expect(await y("radar-brief")).toBeLessThan(await y("radar-top"));
     expect(await y("radar-top")).toBeLessThan(await y("radar-news"));
+    expect(await y("radar-news")).toBeLessThan(await y("radar-market"));
     // One column: every section spans the same width.
-    const widths = await Promise.all(["radar-brief", "radar-top", "radar-news"].map(async (id) => (await box(section(page, id))).width));
+    const widths = await Promise.all(["radar-brief", "radar-top", "radar-news", "radar-market"].map(async (id) => (await box(section(page, id))).width));
     expect(new Set(widths.map(Math.round)).size).toBe(1);
     expect(await overflows(page)).toBe(false);
 
@@ -306,6 +309,10 @@ test.describe("a full day", () => {
       ...(await newsItems(page).all()).map((item) => item.locator('a[target="_blank"]').first()),
     ];
     for (const link of links) expect((await box(link)).height).toBeGreaterThanOrEqual(44);
+    // The licence link of the credit line too, and it does not make the line taller.
+    const licence = section(page, "radar-news").getByRole("link", { name: "CC BY-ND 4.0" });
+    expect((await box(licence)).height).toBeGreaterThanOrEqual(44);
+    expect((await box(licence.locator(".."))).height).toBeLessThan(20);
     for (const item of await topItems(page).all()) expect((await box(item)).height).toBeGreaterThanOrEqual(44);
 
     // The same page with a 204-character word added to every text.
@@ -363,7 +370,7 @@ for (const locale of ["en", "id"] as const) {
       await expect(main(page).getByRole("link", { name: /See all|Lihat semua/ })).toHaveCount(0);
       // No linked news: the section is left out with no placeholder.
       await expect(section(page, "radar-news")).toHaveCount(0);
-      expect(await headings(page)).toEqual([c.title, c.brief, c.top]);
+      expect(await headings(page)).toEqual([c.title, c.brief, c.top, c.market]);
       await expect(briefItems(page)).toHaveCount(3);
       await expect(briefItems(page).first()).not.toContainText(locale === "en" ? "affected" : "terdampak");
     } finally {
@@ -388,7 +395,7 @@ for (const locale of ["en", "id"] as const) {
       // The stored content is still shown, and the header names the same time.
       await expect(topItems(page)).toHaveCount(5);
       await expect(briefItems(page)).toHaveCount(3);
-      await expect(main(page).getByText(c.updated(longDate(new Date(), locale), clockOf(new Date(scoresRun), locale)), { exact: true })).toBeVisible();
+      await expect(main(page).getByText(c.updated(longDate(new Date(scoresRun), locale), clockOf(new Date(scoresRun), locale)), { exact: true })).toBeVisible();
 
       // Both at once, each in its own section.
       const both = JSON.parse(runDb("fixtures", `--scores-run=${27 * 60}`, `--brief-run=${30 * 60}`));
@@ -409,7 +416,7 @@ for (const locale of ["en", "id"] as const) {
 
   test(`${locale}: before anything has run one card replaces the brief; the other sections keep their own empty texts`, async ({ page }) => {
     try {
-      runDb("fixtures", "--last-run=never", "--scores-run=never", "--brief-run=never", "--no-opportunities", "--no-articles", "--no-brief");
+      runDb("fixtures", "--last-run=never", "--scores-run=never", "--brief-run=never", "--no-opportunities", "--no-articles", "--no-brief", "--no-market");
       await page.goto(`/${locale}`);
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(c.title);
       // The card, then Top opportunities with its empty text; no brief, no news, no banner, nothing about investments.

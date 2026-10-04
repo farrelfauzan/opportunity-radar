@@ -648,6 +648,8 @@ export const signals = pgTable(
     check("signals_term_check", inList(t.term, SIGNAL_TERMS)),
     check("signals_state_check", inList(t.state, SIGNAL_STATES)),
     check("signals_verdict_check", inList(t.verdict, VERDICTS)),
+    // A verdict state is the verdict itself.
+    check("signals_state_verdict_check", sql`${t.state} not in ('BUY', 'HOLD', 'SELL') or ${t.state} = ${t.verdict}`),
   ],
 );
 
@@ -679,5 +681,6 @@ export const signalHistory = pgTable(
     check("signal_history_to_check", inList(t.toVerdict, VERDICTS)),
     check("signal_history_from_check", sql`(${t.initial} and ${t.fromVerdict} is null) or (not ${t.initial} and ${t.fromVerdict} in ('BUY', 'HOLD', 'SELL') and ${t.fromVerdict} <> ${t.toVerdict})`),
     check("signal_history_trigger_check", sql`${t.trigger} ~ '^signal\\.trigger\\.[a-zA-Z0-9.]+$'`),
+    check("signal_history_close_check", sql`${t.close} > 0`),
   ],
 );

@@ -14,7 +14,8 @@ CREATE TABLE "signal_history" (
 	CONSTRAINT "signal_history_term_check" CHECK ("signal_history"."term" in ('short', 'long')),
 	CONSTRAINT "signal_history_to_check" CHECK ("signal_history"."to_verdict" in ('BUY', 'HOLD', 'SELL')),
 	CONSTRAINT "signal_history_from_check" CHECK (("signal_history"."initial" and "signal_history"."from_verdict" is null) or (not "signal_history"."initial" and "signal_history"."from_verdict" in ('BUY', 'HOLD', 'SELL') and "signal_history"."from_verdict" <> "signal_history"."to_verdict")),
-	CONSTRAINT "signal_history_trigger_check" CHECK ("signal_history"."trigger" ~ '^signal\.trigger\.[a-zA-Z0-9.]+$')
+	CONSTRAINT "signal_history_trigger_check" CHECK ("signal_history"."trigger" ~ '^signal\.trigger\.[a-zA-Z0-9.]+$'),
+	CONSTRAINT "signal_history_close_check" CHECK ("signal_history"."close" > 0)
 );
 --> statement-breakpoint
 CREATE TABLE "signals" (
@@ -35,7 +36,8 @@ CREATE TABLE "signals" (
 	CONSTRAINT "signals_asset_id_term_pk" PRIMARY KEY("asset_id","term"),
 	CONSTRAINT "signals_term_check" CHECK ("signals"."term" in ('short', 'long')),
 	CONSTRAINT "signals_state_check" CHECK ("signals"."state" in ('BUY', 'HOLD', 'SELL', 'INSUFFICIENT', 'STALE', 'INVALID_DATA')),
-	CONSTRAINT "signals_verdict_check" CHECK ("signals"."verdict" in ('BUY', 'HOLD', 'SELL'))
+	CONSTRAINT "signals_verdict_check" CHECK ("signals"."verdict" in ('BUY', 'HOLD', 'SELL')),
+	CONSTRAINT "signals_state_verdict_check" CHECK ("signals"."state" not in ('BUY', 'HOLD', 'SELL') or "signals"."state" = "signals"."verdict")
 );
 --> statement-breakpoint
 ALTER TABLE "signal_history" ADD CONSTRAINT "signal_history_asset_id_assets_id_fk" FOREIGN KEY ("asset_id") REFERENCES "public"."assets"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

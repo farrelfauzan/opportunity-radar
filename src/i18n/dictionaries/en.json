@@ -75,6 +75,16 @@
         "one": "Linked to {n} opportunity",
         "other": "Linked to {n} opportunities"
       }
+    },
+    "market": {
+      "title": "Market snapshot",
+      "asOf": "As of {time} WIB",
+      "asOfEarlier": "As of {date}, {time} WIB",
+      "asOfDate": "As of {date}",
+      "stale": "Out of date",
+      "up": "up {pct}",
+      "down": "down {pct}",
+      "flat": "unchanged"
     }
   },
   "news": {
@@ -285,9 +295,11 @@
       "what": {
         "news": "News",
         "opportunities": "Opportunities",
-        "brief": "The daily brief"
+        "brief": "The daily brief",
+        "prices": "Prices"
       }
     },
+    "marketClosed": "Market closed · last close {date}",
     "partial": "{ok} of {total} sources updated · not updated: {names}"
   },
   "calc": {
@@ -361,5 +373,16 @@
     "result": {
       "beyond": "more than Rp 1,000 trillion"
     }
+  },
+  "asset": {
+    "name": {
+      "ihsg": "IHSG",
+      "usdidr": "USD/IDR",
+      "goldGram": "Gold / gram",
+      "bitcoin": "Bitcoin"
+    }
+  },
+  "sample": {
+    "badge": "Sample"
   }
 }

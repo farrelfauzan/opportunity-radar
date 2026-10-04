@@ -127,6 +127,25 @@ describe("crypto's running day", () => {
   });
 });
 
+describe("one asset failing (Reviewer, PR 80)", () => {
+  test("the others are still computed and the run is partial", async () => {
+    const good = await stock(fixture("rising_noisy"));
+    const bad = await upsertAsset({ slug: "bad", symbol: "BAD", name: "Bad", kind: "stock", exchange: "US", currency: "IDR", source: "yahoo" });
+    await upsertCandles(bad.id, "yahoo", fixture("rising_noisy"));
+    // A trigger makes the bad asset's signal insert fail.
+    await db().execute(sql.raw(`create or replace function or29_fail() returns trigger language plpgsql as $$ begin if new.asset_id = ${bad.id} then raise exception 'boom'; end if; return new; end $$;
+      create trigger or29_fail before insert on signals for each row execute function or29_fail();`));
+    try {
+      const outcome = await computeSignals({ now: () => FRIDAY });
+      expect(outcome).toMatchObject({ status: "partial", counts: { failed: 1 } });
+      expect(outcome.error).toContain("bad (");
+      expect(await getSignal(good.id, "short")).toMatchObject({ verdict: "BUY" });
+    } finally {
+      await db().execute(sql.raw(`drop trigger or29_fail on signals; drop function or29_fail();`));
+    }
+  });
+});
+
 describe("from sample to real prices (Reviewer, PR 80)", () => {
   test("the first verdict on real closes after a synthetic series is an initial baseline, not a change", async () => {
     const rows = fixture("rising_noisy");

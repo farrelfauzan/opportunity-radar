@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import en from "@/i18n/dictionaries/en.json";
 import id from "@/i18n/dictionaries/id.json";
-import { affectedText, briefSourceText, firstRunTime, plural, sectionStale, updatedText } from "./view";
+import { affectedText, briefSourceText, firstRunTime, plural, sectionStale, staleText, updatedText } from "./view";
 
 describe("plural", () => {
   test("one for exactly 1, other for everything else (0 included)", () => {
@@ -54,6 +54,33 @@ describe("sectionStale", () => {
     expect(sectionStale(run, now, "en", en.state.stale, "brief")).toBe("The daily brief last updated 3 Oct, 06:30 WIB");
     expect(sectionStale(run, now, "en", en.state.stale, "opportunities")).toBe("Opportunities last updated 3 Oct, 06:30 WIB");
     expect(sectionStale(run, now, "id", id.state.stale, "brief")).toBe("Ringkasan harian terakhir diperbarui 3 Okt, 06.30 WIB");
+  });
+});
+
+describe("sectionStale for prices", () => {
+  const now = new Date("2026-10-04T05:00:00Z"); // 12:00 WIB
+  const run = new Date("2026-10-02T23:30:00Z"); // 3 Oct, 06:30 WIB, more than 26 hours ago
+
+  test("names the prices in both languages", () => {
+    expect(sectionStale(run, now, "en", en.state.stale, "prices")).toBe("Prices last updated 3 Oct, 06:30 WIB");
+    expect(sectionStale(run, now, "id", id.state.stale, "prices")).toBe("Harga terakhir diperbarui 3 Okt, 06.30 WIB");
+    expect(sectionStale(new Date(now.getTime() - 3600_000), now, "en", en.state.stale, "prices")).toBeNull(); // 26-hour rule
+  });
+});
+
+describe("staleText", () => {
+  const now = new Date("2026-10-04T05:00:00Z"); // 4 Oct, 12:00 WIB
+
+  test("a run from today (WIB) shows the time only, an earlier day the date and time", () => {
+    expect(staleText(new Date("2026-10-04T02:30:00Z"), now, "en", en.state.stale, "prices")).toBe("Prices last updated 09:30 WIB");
+    expect(staleText(new Date("2026-10-04T02:30:00Z"), now, "id", id.state.stale, "prices")).toBe("Harga terakhir diperbarui 09.30 WIB");
+    expect(staleText(new Date("2026-10-03T16:59:00Z"), now, "en", en.state.stale, "prices")).toBe("Prices last updated 3 Oct, 23:59 WIB");
+  });
+
+  test("the WIB day decides, not the UTC day: 17:00Z is already tomorrow in WIB", () => {
+    const late = new Date("2026-10-04T18:00:00Z"); // 5 Oct, 01:00 WIB
+    expect(staleText(new Date("2026-10-04T17:30:00Z"), late, "en", en.state.stale, "prices")).toBe("Prices last updated 00:30 WIB");
+    expect(staleText(new Date("2026-10-04T16:30:00Z"), late, "en", en.state.stale, "prices")).toBe("Prices last updated 4 Oct, 23:30 WIB");
   });
 });
 

@@ -497,6 +497,14 @@ describe("evidence", () => {
     expect(await count()).toBe(51);
   });
 
+  test("citeArticles refuses a closed opportunity and an unknown id, and stores nothing", async () => {
+    const [article] = await articlesOf(1);
+    const closed = await make({ closedAt: new Date("2026-10-03T00:00:00Z") }, [[0, 60]]);
+    await expect(citeArticles(closed.id, [article])).rejects.toThrow(/open opportunity/);
+    await expect(citeArticles(999_999, [article])).rejects.toThrow(/open opportunity/);
+    expect(await count()).toBe(0);
+  });
+
   test("concurrent citeArticles calls cannot pass the limit together", async () => {
     const ids = await articlesOf(60);
     const row = await make({}, [[0, 60]]);

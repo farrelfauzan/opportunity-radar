@@ -65,6 +65,35 @@ export function formatUsd(value: Num, locale: Locale): string {
   return `${sign}${locale === "id" ? "US$" : "$"}${text}`;
 }
 
+/**
+ * "$98,400" (en), "US$98.400" (id): whole dollars from $1,000 upwards, cents below
+ * (a price in the tens of thousands does not need them; a small one does).
+ */
+export function formatUsdPrice(value: Num, locale: Locale): string {
+  if (isMissing(value)) return MISSING;
+  if (Math.abs(value) < 1000) return formatUsd(value, locale);
+  return `${value < 0 ? MINUS : ""}${locale === "id" ? "US$" : "$"}${digits(Math.round(Math.abs(value)), locale, 0)}`;
+}
+
+/** A plain grouped number with no unit: 7412.35 → "7,412" (en), "7.412" (id) with 0 decimals. */
+export function formatNumber(value: Num, locale: Locale, fractionDigits = 0): string {
+  if (isMissing(value)) return MISSING;
+  const text = digits(Math.abs(value), locale, fractionDigits);
+  return `${value < 0 && Number(Math.abs(value).toFixed(fractionDigits)) > 0 ? MINUS : ""}${text}`;
+}
+
+/**
+ * The size of a change as an unsigned percent with one decimal ("1.2%", "1,2%") and its direction.
+ * A change that rounds to 0.0% is "flat" ("0.0%"), whatever its sign, so a bare "0%" never shows.
+ */
+export function formatChange(ratio: Num, locale: Locale): { direction: "up" | "down" | "flat"; text: string } | null {
+  if (isMissing(ratio)) return null;
+  const percent = Math.abs(ratio) * 100;
+  const text = `${digits(percent, locale, 1)}%`;
+  if (/^0[.,]0%$/.test(text)) return { direction: "flat", text }; // decided on the rounded text itself
+  return { direction: ratio < 0 ? "down" : "up", text };
+}
+
 /** A ratio as a signed percent with one decimal: 0.024 → "+2.4%"; zero → "0%". */
 export function formatPercent(ratio: Num, locale: Locale): string {
   if (isMissing(ratio)) return MISSING;

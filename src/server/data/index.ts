@@ -55,3 +55,4 @@ export * from "./radar.ts";
 export * from "./news.ts";
 export * from "./prices.ts";
 export * from "./signals.ts";
+export * from "./market.ts";

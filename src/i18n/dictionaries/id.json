@@ -75,6 +75,16 @@
         "one": "Terkait {n} peluang",
         "other": "Terkait {n} peluang"
       }
+    },
+    "market": {
+      "title": "Ringkasan pasar",
+      "asOf": "Per {time} WIB",
+      "asOfEarlier": "Per {date}, {time} WIB",
+      "asOfDate": "Per {date}",
+      "stale": "Belum diperbarui",
+      "up": "naik {pct}",
+      "down": "turun {pct}",
+      "flat": "tidak berubah"
     }
   },
   "news": {
@@ -285,9 +295,11 @@
       "what": {
         "news": "Berita",
         "opportunities": "Peluang",
-        "brief": "Ringkasan harian"
+        "brief": "Ringkasan harian",
+        "prices": "Harga"
       }
     },
+    "marketClosed": "Pasar tutup · penutupan terakhir {date}",
     "partial": "{ok} dari {total} sumber diperbarui · belum diperbarui: {names}"
   },
   "calc": {
@@ -361,5 +373,16 @@
     "result": {
       "beyond": "lebih dari Rp 1.000 triliun"
     }
+  },
+  "asset": {
+    "name": {
+      "ihsg": "IHSG",
+      "usdidr": "USD/IDR",
+      "goldGram": "Emas / gram",
+      "bitcoin": "Bitcoin"
+    }
+  },
+  "sample": {
+    "badge": "Contoh"
   }
 }

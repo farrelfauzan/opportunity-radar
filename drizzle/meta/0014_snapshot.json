@@ -1,5 +1,5 @@
 {
-  "id": "d9f09e37-17c0-47fc-8a98-f6ef6715b47c",
+  "id": "933c1dbc-7bad-4fa4-a8a2-67d076fb5f18",
   "prevId": "b28b1b35-3862-483b-8231-7db0a6df4702",
   "version": "7",
   "dialect": "postgresql",
@@ -1437,6 +1437,10 @@
         "signal_history_trigger_check": {
           "name": "signal_history_trigger_check",
           "value": "\"signal_history\".\"trigger\" ~ '^signal\\.trigger\\.[a-zA-Z0-9.]+$'"
+        },
+        "signal_history_close_check": {
+          "name": "signal_history_close_check",
+          "value": "\"signal_history\".\"close\" > 0"
         }
       },
       "isRLSEnabled": false
@@ -1571,6 +1575,10 @@
         "signals_verdict_check": {
           "name": "signals_verdict_check",
           "value": "\"signals\".\"verdict\" in ('BUY', 'HOLD', 'SELL')"
+        },
+        "signals_state_verdict_check": {
+          "name": "signals_state_verdict_check",
+          "value": "\"signals\".\"state\" not in ('BUY', 'HOLD', 'SELL') or \"signals\".\"state\" = \"signals\".\"verdict\""
         }
       },
       "isRLSEnabled": false
