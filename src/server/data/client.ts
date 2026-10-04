@@ -35,6 +35,11 @@ export function db() {
   return (holder.__orData ??= connect()).db;
 }
 
+/** The raw driver, for the few things Drizzle does not cover (session-level locks). */
+export function sql() {
+  return (holder.__orData ??= connect()).sql;
+}
+
 /** Fails with a clear, secret-free message when the database cannot be reached. */
 export async function checkConnection(): Promise<void> {
   const url = new URL(databaseUrl());
