@@ -278,3 +278,50 @@ describe("continuity (OR-50)", () => {
     expect((await stored())[0].cited).toHaveLength(4);
   });
 });
+
+describe("review follow-ups (PR 42)", () => {
+  test("150 maximum-size articles: the input is trimmed to fit, most relevant first, and the call is made", async () => {
+    const all = await triagedArticles(150);
+    await db().execute(sql`update articles set headline = repeat('h', 300), snippet = repeat('s', 500)`);
+    await db().execute(sql`update article_triage set why_en = repeat('w', 300)`);
+    await db().execute(sql`update article_triage set relevance = 99 where article_id = ${all[149]}`); // the oldest, but most relevant
+    const { transport, requests } = provider(() => ({ opportunities: [] }));
+
+    const outcome = await generateOpportunities({ transport, now: () => NOW });
+
+    expect(outcome.status).toBe("ok");
+    expect(requests).toHaveLength(1);
+    expect(requests[0].ids.length).toBeLessThan(150);
+    expect(requests[0].ids[0]).toBe(String(all[149]));
+    expect(requests[0].system.length + requests[0].user.length).toBeLessThan(200_000);
+  });
+
+  test("at most 10 opportunities are used per run", async () => {
+    const ids = await triagedArticles(24);
+    const themes = ["cybersecurity", "digital_payments", "ai_adoption", "data_centers", "semiconductors", "rupiah_fx",
+      "trade_tariffs", "ev_batteries", "food_security", "tourism_travel", "smes_msme", "crypto_assets"];
+    const { transport } = provider(() => ({
+      opportunities: themes.map((theme, i) => opportunity(ids.slice(i * 2, i * 2 + 2).map(String), { theme })),
+    }));
+
+    expect((await generateOpportunities({ transport, now: () => NOW })).counts).toMatchObject({ created: 10 });
+    expect(await stored()).toHaveLength(10);
+  });
+
+  test("a rejected item's reason is cut to 200 characters", async () => {
+    const ids = await triagedArticles(2);
+    const { transport } = provider(() => ({ opportunities: [opportunity(ids.map(String), { theme: "t".repeat(200_000) })] }));
+    const outcome = await generateOpportunities({ transport, now: () => NOW });
+    expect(outcome.error!.length).toBeLessThan(260);
+  });
+
+  test("running twice on the same day with the same reply creates no duplicate", async () => {
+    const ids = await triagedArticles(2);
+    const reply = () => ({ opportunities: [opportunity(ids.map(String))] });
+    await generateOpportunities({ transport: provider(reply).transport, now: () => NOW });
+    const again = await generateOpportunities({ transport: provider(reply).transport, now: () => NOW });
+
+    expect(again.counts).toMatchObject({ created: 0, matched: 1 });
+    expect(await stored()).toHaveLength(1);
+  });
+});

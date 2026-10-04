@@ -22,7 +22,11 @@ import { checkOpportunity, type OpportunityOutput } from "./contract.ts";
 import { findMatch } from "./match.ts";
 
 const WINDOW_DAYS = 7;
-const MAX_INPUT_ARTICLES = 150; // newest first; keeps the prompt well under the client's input guard
+const MAX_INPUT_ARTICLES = 150;
+// The data block's size budget: with the instructions it stays under the LLM
+// client's 200,000-character input guard even when every article is long.
+const MAX_DATA_CHARS = 150_000;
+const MAX_REASON_CHARS = 200;
 const MAX_OPPORTUNITIES = 10; // per run
 const MAX_CITATIONS = 20; // stored per opportunity
 const MAX_TOKENS = 8000;
@@ -47,6 +51,17 @@ Answer with JSON only, exactly {"opportunities": [ ... ]}, where each item has:
 Every text is given in English ("en") and Bahasa Indonesia ("id").`;
 
 type Candidate = Awaited<ReturnType<typeof opportunityCandidates>>[number];
+
+/** What the LLM sees of one article (untrusted text, fenced). */
+const inputItem = ({ article, triage }: Candidate) => ({
+  id: String(article.id),
+  headline: article.headline,
+  snippet: article.snippet,
+  region: article.region,
+  category: article.category,
+  why: triage.whyEn,
+  themes: triage.themes,
+});
 
 function toFields(o: OpportunityOutput): NewOpportunity {
   return {
@@ -84,7 +99,18 @@ export async function generateOpportunities(
 ): Promise<JobOutcome> {
   const now = options.now?.() ?? new Date();
   const since = new Date(now.getTime() - WINDOW_DAYS * 24 * 60 * 60 * 1000);
-  const candidates: Candidate[] = (await opportunityCandidates(since)).slice(0, MAX_INPUT_ARTICLES);
+  // Most relevant first (newest on ties), at most 150 and only as many as fit the size budget.
+  const ranked = (await opportunityCandidates(since)).sort(
+    (a, b) => (b.triage.relevance ?? 0) - (a.triage.relevance ?? 0) || b.article.publishedAt.getTime() - a.article.publishedAt.getTime(),
+  );
+  const candidates: Candidate[] = [];
+  let size = 2;
+  for (const c of ranked.slice(0, MAX_INPUT_ARTICLES)) {
+    const itemSize = JSON.stringify(inputItem(c)).length + 1;
+    if (size + itemSize > MAX_DATA_CHARS) break;
+    candidates.push(c);
+    size += itemSize;
+  }
   const counts = { candidates: candidates.length, created: 0, matched: 0, rejected: 0, closed: 0 };
   const closeStale = async () => {
     const closed = await closeStaleOpportunities(now);
@@ -96,18 +122,7 @@ export async function generateOpportunities(
     return { status: "ok", counts }; // no theme can have 2 citations
   }
 
-  const fence = fenceUntrusted(
-    "ARTICLES",
-    candidates.map(({ article, triage }) => ({
-      id: String(article.id),
-      headline: article.headline,
-      snippet: article.snippet,
-      region: article.region,
-      category: article.category,
-      why: triage.whyEn,
-      themes: triage.themes,
-    })),
-  );
+  const fence = fenceUntrusted("ARTICLES", candidates.map(inputItem));
   const items = await callLlm({
     job: "opportunities",
     role: "report",
@@ -127,8 +142,9 @@ export async function generateOpportunities(
     const checked = checkOpportunity(raw, inputIds);
     if (!checked.ok) {
       counts.rejected++;
-      reasons.push(`#${index + 1}: ${checked.reason}`);
-      console.warn(`opportunities: rejected #${index + 1}: ${checked.reason}`);
+      const reason = checked.reason.slice(0, MAX_REASON_CHARS);
+      reasons.push(`#${index + 1}: ${reason}`);
+      console.warn(`opportunities: rejected #${index + 1}: ${reason}`);
       continue;
     }
     const o = checked.value;
