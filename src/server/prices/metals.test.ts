@@ -7,8 +7,9 @@ import { perGram, rateLookup } from "./metals.ts";
 const candle = (day: string, close: number) => ({ day, open: close, high: close, low: close, close, volume: null });
 
 describe("per-gram conversion", () => {
-  test("XAU 2,000 USD/oz at 16,000 rupiah per dollar is Rp 1,028,823 per gram (AC1)", () => {
-    expect(perGram(2000, 16000)).toBe(1028823);
+  test("XAU 2,000 USD/oz at 16,000 rupiah per dollar is Rp 1,028,824 per gram (AC1, exact ounce 31.1034768 g)", () => {
+    expect(perGram(2000, 16000)).toBe(1028824); // 1,028,823.89
+    expect(perGram(2650, 16250)).toBe(1384492); // 1,384,491.52
   });
 
   test("a weekend or holiday uses the latest earlier rate; before the first rate there is none", () => {

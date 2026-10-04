@@ -69,7 +69,7 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
   by default a synthetic history in Yahoo's response shape is used, which is not market data.
   `PRICES_FRANKFURTER=fixtures` uses a recorded USD/IDR history instead of the live API.
 - `pnpm job metals` (every 10 minutes) stores gold and silver in rupiah per gram: USD per troy
-  ounce ÷ 31.1035 × USD/IDR, using the latest ECB rate on or before that day. The quote is spot from
+  ounce ÷ 31.1034768 × USD/IDR, using the latest ECB rate on or before that day. The quote is spot from
   gold-api.com, **off** unless `PRICES_GOLDAPI=live`; the daily history is COMEX futures (GC=F / SI=F),
   stored as `yahoo-futures` (never as spot) and only with `PRICES_YAHOO=live`. If gold-api.com fails,
   the futures price (at most 4 days old) is used and the run is `partial`, naming the fallback.

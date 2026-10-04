@@ -10,7 +10,7 @@ import { fetchSpot, FUTURES, goldApiMode } from "./goldapi.ts";
 import { fxAsset, MIN_BACKFILL_CANDLES, rangeFor } from "./ingest.ts";
 import { fetchChart, HOLDS_REAL, PriceSourceError, yahooMode, type Chart } from "./yahoo.ts";
 
-export const TROY_OUNCE_GRAMS = 31.1035;
+export const TROY_OUNCE_GRAMS = 31.1034768; // the exact troy ounce, as in rules-v1 §1 (Designer, OR-27)
 // gold-api.com bans an IP for "multiple requests per second" (R-2 §3): its calls are spaced.
 export const GOLDAPI_GAP_MS = 1100;
 // A futures quote older than this does not stand in for the live price.
