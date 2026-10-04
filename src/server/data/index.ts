@@ -16,6 +16,9 @@ export {
   IMPACTS,
   ASSET_KINDS,
   PRICE_SOURCES,
+  SIGNAL_TERMS,
+  VERDICTS,
+  SIGNAL_STATES,
   FACTOR_KEYS,
 } from "./schema.ts";
 export type {
@@ -34,6 +37,9 @@ export type {
   BriefLine,
   AssetKind,
   PriceSource,
+  SignalTerm,
+  SignalVerdict,
+  SignalState,
 } from "./schema.ts";
 export * from "./articles.ts";
 export * from "./sources.ts";
@@ -48,4 +54,5 @@ export * from "./briefs.ts";
 export * from "./radar.ts";
 export * from "./news.ts";
 export * from "./prices.ts";
+export * from "./signals.ts";
 export * from "./market.ts";
