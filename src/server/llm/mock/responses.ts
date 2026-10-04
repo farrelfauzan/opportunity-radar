@@ -44,6 +44,21 @@ function mockOpportunity(articles: { id: string; region: string; themes?: string
 }
 
 export const MOCK_RESPONSES: Record<string, MockCase[]> = {
+  // OR-16: the same middle score on every factor, marked "[mock]".
+  scores: [
+    {
+      name: "middle-scores",
+      content: JSON.stringify({
+        factors: Object.fromEntries(
+          ["demand", "timing", "competition", "capital", "regulatory"].map((k) => [
+            k,
+            { score: 50, reason: { en: "[mock] Recorded reply: AI scoring is not live yet.", id: "[mock] Jawaban rekaman: penilaian AI belum aktif." } },
+          ]),
+        ),
+      }),
+      usage: { prompt_tokens: 1500, completion_tokens: 400 },
+    },
+  ],
   // OR-15: one opportunity citing the first two articles, so the Opportunities screen has data offline.
   opportunities: [
     {
