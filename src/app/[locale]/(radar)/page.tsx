@@ -11,12 +11,13 @@ import { formatDateLongWib, formatRelativeTime, formatTimeWib } from "@/i18n/for
 import type { Locale } from "@/i18n/locales";
 import { fill, type Messages } from "@/i18n/t";
 import { categoryLabel, safeHref } from "@/lib/news/view";
-import { horizonKey, inLocale, isNeverScored, staleBanner, trendText } from "@/lib/opportunities/view";
-import { affectedText, briefSourceText, plural, updatedText } from "@/lib/radar/view";
+import { horizonKey, inLocale, isNeverScored, trendText } from "@/lib/opportunities/view";
+import { affectedText, briefSourceText, firstRunTime, plural, sectionStale, updatedText } from "@/lib/radar/view";
 import { cn } from "@/lib/utils";
 import {
   citationCounts,
   getBrief,
+  lastSuccessfulRun,
   lastScoringRun,
   listOpportunities,
   recentLinkedNews,
@@ -43,16 +44,17 @@ const wrap = "[overflow-wrap:anywhere]";
 const sectionLink = `inline-flex min-h-11 items-center text-primary underline-offset-4 hover:underline ${focusRing}`;
 
 async function load(now: Date) {
-  const [open, lastRun, brief, news] = await Promise.all([
+  const [open, lastRun, briefRun, brief, news] = await Promise.all([
     listOpportunities({}, now),
     // The same source of truth as "updated" on the Opportunities screen: the last successful
     // "scores" run (the morning pipeline's steps are triage, opportunities, scores, ventures, brief).
     lastScoringRun(),
+    lastSuccessfulRun("brief"),
     getBrief(wibDay(now)),
     recentLinkedNews(NEWS_COUNT),
   ]);
   const top = open.slice(0, TOP_COUNT);
-  return { total: open.length, top, counts: await citationCounts(top.map((o) => o.id)), lastRun, brief, news };
+  return { total: open.length, top, counts: await citationCounts(top.map((o) => o.id)), lastRun, briefRun, brief, news };
 }
 
 export default async function RadarPage() {
@@ -83,20 +85,10 @@ export default async function RadarPage() {
     );
   }
 
-  const { total, top, counts, lastRun, brief, news } = data;
+  const { total, top, counts, lastRun, briefRun, brief, news } = data;
 
-  if (isNeverScored(lastRun, total)) {
-    return (
-      <>
-        <h1 className={heading}>{m.radar.title}</h1>
-        <Card>
-          <CardContent className="font-semibold">{m.opp.never}</CardContent>
-        </Card>
-      </>
-    );
-  }
-
-  const banner = staleBanner(lastRun, now, locale, m.state.stale);
+  // Nothing has ever run: one card in place of the brief; the other sections keep their own empty texts.
+  const neverRun = isNeverScored(lastRun, total) && !brief && news.length === 0;
   const updated = updatedText(
     formatDateLongWib(now, locale),
     lastRun && formatTimeWib(lastRun, locale),
@@ -110,20 +102,46 @@ export default async function RadarPage() {
         <p className="text-muted-foreground">{updated}</p>
       </div>
 
-      {banner && (
-        <p role="status" className="rounded-lg border border-glass-border bg-white/8 px-4 py-3 text-foreground">
-          {banner}
-        </p>
+      {neverRun ? (
+        <section aria-labelledby="radar-never">
+          <Card>
+            <CardContent className="flex flex-col gap-1">
+              <h2 id="radar-never" className={h2}>
+                {m.state.never.title}
+              </h2>
+              <p className="text-muted-foreground">{fill(m.state.never.body, { time: firstRunTime(locale) })}</p>
+            </CardContent>
+          </Card>
+        </section>
+      ) : (
+        <BriefSection brief={brief} stale={sectionStale(briefRun, now, locale, m.state.stale, "brief")} locale={locale} m={m} />
       )}
-
-      <BriefSection brief={brief} locale={locale} m={m} />
-      <TopSection items={top} total={total} counts={counts} locale={locale} m={m} />
+      <TopSection
+        items={top}
+        total={total}
+        counts={counts}
+        stale={sectionStale(lastRun, now, locale, m.state.stale, "opportunities")}
+        locale={locale}
+        m={m}
+      />
       {news.length > 0 && <NewsSection items={news} now={now} locale={locale} m={m} />}
     </>
   );
 }
 
-function BriefSection({ brief, locale, m }: { brief: DailyBrief | null; locale: Locale; m: Messages }) {
+const staleClass = "rounded-lg border border-glass-border bg-white/8 px-4 py-3 text-foreground";
+
+function BriefSection({
+  brief,
+  stale,
+  locale,
+  m,
+}: {
+  brief: DailyBrief | null;
+  stale: string | null;
+  locale: Locale;
+  m: Messages;
+}) {
   return (
     <section aria-labelledby="radar-brief">
       <Card>
@@ -131,6 +149,11 @@ function BriefSection({ brief, locale, m }: { brief: DailyBrief | null; locale: 
           <h2 id="radar-brief" className={h2}>
             {m.radar.brief.title}
           </h2>
+          {stale && (
+            <p role="status" className={staleClass}>
+              {stale}
+            </p>
+          )}
           {brief ? (
             <>
               <ol className="flex list-decimal flex-col gap-2 pl-5 text-[15px]">
@@ -161,12 +184,14 @@ function TopSection({
   items,
   total,
   counts,
+  stale,
   locale,
   m,
 }: {
   items: ListedOpportunity[];
   total: number;
   counts: Map<number, number>;
+  stale: string | null;
   locale: Locale;
   m: Messages;
 }) {
@@ -182,6 +207,11 @@ function TopSection({
           </Link>
         )}
       </div>
+      {stale && (
+        <p role="status" className={staleClass}>
+          {stale}
+        </p>
+      )}
       {items.length === 0 ? (
         <Card>
           <CardContent className="text-muted-foreground">{m.radar.top.empty}</CardContent>
@@ -314,6 +344,10 @@ function NewsItem({ article, now, locale, m }: { article: LinkedNews; now: Date;
             <WhyLabel label={m.news.why} ai={m.news.whyAi} aiSr={m.news.whyAiSr} />
             <p className={cn("min-w-0 text-[#E2DDF0]", wrap)}>{why}</p>
           </div>
+        )}
+        {/* Plain text, nothing when only closed opportunities cite it. */}
+        {article.openCount > 0 && (
+          <p className="text-xs text-muted-foreground">{plural(article.openCount, m.radar.news.linked)}</p>
         )}
         <CreditLine sourceSlug={article.sourceSlug} strings={m.news.credit} />
       </div>

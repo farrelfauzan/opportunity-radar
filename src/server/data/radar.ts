@@ -7,6 +7,8 @@ export type LinkedNews = ArticleWithSource & {
   /** "Why it matters" in each language; null unless the article has an ok triage. */
   whyEn: string | null;
   whyId: string | null;
+  /** How many open opportunities cite the article (a closed one is not counted). */
+  openCount: number;
 };
 
 /**
@@ -22,14 +24,21 @@ export async function recentLinkedNews(limit: number): Promise<LinkedNews[]> {
     .innerJoin(opportunities, eq(opportunities.id, opportunityArticles.opportunityId))
     .where(and(eq(opportunityArticles.articleId, articles.id), eq(opportunities.status, "open")));
   const rows = await db()
-    .select({ article: articles, sourceName: sources.name, sourceSlug: sources.slug, whyEn: articleTriage.whyEn, whyId: articleTriage.whyId })
+    .select({
+      article: articles,
+      sourceName: sources.name,
+      sourceSlug: sources.slug,
+      whyEn: articleTriage.whyEn,
+      whyId: articleTriage.whyId,
+      openCount: sqlTag<number>`(select count(*) from opportunity_articles oa join opportunities o on o.id = oa.opportunity_id where oa.article_id = ${articles.id} and o.status = 'open')::int`,
+    })
     .from(articles)
     .innerJoin(sources, eq(articles.sourceId, sources.id))
     .leftJoin(articleTriage, and(eq(articleTriage.articleId, articles.id), eq(articleTriage.status, "ok")))
     .where(and(articleIsVisible, exists(citedByOpen)))
     .orderBy(desc(articles.publishedAt), desc(articles.id))
     .limit(limit);
-  return rows.map(({ article, sourceName, sourceSlug, whyEn, whyId }) => ({ ...article, sourceName, sourceSlug, whyEn, whyId }));
+  return rows.map(({ article, ...rest }) => ({ ...article, ...rest }));
 }
 
 /**

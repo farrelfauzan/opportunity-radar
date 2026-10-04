@@ -70,7 +70,11 @@
     },
     "news": {
       "title": "Berita yang menggerakkan peluang",
-      "all": "Semua berita"
+      "all": "Semua berita",
+      "linked": {
+        "one": "Terkait {n} peluang",
+        "other": "Terkait {n} peluang"
+      }
     }
   },
   "news": {
@@ -272,14 +276,16 @@
     },
     "never": {
       "title": "Belum ada data",
-      "bodyNews": "Pemeriksaan berita pertama berjalan dalam 30 menit."
+      "bodyNews": "Pemeriksaan berita pertama berjalan dalam 30 menit.",
+      "body": "Pembaruan pertama berjalan pukul {time} WIB."
     },
     "stale": {
       "today": "{what} terakhir diperbarui {time} WIB",
       "earlier": "{what} terakhir diperbarui {date}, {time} WIB",
       "what": {
         "news": "Berita",
-        "opportunities": "Peluang"
+        "opportunities": "Peluang",
+        "brief": "Ringkasan harian"
       }
     },
     "partial": "{ok} dari {total} sumber diperbarui · belum diperbarui: {names}"

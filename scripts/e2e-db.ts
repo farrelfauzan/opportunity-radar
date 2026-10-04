@@ -3,7 +3,7 @@
 // It only ever touches opportunity_radar_e2e_<E2E_PORT>_test (e2eDatabaseUrl).
 //   setup                                 create, empty and migrate the database
 //   fixtures [--last-run=<minutes ago | ISO time | never>] [--no-articles]
-//            [--scores-run=<minutes ago | ISO time | never>] [--no-opportunities] [--no-brief]
+//            [--scores-run=<minutes ago | ISO time | never>] [--brief-run=<minutes ago | ISO time | never>] [--no-opportunities] [--no-brief]
 //            [--brief-day=<days from today, e.g. -1>]
 //                                         empty the tables, then store the News fixtures, the
 //                                         Opportunities fixtures and today's daily brief (default: a
@@ -191,7 +191,15 @@ async function fixtures() {
   if (lastRun) await recordSuccessfulRun("ingest-news", lastRun);
   const scoresRun = timeOption("scores-run", "5");
   if (scoresRun) await recordSuccessfulRun(SCORING_JOB, scoresRun);
-  console.log(JSON.stringify({ lastRun: lastRun?.toISOString() ?? null, scoresRun: scoresRun?.toISOString() ?? null }));
+  const briefRun = timeOption("brief-run", "5");
+  if (briefRun) await recordSuccessfulRun("brief", briefRun);
+  console.log(
+    JSON.stringify({
+      lastRun: lastRun?.toISOString() ?? null,
+      scoresRun: scoresRun?.toISOString() ?? null,
+      briefRun: briefRun?.toISOString() ?? null,
+    }),
+  );
 }
 
 async function add(headline: string) {

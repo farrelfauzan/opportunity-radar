@@ -96,6 +96,15 @@ describe("recentLinkedNews", () => {
     expect(list.map((n) => n.id)).not.toContain(uncited.id);
   });
 
+  test("openCount counts the open opportunities that cite the article, not the closed ones", async () => {
+    const source = await makeSource();
+    const article = await makeArticle(source.id, "2026-10-03T05:00:00Z");
+    await make([article.id]);
+    await make([article.id]);
+    await make([article.id], true);
+    expect((await recentLinkedNews(5)).map((n) => n.openCount)).toEqual([2]);
+  });
+
   test("an article cited by a closed and an open opportunity is listed", async () => {
     const source = await makeSource();
     const article = await makeArticle(source.id, "2026-10-03T05:00:00Z");

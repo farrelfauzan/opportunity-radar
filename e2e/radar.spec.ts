@@ -54,8 +54,10 @@ const copy = {
     ago: (days: number) => `${days}d ago`,
     credit: { conversation: "Source: The Conversation Indonesia · CC BY-ND 4.0", ecb: "Source: European Central Bank" },
     new: "New",
-    never: "No opportunities yet — the first run is at 07:00 WIB",
+    never: ["No data yet", "The first update runs at 07:00 WIB."],
     stale: (when: string) => `Opportunities last updated ${when} WIB`,
+    staleBrief: (when: string) => `The daily brief last updated ${when} WIB`,
+    linkedTo: (n: number) => `Linked to ${n} ${n === 1 ? "opportunity" : "opportunities"}`,
     error: ["Can't load this right now", "Try again"],
     weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -88,8 +90,10 @@ const copy = {
     ago: (days: number) => `${days} hari lalu`,
     credit: { conversation: "Sumber: The Conversation Indonesia · CC BY-ND 4.0", ecb: "Sumber: Bank Sentral Eropa (ECB)" },
     new: "Baru",
-    never: "Belum ada peluang — proses pertama pukul 07.00 WIB",
+    never: ["Belum ada data", "Pembaruan pertama berjalan pukul 07.00 WIB."],
     stale: (when: string) => `Peluang terakhir diperbarui ${when} WIB`,
+    staleBrief: (when: string) => `Ringkasan harian terakhir diperbarui ${when} WIB`,
+    linkedTo: (n: number) => `Terkait ${n} peluang`,
     error: ["Tidak dapat memuat sekarang", "Coba lagi"],
     weekdays: ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"],
     months: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
@@ -238,8 +242,12 @@ test.describe("a full day", () => {
         } else {
           await expect(item.getByText(c.aiSr), e.key).toHaveCount(0);
         }
-        // Paragraphs: the why, then the credit line (licensed sources only).
-        const paragraphs = (e.why ? 1 : 0) + (e.key === "conversation" ? 1 : 0);
+        // Open opportunities that cite it (closed ones are not counted), plain text, shown before the credit line.
+        const open = fixtureOpportunities.filter((o) => !o.closedDaysAgo && (o.cites ?? []).includes(e.key)).length;
+        await expect(item.getByText(/^(Linked to|Terkait) \d+/), e.key).toHaveCount(open > 0 ? 1 : 0);
+        if (open > 0) await expect(item.getByText(c.linkedTo(open), { exact: true }), e.key).toBeVisible();
+        // Paragraphs: the why, the linked count, then the credit line (licensed sources only).
+        const paragraphs = (e.why ? 1 : 0) + (open > 0 ? 1 : 0) + (e.key === "conversation" ? 1 : 0);
         await expect(item.locator("p"), e.key).toHaveCount(paragraphs);
       }
       await expect(main(page)).not.toContainText(longEvidenceHeadline);
@@ -363,33 +371,53 @@ for (const locale of ["en", "id"] as const) {
     }
   });
 
-  test(`${locale}: a morning run more than 26 hours ago shows the stale banner with its WIB date and time; 25 hours does not`, async ({ page }) => {
+  test(`${locale}: a section whose run is more than 26 hours old says so, with its own name, WIB date and time; 25 hours does not`, async ({ page }) => {
     try {
-      runDb("fixtures", `--scores-run=${25 * 60}`);
+      runDb("fixtures", `--scores-run=${25 * 60}`, `--brief-run=${25 * 60}`);
       await page.goto(`/${locale}`);
       await expect(topItems(page)).toHaveCount(5);
       await expect(page.getByRole("status")).toHaveCount(0);
 
+      // Opportunities only: the line sits in that section.
       const { scoresRun } = JSON.parse(runDb("fixtures", `--scores-run=${27 * 60}`));
       const then = wib(new Date(scoresRun));
+      const when = `${then.day} ${c.short[then.month]}, ${clockOf(new Date(scoresRun), locale)}`;
       await page.goto(`/${locale}`);
-      await expect(page.getByRole("status")).toHaveText(c.stale(`${then.day} ${c.short[then.month]}, ${clockOf(new Date(scoresRun), locale)}`));
+      await expect(page.getByRole("status")).toHaveCount(1);
+      await expect(section(page, "radar-top").getByRole("status")).toHaveText(c.stale(when));
       // The stored content is still shown, and the header names the same time.
       await expect(topItems(page)).toHaveCount(5);
       await expect(briefItems(page)).toHaveCount(3);
       await expect(main(page).getByText(c.updated(longDate(new Date(), locale), clockOf(new Date(scoresRun), locale)), { exact: true })).toBeVisible();
+
+      // Both at once, each in its own section.
+      const both = JSON.parse(runDb("fixtures", `--scores-run=${27 * 60}`, `--brief-run=${30 * 60}`));
+      const briefThen = wib(new Date(both.briefRun));
+      await page.goto(`/${locale}`);
+      await expect(page.getByRole("status")).toHaveCount(2);
+      await expect(section(page, "radar-brief").getByRole("status")).toHaveText(
+        c.staleBrief(`${briefThen.day} ${c.short[briefThen.month]}, ${clockOf(new Date(both.briefRun), locale)}`),
+      );
+      const bothThen = wib(new Date(both.scoresRun));
+      await expect(section(page, "radar-top").getByRole("status")).toHaveText(
+        c.stale(`${bothThen.day} ${c.short[bothThen.month]}, ${clockOf(new Date(both.scoresRun), locale)}`),
+      );
     } finally {
       resetFixtures();
     }
   });
 
-  test(`${locale}: before the first morning run the Opportunities first-run card is shown and nothing else`, async ({ page }) => {
+  test(`${locale}: before anything has run one card replaces the brief; the other sections keep their own empty texts`, async ({ page }) => {
     try {
-      runDb("fixtures", "--last-run=never", "--scores-run=never", "--no-opportunities", "--no-articles", "--no-brief");
+      runDb("fixtures", "--last-run=never", "--scores-run=never", "--brief-run=never", "--no-opportunities", "--no-articles", "--no-brief");
       await page.goto(`/${locale}`);
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(c.title);
-      await expect(main(page)).toContainText(c.never);
-      expect(await headings(page)).toEqual([c.title]);
+      // The card, then Top opportunities with its empty text; no brief, no news, no banner, nothing about investments.
+      expect(await headings(page)).toEqual([c.title, c.never[0], c.top]);
+      await expect(section(page, "radar-never")).toContainText(c.never[1]);
+      await expect(section(page, "radar-top")).toContainText(c.topEmpty);
+      await expect(section(page, "radar-brief")).toHaveCount(0);
+      await expect(section(page, "radar-news")).toHaveCount(0);
       await expect(page.getByRole("status")).toHaveCount(0);
     } finally {
       resetFixtures();

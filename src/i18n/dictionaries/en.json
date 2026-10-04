@@ -70,7 +70,11 @@
     },
     "news": {
       "title": "News that moves opportunities",
-      "all": "All news"
+      "all": "All news",
+      "linked": {
+        "one": "Linked to {n} opportunity",
+        "other": "Linked to {n} opportunities"
+      }
     }
   },
   "news": {
@@ -272,14 +276,16 @@
     },
     "never": {
       "title": "No data yet",
-      "bodyNews": "The first news check runs within 30 minutes."
+      "bodyNews": "The first news check runs within 30 minutes.",
+      "body": "The first update runs at {time} WIB."
     },
     "stale": {
       "today": "{what} last updated {time} WIB",
       "earlier": "{what} last updated {date}, {time} WIB",
       "what": {
         "news": "News",
-        "opportunities": "Opportunities"
+        "opportunities": "Opportunities",
+        "brief": "The daily brief"
       }
     },
     "partial": "{ok} of {total} sources updated · not updated: {names}"
