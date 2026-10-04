@@ -112,9 +112,10 @@ export function normalise(text: string): string {
   return text
     .normalize("NFKC")
     .replace(/[­​-‍⁠﻿]/g, "")
-    // Only real tags, bounded: "Rates fell < 5% so … > 3 days" keeps its words, and many "<" stay fast.
-    // ("<you should buy gold now>" is not a tag: only known tag names are removed).
-    .replace(/<\/?(?:a|b|i|u|s|em|strong|span|p|br|div|sup|sub|small|mark|code|del|ins|font|li|ul|ol)\b[^<>]{0,200}>/gi, " ")
+    // Tags: only the tag name and the brackets go, the words inside stay and are checked
+    // ("<b you should buy gold now>" is still caught); linear on any input.
+    .replace(/<\/?(?:a|b|i|u|s|em|strong|span|p|br|div|sup|sub|small|mark|code|del|ins|font|li|ul|ol)\b/gi, " ")
+    .replace(/\/?>/g, " ")
     .replace(/[*`~]/g, "")
     .replace(/[_\-‐‑]/g, " ")
     .replace(/[‘’]/g, "'")
