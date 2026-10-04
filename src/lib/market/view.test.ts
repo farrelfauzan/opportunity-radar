@@ -124,11 +124,15 @@ describe("marketView", () => {
   ];
   const fresh = { prices: ago(5), metals: ago(5), crypto: ago(5) };
 
-  test("the sparkline's spoken summary names the first and the last close in this language; none under 2 closes", () => {
-    const view = marketView(rows, fresh, now, "en", en);
-    expect(view.rows[0].trend).toBe("Last 10 closes: from 7,300 to 7,412");
-    expect(marketView(rows, fresh, now, "id", id).rows[0].trend).toBe("10 penutupan terakhir: dari 7.300 ke 7.412");
-    expect(view.rows.map((r) => r.trend)).toEqual(["Last 10 closes: from 7,300 to 7,412", null, null, null]); // 1 close, none, none
+  test("the sparkline's spoken summary names how many closes are drawn and the first and the last, in this language; none under 2 closes", () => {
+    const withCloses = (closes: number[]) => marketView([row({ slug: "ihsg", closes })], fresh, now, "en", en).rows[0].trend;
+    expect(withCloses([7300, 7368, 7412])).toBe("Last 3 closes: from 7,300 to 7,412");
+    expect(withCloses([7300, 7310, 7305, 7412])).toBe("Last 4 closes: from 7,300 to 7,412");
+    expect(withCloses(Array.from({ length: 10 }, (_, i) => 7300 + i))).toBe("Last 10 closes: from 7,300 to 7,309");
+    expect(withCloses([7300])).toBeNull();
+    expect(withCloses([])).toBeNull();
+    const idView = marketView([row({ slug: "ihsg", closes: [7300, 7310, 7305, 7412] })], fresh, now, "id", id);
+    expect(idView.rows[0].trend).toBe("4 penutupan terakhir: dari 7.300 ke 7.412");
   });
 
   test("four rows in order, each with its name, price and change, in this language", () => {
