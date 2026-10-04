@@ -1,1 +1,0 @@
-ALTER TABLE "opportunity_articles" ADD COLUMN "cited_at" timestamp with time zone DEFAULT now() NOT NULL;
