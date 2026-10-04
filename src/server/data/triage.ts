@@ -71,7 +71,9 @@ export async function saveTriage(results: TriageResult[]): Promise<void> {
 
 /** Articles below this relevance are kept but never used for opportunities (env TRIAGE_MIN_RELEVANCE). */
 export function minRelevance(): number {
-  const value = Number(process.env.TRIAGE_MIN_RELEVANCE ?? 30);
+  const raw = process.env.TRIAGE_MIN_RELEVANCE?.trim();
+  if (!raw) return 30; // unset or empty (as .env.example leaves it) means the default, not 0
+  const value = Number(raw);
   return Number.isInteger(value) && value >= 0 && value <= 100 ? value : 30;
 }
 

@@ -488,6 +488,8 @@ export const articleTriage = pgTable(
         and ${t.impact} is not null and ${t.whyEn} is not null and ${t.whyId} is not null
         and ${t.whyEn} <> '' and ${t.whyId} <> '' and cardinality(${t.themes}) between 1 and 3)`,
     ),
+    check("article_triage_why_length_check", sql`char_length(${t.whyEn}) <= 300 and char_length(${t.whyId}) <= 300`),
+    check("article_triage_error_length_check", sql`char_length(${t.error}) <= 300`),
     check("article_triage_category_check", sql`${t.category} is null or ${categoryCheck(t.category)}`),
     check("article_triage_region_check", sql`${t.region} is null or ${regionCheck(t.region)}`),
     check("article_triage_relevance_check", sql`${t.relevance} between 0 and 100`),
