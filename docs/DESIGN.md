@@ -91,3 +91,4 @@ Numbering matches the sprint plan in Notion (D1–D16). Rows marked "Designer, d
 - 2026-10-05 — Add an asset (OR-44): form copy and errors (unknown, duplicate, unsupported market, price below 0.05), remove copy; IDX, US and Binance crypto only (`copy.md` §7).
 - 2026-10-05 — Ventures (OR-39 review): score accessible label `radar.ventures.scoreLabel`, progress sentence keys `venture.progress.delivered / next / inQa` for the venture view (OR-51) (`copy.md` §5, `venture-view.md`).
 - 2026-10-05 — Venture view progress sentence: "Next: sprint {n}" / "Berikutnya: sprint {n}" (Orchestrator, on the Reviewer's nit) (`venture-view.md`, OR-51).
+- 2026-10-05 — Market snapshot sparkline summary counts the closes actually drawn (`radar.market.trend` with `{n}`) (`copy.md` §5, OR-28 review).

@@ -649,7 +649,8 @@ export const signals = pgTable(
     check("signals_state_check", inList(t.state, SIGNAL_STATES)),
     check("signals_verdict_check", inList(t.verdict, VERDICTS)),
     // A verdict state is the verdict itself.
-    check("signals_state_verdict_check", sql`${t.state} not in ('BUY', 'HOLD', 'SELL') or ${t.state} = ${t.verdict}`),
+    // "=" with a NULL verdict is unknown, so the check passed it: compare null-safely.
+    check("signals_state_verdict_check", sql`${t.state} not in ('BUY', 'HOLD', 'SELL') or ${t.state} is not distinct from ${t.verdict}`),
   ],
 );
 

@@ -1,0 +1,2 @@
+ALTER TABLE "signals" DROP CONSTRAINT "signals_state_verdict_check";--> statement-breakpoint
+ALTER TABLE "signals" ADD CONSTRAINT "signals_state_verdict_check" CHECK ("signals"."state" not in ('BUY', 'HOLD', 'SELL') or "signals"."state" is not distinct from "signals"."verdict");

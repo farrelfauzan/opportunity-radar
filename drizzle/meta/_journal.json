@@ -106,6 +106,13 @@
       "when": 1791138886381,
       "tag": "0014_signals",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1791141994194,
+      "tag": "0015_signals_state_check",
+      "breakpoints": true
     }
   ]
 }
