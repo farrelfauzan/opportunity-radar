@@ -11,7 +11,8 @@ import { fxAsset, MIN_BACKFILL_CANDLES, rangeFor } from "./ingest.ts";
 import { fetchChart, HOLDS_REAL, PriceSourceError, yahooMode, type Chart } from "./yahoo.ts";
 
 export const TROY_OUNCE_GRAMS = 31.1034768; // the exact troy ounce, as in rules-v1 §1 (Designer, OR-27)
-// gold-api.com bans an IP for "multiple requests per second" (R-2 §3): its calls are spaced.
+// gold-api.com bans an IP for "multiple requests per second" (R-2 §3): every live call waits this
+// long first, so calls are spaced within a run and across runs (a crash and an immediate restart).
 export const GOLDAPI_GAP_MS = 1100;
 // A futures quote older than this does not stand in for the live price.
 const FALLBACK_MAX_AGE_MS = 4 * 24 * 60 * 60 * 1000;
@@ -106,9 +107,8 @@ export async function ingestMetals(
   const now = options.now?.() ?? new Date();
   const live = goldApiMode() === "live"; // a wrong switch fails the run before anything is fetched
   const sleep = options.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
-  let goldApiCalls = 0;
   const spaced = async () => {
-    if (live && goldApiCalls++ > 0) await sleep(GOLDAPI_GAP_MS);
+    if (live) await sleep(GOLDAPI_GAP_MS);
   };
   yahooMode();
   frankfurterMode();

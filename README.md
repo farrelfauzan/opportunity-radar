@@ -73,10 +73,11 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
   gold-api.com, **off** unless `PRICES_GOLDAPI=live`; the daily history is COMEX futures (GC=F / SI=F),
   stored as `yahoo-futures` (never as spot) and only with `PRICES_YAHOO=live`. If gold-api.com fails,
   the futures price (at most 4 days old) is used and the run is `partial`, naming the fallback.
-  gold-api.com bans an IP for several requests per second, so its two calls are 1.1 s apart.
+  gold-api.com bans an IP for several requests per second, so every live call waits 1.1 s first.
 - `pnpm job crypto` (every 15 minutes) stores Bitcoin and Ethereum daily candles and price in USD from
   Binance's public market-data host `data-api.binance.vision` (USDT treated as USD), and their rupiah
-  price from Indodax. Live by default; `PRICES_CRYPTO=fixtures` uses made-up replies (tests).
+  price from Indodax. **Off** unless `PRICES_CRYPTO=live` (their terms are not read yet): by default
+  made-up replies in each API's shape are used, stored as `synthetic`.
   Crypto volume is stored in USD; the running UTC day is stored too and is not a final close.
 - Made-up prices are stored with `source = synthetic` and are never written over real ones: a run in
   fixtures mode on an asset that already has real prices writes nothing for it and is `partial`. An
