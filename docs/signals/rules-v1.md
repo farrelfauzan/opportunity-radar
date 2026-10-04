@@ -52,12 +52,14 @@ Rules use states, not events: there is no "crossed within N days" rule.
 
 | Check | Term | Counts toward "{n} of {m} checks agree" | Verdict word |
 |---|---|---|---|
-| Momentum (RSI14 between 30 and 70) | short | yes | Supports buy / Supports sell / Neutral |
+| Momentum (RSI14 between 30 and 70) | short | **no** (display only) | Supports buy / Supports sell / Neutral, marked "not counted" |
 | Trend: close vs SMA50 | short | yes | Supports buy / Supports sell / Neutral |
 | Trend: SMA50 vs SMA200 | long | yes | Supports buy / Supports sell / Neutral |
 | Trend: close vs SMA200 | long | yes | Supports buy / Supports sell / Neutral |
 | Currency: USD/IDR change over 30 days | both (IDR-priced gold/silver, US stocks) | **no** | Context only |
 | News check (OR-33: supportive / against counts) | both | **no** | Context only |
+
+Counter (Orchestrator on the Tech Lead's delegation, 2026-10-04, on the Reviewer's PR 73 nit): the momentum row never counts toward "{n} of {m} checks agree", because its word comes from the 50 midline, which never changes a verdict (the 30 and 70 limits act through §3.1, and a stretched RSI is named by the HOLD trigger). That leaves one counted check in the short term, so the short-term card shows **no** counter; the long-term card shows "{n} of 2 checks agree".
 
 Momentum word (OR-29 question, decided 2026-10-04): RSI14 between 30 and 70 inclusive → "Supports buy" above 50, "Supports sell" below 50, "Neutral" at exactly 50; RSI outside 30–70 → "Neutral" (stretched: it is what makes the short term HOLD). The 50 midline is used for this display word only; it never changes a verdict.
 

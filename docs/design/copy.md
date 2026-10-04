@@ -452,6 +452,7 @@ The disclaimer drops "plus a news check" from the canvas: in rules v1 the news c
 | asset.verdict.against | Against | Menentang |
 | asset.verdict.neutral | Neutral | Netral |
 | asset.verdict.context | Context only | Hanya konteks |
+| asset.verdict.notCounted | not counted | tidak dihitung |
 | asset.check.trend | Trend | Tren |
 | asset.check.momentum | Momentum | Momentum |
 | asset.check.currency | Currency | Mata uang |
@@ -525,7 +526,7 @@ The watchlist's kind line uses `asset.kind.idx`, `asset.kind.index`, `asset.kind
 | signal.check.news | Relevant articles this week: {supportive} positive, {against} negative, {total} in total | Artikel relevan minggu ini: {supportive} positif, {against} negatif, total {total} |
 | signal.check.newsNone | No relevant articles this week | Tidak ada artikel relevan minggu ini |
 
-`{pct}` in the currency rows is unsigned (formatted per locale without a sign): the direction is in the wording, chosen from the sign of the 30-day USD/IDR change (a rise = `weaker`; a change that rounds to 0.0% = `flat`). Check names use `asset.check.*` (§8); verdict words use `asset.verdict.*`. The currency and news rows always carry `asset.verdict.context`.
+`{pct}` in the currency rows is unsigned (formatted per locale without a sign): the direction is in the wording, chosen from the sign of the 30-day USD/IDR change (a rise = `weaker`; a change that rounds to 0.0% = `flat`). Check names use `asset.check.*` (§8); verdict words use `asset.verdict.*`. The currency and news rows always carry `asset.verdict.context`. The momentum row carries its word (rules-v1 §3.3) followed by `asset.verdict.notCounted` in muted text. `asset.card.agree` appears on the long-term card only ("{n} of 2 checks agree"); the short-term card shows no counter, since momentum is not counted and one check would remain.
 
 ### Triggers (signal history and alerts)
 
