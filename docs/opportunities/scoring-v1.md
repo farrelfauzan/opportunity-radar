@@ -50,7 +50,7 @@ The calculator pre-fill amounts per capital level are in `docs/design/copy.md` Â
 
 - A new theme T matches an open opportunity O if and only if **(same theme AND same region AND at least one shared sector) OR (at least 2 shared cited articles)**. Otherwise a new opportunity is created.
 - Examples. Match: T `ev_batteries`/Indonesia/{energy_mining, manufacturing} vs O `ev_batteries`/Indonesia/{manufacturing}. Match: different themes but 2 shared articles. No match: same theme and sector, different region. No match: same theme and region, no shared sector, 1 shared article. Same theme and region, no shared sector, exactly 2 shared articles â†’ match.
-- On a match: the existing opportunity keeps its id, gains the new citations and refreshed text fields.
+- On a match: the existing opportunity keeps its id, theme, region and sectors and gains the new citations. Its text fields (title, thesis, buyer, model, capital reason, risks, first steps) are replaced by the new item's text **only when** the theme is the same **and** the new item cites at least one article the opportunity already cites. Otherwise (a match through 2 shared citations under a different theme, or a same-theme item with no shared article) only the citations are added and the text stays. This keeps the text consistent with the theme and stops a single injected article from rewriting an existing opportunity (decided 2026-10-04 on the OR-50 review).
 - Re-score only when at least 1 new linked article exists since the last score; otherwise yesterday's score is carried with no new row.
 - Close after 30 days with no new linked article. A closed opportunity is never matched again (a new one is created); it stays readable for history and the shortlist.
 
