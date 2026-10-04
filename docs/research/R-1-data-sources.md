@@ -37,3 +37,26 @@ Daily digest of ~100 headlines + ~20 signal reports ≈ 40k input / 15k output t
 
 ## Sources
 twelvedata.com/pricing · alphavantage.co/premium · coingecko.com/en/api/pricing · gnews.io/pricing · newsapi.org/pricing · marketaux.com/pricing · eodhd.com/pricing · docs.sectors.app · gold-api.com · frankfurter.dev · gdeltproject.org/data.html · bi.go.id BI-Rate page · platform.claude.com/docs/en/about-claude/pricing
+
+## Addendum 2026-10-04 (R-2): RSS feed URLs for OR-8, and terms read since
+All 12 returned HTTP 200 with a valid feed on 2026-10-04 [L], from a residential Indonesian IP (retest from the deployed environment in OR-5). Send a browser-like User-Agent. Items = entries in the feed that day.
+| # | Feed | Region | Lang | URL | Default category | Items |
+|---|---|---|---|---|---|---|
+| 1 | CNBC Indonesia | ID | id | https://www.cnbcindonesia.com/news/rss | business | 100 |
+| 2 | Antara Bisnis | ID | id | https://www.antaranews.com/rss/ekonomi-bisnis.xml | business | 20 |
+| 3 | CNN Indonesia Ekonomi | ID | id | https://www.cnnindonesia.com/ekonomi/rss | business | 100 |
+| 4 | Katadata | ID | id | https://katadata.co.id/rss | business | 25 |
+| 5 | IDX Channel | ID | id | https://www.idxchannel.com/rss | markets | 10 |
+| 6 | Republika Ekonomi | ID | id | https://www.republika.co.id/rss/ekonomi | business | 15 |
+| 7 | BBC Business | Worldwide | en | https://feeds.bbci.co.uk/news/business/rss.xml | business | 55 |
+| 8 | BBC Technology | Worldwide | en | https://feeds.bbci.co.uk/news/technology/rss.xml | tech | 21 |
+| 9 | TechCrunch AI | Worldwide | en | https://techcrunch.com/category/artificial-intelligence/feed/ | tech / AI | 20 |
+| 10 | The Guardian Business | Worldwide | en | https://www.theguardian.com/uk/business/rss | business | 36 |
+| 11 | CNBC Business | Worldwide | en | https://www.cnbc.com/id/10001147/device/rss/rss.html | business | not counted |
+| 12 | Hacker News | Worldwide | en | https://news.ycombinator.com/rss | tech | 30 |
+
+Optional (also live-tested OK): Antara terkini https://www.antaranews.com/rss/terkini.xml (50, general), Al Jazeera https://www.aljazeera.com/xml/rss/all.xml (25), CNBC US Top News https://www.cnbc.com/id/100003114/device/rss/rss.html (30), Straits Times business https://www.straitstimes.com/news/business/rss.xml (27), SCMP business https://www.scmp.com/rss/92/feed (50), Tech in Asia https://www.techinasia.com/feed (36).
+Do not use: Tempo bisnis `https://rss.tempo.co/bisnis` (last item 2026-09-14, stale); Kompas money and Liputan6 bisnis URLs tried (404); DealStreetAsia (503); `hnrss.org` (no connection; use the official HN URL).
+Conditional GET: only Antara, CNBC Indonesia, CNN Indonesia, TechCrunch, Guardian and CNBC returned ETag or Last-Modified headers [L]. The others did not, so dedupe by URL is required.
+
+Terms read since R-1: gold-api.com permits commercial use, needs no attribution, bans IPs for multiple requests per second, and has no history without a key (R-2 §3). Yahoo's terms prohibit automated collection and commercial reuse (R-2 §3).
