@@ -28,23 +28,23 @@ Single user (the owner). Bilingual: English and Bahasa Indonesia.
 - Every signal screen states: rule-based information, not financial advice.
 
 ## Look
-**Dark mode** (the only theme): a dark purple theme: page is a clear gradient (violet #5B34A6 glow top-left, magenta #7A2E8E glow right, over #2E1C57 → #1D1236), cards are glass: 8% white fill, 18px backdrop blur, 16% white border, soft shadow (purple glows repeat lower on the page so the glass reads everywhere), borders #4B3E75, text #FAF8FF / #C1B9DA, one teal accent (#2DD4BF), orange (#FB923C) for sell/down. Geist + Geist Mono. Buy/sell always carry a word (and a shape on charts), never colour alone. Top navigation that wraps on phones.
+**Dark mode** (the only theme): a dark purple theme: page is a clear gradient (violet #5B34A6 glow top-left, magenta #7A2E8E glow right, over #2E1C57 → #1D1236), cards are glass: 8% white fill, 18px backdrop blur, 16% white border, soft shadow (purple glows repeat lower on the page so the glass reads everywhere), borders #4B3E75, text #FAF8FF / muted #D4CEE6 (was #C1B9DA; lightened 2026-10-04 to reach 4.5:1 on the glass card), one teal accent (#2DD4BF), orange (#FB923C) for sell/down. Geist + Geist Mono. Buy/sell always carry a word (and a shape on charts), never colour alone. Top navigation that wraps on phones.
 
 ## Decisions
-Numbering matches the sprint plan in Notion (D1–D16). Open rows still wait for the Tech Lead.
+Numbering matches the sprint plan in Notion (D1–D16). Rows marked "Designer, delegated" were decided under the Tech Lead's 2026-10-04 rule "decide inside the ticket"; he confirms them at merge.
 | # | Decision | Options | Status / recommendation |
 |---|----------|---------|----------------|
 | 1 | AI provider for summaries, scoring and reports | Claude API / 9router / no AI | **Decided 2026-10-04: 9router**, through an OpenAI-compatible client (base URL, key, model from server env). Base URL, key, model names and budget cap still to be provided |
-| 2 | Storage | Options in the Engineer's infrastructure proposal (CDK ticket OR-48) | **Decided 2026-10-04: "follows S3"**; if a database is used, the Tech Lead prefers EC2 with docker compose, cost-efficient. Open: which option (Engineer's proposal, sent to the Tech Lead) |
-| 3 | Hosting | Local or own server / Vercel / AWS | **Decided 2026-10-04: AWS (Lambda)**, infrastructure as code in the repo. Open: the concrete option and region (Engineer's proposal, OR-48). Datacentre IPs may be blocked by some sources: retested in OR-5 |
-| 4 | Alert delivery | In-app only / + Telegram / + email | Open. In-app first, Telegram second |
-| 5 | Login | Single password / none (local only) | Open. Single password: Lambda makes the app reachable from the internet |
+| 2 | Storage | Options in the Engineer's infrastructure proposal (OR-48) | **Local first (2026-10-04): Postgres in docker compose.** AWS storage parked with infrastructure (Tech Lead: "focus on local run") |
+| 3 | Hosting | Local or own server / Vercel / AWS | **Parked 2026-10-04**: the app runs locally first; AWS (Lambda) chosen earlier, concrete option in OR-48, OR-5/OR-20 Unscheduled |
+| 4 | Alert delivery | In-app only / + Telegram / + email | **Decided 2026-10-04 (Designer, delegated): in-app only** for now; Telegram OR-42 and email OR-43 unscheduled |
+| 5 | Login | Single password / none (local only) | **Parked** with infrastructure: not needed for a local run; recommendation single password when hosted (OR-19) |
 | 6 | Ticket board | Files in docs/tickets / a Notion board like Performa Vision | **Decided 2026-10-03: Notion**, same structure as Performa Vision |
-| 7 | Antam / Pegadaian retail gold price | Spot price converted to IDR per gram / manual entry | Open. Spot converted; no usable API exists |
+| 7 | Antam / Pegadaian retail gold price | Spot price converted to IDR per gram / manual entry | **Decided 2026-10-04 (Designer, delegated): spot converted**; manual entry OR-46 unscheduled |
 | 8 | Where venture progress comes from | Read each project's board (Notion / GitHub) on the server / typed in by hand | Open. Board read for Performa Vision (Notion exists); Meta Klinik needs its board named |
-| 9 | Data-source terms (Yahoo chart endpoint, gold-api.com) | Accept for personal use / use paid sources | Open. Accept for a single-user app; read gold-api.com terms first |
-| 10 | Signal wording (advice vs information) | See ticket OR-10 | Open. Remove "Suggested approach…", reword instruction-like risk texts, news check as context only |
-| 11 | Overall opportunity score | Equal-weight mean / weighted | Open. Equal-weight mean of the five factors |
+| 9 | Data-source terms (Yahoo chart endpoint, gold-api.com) | Accept for personal use / use paid sources | **Open (Tech Lead)**: built on recorded fixtures; live calls wait in OR-53 (Yahoo) and OR-54 (gold-api.com) |
+| 10 | Signal wording (advice vs information) | See `docs/signals/rules-v1.md` §7 | **Decided 2026-10-04 by the Designer on the Tech Lead's delegation**: describe, never instruct; banned-phrase list; the separate currency and news checks are context only (gold/silver run on an IDR series, so the rupiah moves their price and can change their verdict); "Suggested approach…" removed. Tech Lead to confirm at merge |
+| 11 | Overall opportunity score | Equal-weight mean / weighted | **Decided 2026-10-04 by the Designer on the Tech Lead's delegation**: equal-weight mean, `Math.round` (`docs/opportunities/scoring-v1.md`). Tech Lead to confirm at merge |
 | 12 | Default language | English / Indonesian | **Decided 2026-10-04: English** |
 | 13 | New dependencies | Test runner, browser tests, DB driver/ORM, RSS parser, LLM SDK | **Approved 2026-10-04**; anything else, or with licence/cost impact, goes back to the Tech Lead |
 | 14 | Sprint 1 commitment | — | **Approved 2026-10-04**: about 28 Engineer points, later sprints sized from actuals |
@@ -61,3 +61,4 @@ Numbering matches the sprint plan in Notion (D1–D16). Open rows still wait for
 - 2026-10-03 — Tech Lead: design settled, implementation starts; tickets live in Notion (decision 6). Backlog OR-1…OR-47 drafted. Gaps found and ticketed: Indonesian copy exists only for Radar and no screen has empty/loading/error/stale designs (OR-12); "Open venture view" has no screen spec (OR-35). Wording on Asset/Investments flagged as advice-like for the Tech Lead (sprint plan D10, ticket OR-10).
 - 2026-10-04 — Tech Lead: AI provider 9router (OpenAI-compatible), hosting AWS Lambda, storage follows S3, default language English, dependencies and Sprint 1 commitment approved. Decisions table renumbered to match the sprint plan (D1–D14 shown).
 - 2026-10-04 — Tech Lead: the Engineer drafts the infrastructure proposal and the CDK ticket (OR-48); database preference EC2 + docker compose, cost-efficient. Storage and hosting rows updated; OR-5/6/7/20 scope waits for his pick.
+- 2026-10-04 — OR-12: all UI copy in EN and ID plus screen states and stale thresholds in `docs/design/copy.md`. Muted text #C1B9DA → #D4CEE6 (3.79:1 → 4.66:1 on the card at the violet glow, OR-1). Advice-like canvas wording replaced ("Suggested approach…", instruction-like risk texts, "avoided −6.2%"), per D10 decided by the Designer on the Tech Lead's delegation.
