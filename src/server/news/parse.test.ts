@@ -134,6 +134,11 @@ describe("toArticle", () => {
 });
 
 describe("recorded feeds (one per source, 2026-10-04)", () => {
+  test("Wired is listed but switched off (terms under review)", () => {
+    expect(FEEDS.filter((f) => f.active === false).map((f) => f.slug)).toEqual(["wired"]);
+    expect(FEEDS.filter((f) => f.active !== false)).toHaveLength(11);
+  });
+
   test("there are 12 feeds from 11 publishers", () => {
     expect(FEEDS).toHaveLength(12);
     expect(new Set(FEEDS.map((f) => f.slug)).size).toBe(12);

@@ -152,7 +152,8 @@ export function toArticle(item: FeedItem, feed: Feed, sourceId: number, fetchedA
 export async function ingestNews(
   options: { feeds?: Feed[]; fetch?: typeof fetch; now?: () => Date } = {},
 ): Promise<JobOutcome> {
-  const { feeds = FEEDS, fetch: fetcher = fetch, now = () => new Date() } = options;
+  const { fetch: fetcher = fetch, now = () => new Date() } = options;
+  const feeds = (options.feeds ?? FEEDS).filter((feed) => feed.active !== false);
   if (feeds.length === 0) throw new Error("No feeds configured; nothing was changed");
   const counts = { sources_ok: 0, sources_failed: 0, stored: 0, duplicates: 0, skipped: 0, estimated_dates: 0 };
   const failures: string[] = [];
