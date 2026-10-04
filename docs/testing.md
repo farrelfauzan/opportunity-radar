@@ -79,6 +79,9 @@ and never put a key or token in one.
   e2e database, so the page's query fails the way it does when the store is down, and renames it back
   (`runDb("restore", ...)`, in a `finally`). Earlier they started a second server behind a TCP proxy,
   which was too slow and fragile on a busy machine.
+  These tests rely on `workers: 1` (a renamed table must not be read by another test). They no longer cover
+  a server whose database connection is *refused*; no browser test covers that case any more (a server that
+  cannot reach its database at start exits by design).
 - The skeleton tests use `expectSkeletonOnNavigation` (`e2e/skeleton.ts`): it repeats the whole
   sequence (fresh page, wait for the header link's prefetch, hold the data request, click) until the
   skeleton shows or 50 s are up. Without a `loading.tsx` it never shows, so the test still fails.

@@ -234,7 +234,13 @@ export async function citeArticles(opportunityId: number, articleIds: number[]):
   if (ids.length > MAX_CITATIONS) throw new Error(`An opportunity cites at most ${MAX_CITATIONS} articles`);
   await db().transaction(async (tx) => {
     // The row lock makes two concurrent writers take turns, so both cannot pass the count.
-    await tx.select({ id: opportunities.id }).from(opportunities).where(eq(opportunities.id, opportunityId)).for("update");
+    const [row] = await tx
+      .select({ status: opportunities.status })
+      .from(opportunities)
+      .where(eq(opportunities.id, opportunityId))
+      .for("update");
+    // A closed opportunity is history: the daily runs only cite for open ones (OR-50 closes, it never cites again).
+    if (!row || row.status !== "open") throw new Error("Only an open opportunity can cite articles");
     await tx
       .insert(opportunityArticles)
       .values(ids.map((articleId) => ({ opportunityId, articleId })))

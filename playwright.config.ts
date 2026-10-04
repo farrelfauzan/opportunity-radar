@@ -13,8 +13,9 @@ export default defineConfig({
   // Many sessions share this machine and its load average can pass 20: a test that starts a
   // second server (the "store unreachable" ones) then takes over 30 s, Playwright's default.
   timeout: 60_000,
-  // One worker: tests that change the shared test database (stale banner, new article)
-  // must not run beside others, and the two viewport projects run one after the other.
+  // One worker: tests that change the shared test database (stale banner, new article, and the
+  // "store unreachable" tests that rename a table with `runDb("break", ...)`) must not run beside
+  // others, and the two viewport projects run one after the other.
   workers: 1,
   use: { baseURL, browserName: "chromium" },
   projects: [

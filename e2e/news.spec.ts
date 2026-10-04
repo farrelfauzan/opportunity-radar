@@ -257,7 +257,7 @@ test("a headline and a snippet with markup show literally and nothing executes",
   const item = items(page).filter({ hasText: "Shipping" }).first();
   await expect(item).toBeVisible();
   const markup = items(page).filter({ hasText: "window.__pwned" }).first();
-  await expect(markup.getByRole("link")).toHaveText(headlines.markup + ". Opens on the publisher's site");
+  await expect(markup.getByRole("link")).toHaveText(headlines.markup + " (Opens on the publisher's site)");
   await expect(markup).toContainText(headlines.markupSnippet);
   await expect(page.locator("main img, main script, main b")).toHaveCount(0);
   expect(await page.evaluate(() => (window as unknown as { __pwned?: number }).__pwned)).toBeUndefined();

@@ -131,7 +131,7 @@ export function Evidence({
                   )}
                 >
                   {article.headline}
-                  <span className="sr-only">. {m.news.item.openExternal}</span>
+                  <span className="sr-only"> ({m.news.item.openExternal})</span>
                 </a>
               ) : (
                 <span className={cn("font-medium", wrap)}>{article.headline}</span>

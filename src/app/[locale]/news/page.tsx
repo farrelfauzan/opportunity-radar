@@ -323,7 +323,7 @@ function Item({
             className="rounded-sm text-base font-semibold [overflow-wrap:anywhere] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             {article.headline}
-            <span className="sr-only">. {m.news.item.openExternal}</span>
+            <span className="sr-only"> ({m.news.item.openExternal})</span>
           </a>
         ) : (
           <span className="text-base font-semibold [overflow-wrap:anywhere]">{article.headline}</span>
