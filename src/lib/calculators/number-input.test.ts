@@ -26,7 +26,7 @@ describe("parseNumberInput", () => {
     expect(parseNumberInput(text, "en")).toBe(value);
   });
 
-  test.each(["", " ", "abc", "1e5", "8.5", "1.00", "10.000,5,5", "1,,5", "-", ",5", "5,", "1 000"])(
+  test.each(["", " ", "abc", "1e5", "8.5", "1.00", "10.000,5,5", "1,,5", "-", ",5", "5,", "1 000", "0.001", "00.001", "0.000.001"])(
     "id rejects %j",
     (text) => {
       expect(parseNumberInput(text, "id")).toBeNull();

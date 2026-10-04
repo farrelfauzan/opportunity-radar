@@ -10,12 +10,13 @@ export function formatNumberInput(value: number, locale: Locale): string {
 /**
  * Reads a typed number in the locale's notation: /id takes "10.000.000" and
  * "8,5", /en takes "10,000,000" and "8.5". Thousands separators are optional
- * but must sit every three digits, so "8.5" on /id is not read as 85.
+ * but must sit every three digits and cannot start with 0, so "8.5" on /id is
+ * not read as 85 and "0.001" is not read as 1.
  * Returns null when the text is not a number.
  */
 export function parseNumberInput(text: string, locale: Locale): number | null {
   const [group, decimal] = locale === "id" ? ["\\.", ","] : [",", "\\."];
-  const pattern = new RegExp(`^[-−]?(\\d{1,3}(${group}\\d{3})+|\\d+)(${decimal}\\d+)?$`);
+  const pattern = new RegExp(`^[-−]?([1-9]\\d{0,2}(${group}\\d{3})+|\\d+)(${decimal}\\d+)?$`);
   const trimmed = text.trim();
   if (!pattern.test(trimmed)) return null;
   const plain = trimmed

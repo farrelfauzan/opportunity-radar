@@ -197,3 +197,27 @@ test("typing and picking a preset make no network requests", async ({ page }) =>
 
   expect(requests).toEqual([]);
 });
+
+test("the largest inputs fit their result cells at 390 px", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en/calculators");
+  const top: [string, string][] = [
+    ["Starting amount (Rp)", "10,000,000,000,000"],
+    ["Added each month (Rp)", "10,000,000,000,000"],
+    ["Years", "40"],
+    ["Yearly return (%)", "100"],
+    ["Uncertainty (± % points)", "50"],
+  ];
+  for (const [name, value] of top) await field(page, name).fill(value);
+
+  await expect(page.getByTestId("result-base")).toHaveCount(0); // above 2^53: no exact line
+  const overflowing = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll<HTMLElement>("div.rounded-lg.bg-black\\/18")];
+    return cards.filter((card) => card.scrollWidth > card.clientWidth).length;
+  });
+  expect(overflowing).toBe(0);
+  const pageOverflows = await page.evaluate(
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+  );
+  expect(pageOverflows).toBe(false);
+});

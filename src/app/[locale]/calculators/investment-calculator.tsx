@@ -200,14 +200,20 @@ export function InvestmentCalculator({
           </p>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3">
             {cards.map((card) => (
-              <div key={card.testId} className="rounded-lg bg-black/18 px-3 py-2.5">
+              <div key={card.testId} className="min-w-0 rounded-lg bg-black/18 px-3 py-2.5">
                 <div className="text-xs text-muted-foreground">{card.label}</div>
-                <div className={`font-mono text-base font-medium sm:text-xl ${card.accent ? "text-primary" : ""}`}>
+                <div className={`font-mono text-base font-medium [overflow-wrap:anywhere] sm:text-xl ${card.accent ? "text-primary" : ""}`}>
                   {formatRupiahCompact(card.value, locale, units)}
                 </div>
-                <div data-testid={card.testId} className="font-mono text-xs text-muted-foreground">
-                  {formatRupiah(card.value, locale)}
-                </div>
+                {/* Above 2^53 a number cannot hold every digit, so no exact line is shown. */}
+                {Math.abs(card.value) <= Number.MAX_SAFE_INTEGER && (
+                  <div
+                    data-testid={card.testId}
+                    className="font-mono text-xs text-muted-foreground [overflow-wrap:anywhere]"
+                  >
+                    {formatRupiah(card.value, locale)}
+                  </div>
+                )}
               </div>
             ))}
           </div>
