@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { CartesianGrid, Line, LineChart, YAxis } from "recharts";
 import { Card } from "@/components/ui/card";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
@@ -8,7 +8,8 @@ import { formatRupiah, formatRupiahCompact } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { fill, type Messages } from "@/i18n/t";
 import { projectInvestment, type InvestmentInput } from "@/lib/calculators/investment";
-import { formatNumberInput, validateNumberInput, type NumberRange } from "@/lib/calculators/number-input";
+import { formatNumberInput, type NumberRange } from "@/lib/calculators/number-input";
+import { NumberField, ResultCard, useNumberFields } from "./calculator-parts";
 
 type Field = keyof InvestmentInput;
 type Strings = Messages["calc"]["inv"];
@@ -30,8 +31,6 @@ const ranges: Record<Field, NumberRange> = {
   spreadPct: { min: 0, max: 50 },
   inflationPct: { min: -10, max: 50 },
 };
-
-const fields = Object.keys(ranges) as Field[];
 
 const labelKeys = {
   start: "start",
@@ -68,31 +67,8 @@ export function InvestmentCalculator({
   errors: Messages["calc"]["err"];
   units: Messages["calc"]["unit"];
 }) {
-  const id = useId();
-  const [texts, setTexts] = useState(
-    () => Object.fromEntries(fields.map((f) => [f, formatNumberInput(defaults[f], locale)])) as Record<Field, string>,
-  );
-  // The last set of inputs that were all valid: results and chart are drawn from it.
-  const [valid, setValid] = useState(defaults);
+  const { fields, texts, valid, checks, anyInvalid, update } = useNumberFields(defaults, ranges, locale);
   const [preset, setPreset] = useState<string | null>("stocks");
-
-  const checks = Object.fromEntries(
-    fields.map((f) => [f, validateNumberInput(texts[f], locale, ranges[f])]),
-  ) as Record<Field, ReturnType<typeof validateNumberInput>>;
-  const anyInvalid = fields.some((f) => "error" in checks[f]);
-
-  function update(changes: Partial<Record<Field, string>>, nextPreset: string | null) {
-    const next = { ...texts, ...changes };
-    setTexts(next);
-    setPreset(nextPreset);
-    const values: Partial<InvestmentInput> = {};
-    for (const f of fields) {
-      const check = validateNumberInput(next[f], locale, ranges[f]);
-      if ("error" in check) return;
-      values[f] = check.value;
-    }
-    setValid(values as InvestmentInput);
-  }
 
   const result = useMemo(() => projectInvestment(valid), [valid]);
   const months = valid.years * 12;
@@ -140,15 +116,13 @@ export function InvestmentCalculator({
               key={p.key}
               type="button"
               aria-pressed={preset === p.key}
-              onClick={() =>
-                update(
-                  {
-                    returnPct: formatNumberInput(p.returnPct, locale),
-                    spreadPct: formatNumberInput(p.spreadPct, locale),
-                  },
-                  p.key,
-                )
-              }
+              onClick={() => {
+                update({
+                  returnPct: formatNumberInput(p.returnPct, locale),
+                  spreadPct: formatNumberInput(p.spreadPct, locale),
+                });
+                setPreset(p.key);
+              }}
               className="min-h-11 cursor-pointer rounded-md border border-input bg-black/18 px-3.5 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-foreground aria-pressed:bg-foreground aria-pressed:text-background"
             >
               {strings.preset[p.key]}
@@ -159,38 +133,22 @@ export function InvestmentCalculator({
 
       <div className="flex flex-wrap gap-6">
         <div className="grid min-w-0 flex-[1_1_300px] grid-cols-2 content-start gap-3">
-          {fields.map((f) => {
-            const check = checks[f];
-            const errorId = `${id}-${f}-error`;
-            return (
-              <div key={f} className="flex flex-col gap-1">
-                <label className="flex flex-1 flex-col justify-between gap-1 text-[13px]">
-                  {strings[labelKeys[f]]}
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    autoComplete="off"
-                    name={f}
-                    value={texts[f]}
-                    onChange={(event) => update({ [f]: event.target.value }, null)}
-                    aria-invalid={"error" in check || undefined}
-                    aria-describedby={"error" in check ? errorId : undefined}
-                    className="min-h-11 w-full rounded-md border border-input bg-black/18 px-2.5 font-mono text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-invalid:border-destructive"
-                  />
-                </label>
-                {"error" in check && (
-                  <span id={errorId} className="text-xs text-destructive">
-                    {check.error === "required"
-                      ? errors.required
-                      : fill(errors.range, {
-                          min: formatNumberInput(ranges[f].min, locale),
-                          max: formatNumberInput(ranges[f].max, locale),
-                        })}
-                  </span>
-                )}
-              </div>
-            );
-          })}
+          {fields.map((f) => (
+            <NumberField
+              key={f}
+              name={f}
+              label={strings[labelKeys[f]]}
+              value={texts[f]}
+              onChange={(value) => {
+                update({ [f]: value });
+                setPreset(null);
+              }}
+              check={checks[f]}
+              range={ranges[f]}
+              locale={locale}
+              errors={errors}
+            />
+          ))}
           <p className="col-span-full text-xs text-muted-foreground">{strings.presetNote}</p>
         </div>
 
@@ -200,21 +158,15 @@ export function InvestmentCalculator({
           </p>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3">
             {cards.map((card) => (
-              <div key={card.testId} className="min-w-0 rounded-lg bg-black/18 px-3 py-2.5">
-                <div className="text-xs text-muted-foreground">{card.label}</div>
-                <div className={`font-mono text-base font-medium [overflow-wrap:anywhere] sm:text-xl ${card.accent ? "text-primary" : ""}`}>
-                  {formatRupiahCompact(card.value, locale, units)}
-                </div>
-                {/* Above 2^53 a number cannot hold every digit, so no exact line is shown. */}
-                {Math.abs(card.value) <= Number.MAX_SAFE_INTEGER && (
-                  <div
-                    data-testid={card.testId}
-                    className="font-mono text-xs text-muted-foreground [overflow-wrap:anywhere]"
-                  >
-                    {formatRupiah(card.value, locale)}
-                  </div>
-                )}
-              </div>
+              <ResultCard
+                key={card.testId}
+                testId={card.testId}
+                label={card.label}
+                value={formatRupiahCompact(card.value, locale, units)}
+                // Above 2^53 a number cannot hold every digit, so no exact line is shown.
+                exact={Math.abs(card.value) <= Number.MAX_SAFE_INTEGER ? formatRupiah(card.value, locale) : null}
+                valueClassName={card.accent ? "text-primary" : ""}
+              />
             ))}
           </div>
 
