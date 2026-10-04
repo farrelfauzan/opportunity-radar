@@ -5,6 +5,8 @@ export type JobOutcome = {
   /** Only the job itself can report "partial"; the runner never does. */
   status?: "ok" | "partial";
   counts?: Record<string, number>;
+  /** What went wrong in a partial run (stored redacted, like a thrown error). */
+  error?: string;
 };
 
 export type Job = {
@@ -114,7 +116,11 @@ export async function runJob(name: string, registry: Registry, options: RunOptio
     try {
       const outcome =
         "steps" in entry ? await runPipeline(entry, registry, options) : await runWithLimits(entry, options);
-      return await finishJobRun(run.id, { status: outcome?.status ?? "ok", counts: outcome?.counts });
+      return await finishJobRun(run.id, {
+        status: outcome?.status ?? "ok",
+        counts: outcome?.counts,
+        error: outcome?.error && errorSummary(outcome.error),
+      });
     } catch (error) {
       // Whatever a job throws may quote its configuration, so it is redacted.
       const summary = error instanceof RunnerError ? error.message : errorSummary(error);

@@ -1,3 +1,4 @@
+import { ingestNews } from "@/server/news/ingest";
 import type { Job, Registry } from "./runner.ts";
 
 const production = process.env.NODE_ENV === "production";
@@ -43,6 +44,8 @@ const testJobs: Registry = {
 };
 
 export const jobs: Registry = {
+  // RSS ingestion, meant to run every 30 minutes. 12 feeds in parallel, 10 s each.
+  "ingest-news": { timeoutSeconds: 60, run: () => ingestNews() },
   // Morning pipeline: triage → opportunities → scores → brief. Each stub is
   // replaced by the real job when its ticket lands (OR-14, OR-15/OR-50, OR-16, OR-22).
   triage: stub("triage"),

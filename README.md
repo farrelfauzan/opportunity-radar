@@ -55,9 +55,27 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
 - `pnpm job morning` runs triage → opportunities → scores → brief and stops at the first failing
   step; later steps are recorded as `skipped`.
 - `--test` runs against the test database; `--timeout` overrides the job's own time limit.
+- `pnpm job ingest-news` fetches the 12 news feeds once (meant to run every 30 minutes) and stores
+  new articles: headline, snippet and link only. `pnpm sources:health` prints, per source, the
+  last successful check, the last status (`200`, `304`, `403`, `timeout`, …) and the number of
+  articles stored in the last 24 hours.
 - For testing only (not available with `NODE_ENV=production`): `pnpm job noop`,
   `pnpm job sleep <seconds>`, `pnpm job fail [message]`, and `STUB_FAIL=<step> pnpm job morning`
   to make one pipeline step fail.
+
+To check that every stored article is complete and clean, run this in
+`docker compose exec db psql -U postgres opportunity_radar` (or `opportunity_radar_test`). It
+lists the offending articles and must return no rows (seeded sample articles are left out):
+
+```sql
+select id, headline from articles
+where link not like 'https://example.com/seed/%' -- seed articles carry markup on purpose (OR-9)
+  and (source_id is null or headline = '' or char_length(snippet) > 500
+   or region not in ('indonesia', 'global') or category = ''
+   or link !~* '^https?://' or published_at is null
+   or headline ~* '</?[a-z][^>]*>' or snippet ~* '</?[a-z][^>]*>'
+   or headline ~* '&(#[0-9]+|#x[0-9a-f]+|[a-z]+);' or snippet ~* '&(#[0-9]+|#x[0-9a-f]+|[a-z]+);')
+```
 
 The data model is described in [docs/data-model.md](docs/data-model.md); tests in
 [docs/testing.md](docs/testing.md).

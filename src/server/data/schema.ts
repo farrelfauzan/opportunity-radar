@@ -34,6 +34,12 @@ export const sources = pgTable(
     region: text().$type<Region>().notNull(),
     category: text().$type<Category>().notNull(),
     active: boolean().notNull().default(true),
+    // Last check by the ingestion job (OR-8). ETag / Last-Modified feed the next conditional GET.
+    etag: text(),
+    lastModified: text("last_modified"),
+    lastStatus: text("last_status"),
+    lastCheckedAt: timestamp("last_checked_at", { withTimezone: true }),
+    lastSuccessAt: timestamp("last_success_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [check("sources_region_check", regionCheck(t.region))],
@@ -54,6 +60,8 @@ export const articles = pgTable(
     headline: text().notNull(),
     snippet: text().notNull().default(""),
     publishedAt: timestamp("published_at", { withTimezone: true }).notNull(),
+    // True when the feed gave no usable date and the fetch time was used instead.
+    publishedAtEstimated: boolean("published_at_estimated").notNull().default(false),
     fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

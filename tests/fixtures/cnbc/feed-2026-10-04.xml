@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:metadata="http://search.cnbc.com/rss/2.0/modules/siteContentMetadata" version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <atom:link rel="self" type="application/rss+xml" href="https://www.cnbc.com/id/10001147/device/rss/rss.html"/>
+    <language>en-us</language>
+    <ttl>60</ttl>
+    <title>Business News</title>
+    <feed_asset>
+      <id>10001147</id>
+      <type>franchise</type>
+      <subtype>section</subtype>
+      <seo>https://www.cnbc.com/business/</seo>
+    </feed_asset>
+    <lastBuildDate>Fri, 02 Oct 2026 21:56 GMT</lastBuildDate>
+    <pubDate>Fri, 02 Oct 2026 21:56 GMT</pubDate>
+    <link>https://www.cnbc.com/business/</link>
+    <description><![CDATA[Latest headlines for business news around the world.]]></description>
+    <item>
+      <link>https://www.cnbc.com/2026/10/03/david-ellison-ynon-kreiz-skydance.html</link>
+      <guid isPermaLink="false">108371160</guid>
+      <metadata:type>cnbcnewsstory</metadata:type>
+      <metadata:id>108371160</metadata:id>
+      <metadata:sponsored>false</metadata:sponsored>
+      <title>David Ellison just brought in a co-CEO to run his new empire: Meet Ynon Kreiz</title>
+      <description><![CDATA[Ynon Kreiz's appointment as co-CEO of Skydance answers a key governance question for Ellison's soon-to-be-merged company.]]></description>
+      <pubDate>Sat, 03 Oct 2026 11:00:01 GMT</pubDate>
+    </item>
+    <item>
+      <link>https://www.cnbc.com/2026/10/03/private-capital-hollywood-film-financing.html</link>
+      <guid isPermaLink="false">108368816</guid>
+      <metadata:type>cnbcnewsstory</metadata:type>
+      <metadata:id>108368816</metadata:id>
+      <metadata:sponsored>false</metadata:sponsored>
+      <title>Private capital is reshaping Hollywood moviemaking</title>
+      <description><![CDATA[As Hollywood's financing structures diversify, private capital is increasingly funding the big screen and changing the types of movies that are being made.]]></description>
+      <pubDate>Sat, 03 Oct 2026 12:00:01 GMT</pubDate>
+    </item>
+    <item>
+      <link>https://www.cnbc.com/2026/10/03/vehicle-repair-costs.html</link>
+      <guid isPermaLink="false">108367715</guid>
+      <metadata:type>cnbcnewsstory</metadata:type>
+      <metadata:id>108367715</metadata:id>
+      <metadata:sponsored>false</metadata:sponsored>
+      <title>High-tech vehicles are driving up auto repair costs for shops and consumers</title>
+      <description><![CDATA[Investments in ADAS calibration equipment, computers and software subscriptions can drive up the cost of even a windshield replacement or an oil change.]]></description>
+      <pubDate>Sat, 03 Oct 2026 12:00:01 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

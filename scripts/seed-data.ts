@@ -1,29 +1,13 @@
 // Seed set for development and QA (OR-9): 66 articles with times relative to
 // now, covering every category and both regions, with the edge cases QA asked for.
 import type { Category, NewSource, Region } from "../src/server/data/index.ts";
+import { FEEDS, sourceOf } from "../src/server/news/feeds.ts";
 
 const MIN = 60_000;
 const HOUR = 60 * MIN;
 
-export const seedSources: NewSource[] = [
-  ["cnbc-indonesia", "CNBC Indonesia", "indonesia", "markets"],
-  ["antara", "Antara", "indonesia", "business"],
-  ["katadata", "Katadata", "indonesia", "business"],
-  ["cnn-indonesia", "CNN Indonesia", "indonesia", "business"],
-  ["idx-channel", "IDX Channel", "indonesia", "markets"],
-  ["bbc-business", "BBC Business", "global", "business"],
-  ["the-guardian", "The Guardian", "global", "business"],
-  ["cnbc", "CNBC", "global", "markets"],
-  ["techcrunch", "TechCrunch", "global", "tech-ai"],
-  ["hacker-news", "Hacker News", "global", "tech-ai"],
-].map(([slug, name, region, category]) => ({
-  slug,
-  name,
-  // Placeholder feed addresses; OR-8 replaces them with the real feeds.
-  feedUrl: `https://example.com/seed-feeds/${slug}.xml`,
-  region: region as Region,
-  category: category as Category,
-}));
+// The real feed list, so seeded and ingested articles share the same sources.
+export const seedSources: NewSource[] = FEEDS.map(sourceOf);
 
 export type SeedArticle = {
   source: string;

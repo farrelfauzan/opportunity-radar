@@ -133,6 +133,7 @@ describe("insertArticle: validation", () => {
       "id",
       "link",
       "published_at",
+      "published_at_estimated",
       "region",
       "snippet",
       "source_id",

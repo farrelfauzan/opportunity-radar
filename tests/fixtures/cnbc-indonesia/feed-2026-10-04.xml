@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:media="http://search.yahoo.com/mrss/">
+	<channel>
+		<lastBuildDate>Sun, 04 Oct 2026 08:32:00 +0700</lastBuildDate>
+		<title>News - Berita Terkini Indonesia dan Dunia - CNBC Indonesia</title>
+		<description>CNBC Indonesia menyajikan berita terkini dan mendalam seputar politik ekonomi, ekonomi makro, keuangan, perbankan, energi, perdagangan, dan perindustrian.</description>
+		<atom:link href="https://www.cnbcindonesia.com/news" rel="self" type="application/rss+xml"/>
+		<link>https://www.cnbcindonesia.com/news</link>
+		<image>
+			<title>News - Berita Terkini Indonesia dan Dunia - CNBC Indonesia</title>
+			<link>https://www.cnbcindonesia.com/news</link>
+			<url>https://cdn.cnbcindonesia.com/cnbc/images/logo/2026/cnbc-logo.png</url>
+		</image>
+		<item>
+			<guid>https://www.cnbcindonesia.com/news/20261004053023-4-773093/ibu-kota-arab-saudi-diserang-asap-hitam-mengepul-di-fasilitas-minyak</guid>
+			<pubDate>Sun, 04 Oct 2026 08:15:00 +0700</pubDate>
+			<title><![CDATA[Ibu Kota Arab Saudi Diserang, Asap Hitam Mengepul di Fasilitas Minyak]]></title>
+			<description><![CDATA[ <img src="https://awsimages.detik.net.id/visual/2026/10/04/asap-membubung-dari-kebakaran-di-kilang-aramco-di-sebelah-selatan-riyadh-arab-saudi-sabtu-3102026-1791067560814_169.jpeg?w=1200&amp;q=90"/> Fasilitas minyak dan gas bumi perusahaan Aramco di Arab Saudi mengeluarkan kepulan asap,]]></description>
+			<enclosure length="25000" type="image/jpeg" url="https://awsimages.detik.net.id/visual/2026/10/04/asap-membubung-dari-kebakaran-di-kilang-aramco-di-sebelah-selatan-riyadh-arab-saudi-sabtu-3102026-1791067560814_169.jpeg?w=1200&amp;q=90"/>
+			<content:encoded><![CDATA[Fasilitas minyak dan gas bumi perusahaan Aramco di Arab Saudi mengeluarkan kepulan asap,]]></content:encoded>
+			<link>https://www.cnbcindonesia.com/news/20261004053023-4-773093/ibu-kota-arab-saudi-diserang-asap-hitam-mengepul-di-fasilitas-minyak</link>
+		</item>
+		<item>
+			<guid>https://www.cnbcindonesia.com/news/20261003225745-4-773090/polisi-jadi-agen-perlinsos-bukan-sebagai-penentu-penerima-bansos</guid>
+			<pubDate>Sun, 04 Oct 2026 07:30:00 +0700</pubDate>
+			<title><![CDATA[Polisi Jadi Agen Perlinsos: Bukan Sebagai Penentu Penerima Bansos]]></title>
+			<description><![CDATA[ <img src="https://awsimages.detik.net.id/visual/2025/07/01/polri-memamerkan-sejumlah-jenis-robot-dalam-parade-teknologi-robotik-di-puncak-hari-bhayangkara-ke-79-monas-jakarta-selasa-172-1751349358317_169.jpeg?w=1200&amp;q=90"/> Pemerintah telah resmi melibatkan polisi sebagai agen perlinsos]]></description>
+			<enclosure length="25000" type="image/jpeg" url="https://awsimages.detik.net.id/visual/2025/07/01/polri-memamerkan-sejumlah-jenis-robot-dalam-parade-teknologi-robotik-di-puncak-hari-bhayangkara-ke-79-monas-jakarta-selasa-172-1751349358317_169.jpeg?w=1200&amp;q=90"/>
+			<content:encoded><![CDATA[Pemerintah telah resmi melibatkan polisi sebagai agen perlinsos]]></content:encoded>
+			<link>https://www.cnbcindonesia.com/news/20261003225745-4-773090/polisi-jadi-agen-perlinsos-bukan-sebagai-penentu-penerima-bansos</link>
+		</item>
+		<item>
+			<guid>https://www.cnbcindonesia.com/news/20261003223525-4-773088/menkeu-suahasil-kami-berkomitmen-pada-aturan-defisit-fiskal-3-pdb</guid>
+			<pubDate>Sun, 04 Oct 2026 07:15:00 +0700</pubDate>
+			<title><![CDATA[Menkeu Suahasil: Kami Berkomitmen pada Aturan Defisit Fiskal 3% PDB]]></title>
+			<description><![CDATA[ <img src="https://awsimages.detik.net.id/visual/2026/10/02/menteri-keuangan-menkeu-suahasil-nazara-saat-menerima-chief-investment-officer-cio-pandu-patria-sjahrir-dan-jajaran-direksi-da-1790945954282_169.jpeg?w=1200&amp;q=90"/> Menteri Keuangan (Menkeu), Suahasil Nazara menegaskan komitmen pemerintah untuk menjaga kredibilitas dan keberlanjutan fiskal Indonesia]]></description>
+			<enclosure length="25000" type="image/jpeg" url="https://awsimages.detik.net.id/visual/2026/10/02/menteri-keuangan-menkeu-suahasil-nazara-saat-menerima-chief-investment-officer-cio-pandu-patria-sjahrir-dan-jajaran-direksi-da-1790945954282_169.jpeg?w=1200&amp;q=90"/>
+			<content:encoded><![CDATA[Menteri Keuangan (Menkeu), Suahasil Nazara menegaskan komitmen pemerintah untuk menjaga kredibilitas dan keberlanjutan fiskal Indonesia]]></content:encoded>
+			<link>https://www.cnbcindonesia.com/news/20261003223525-4-773088/menkeu-suahasil-kami-berkomitmen-pada-aturan-defisit-fiskal-3-pdb</link>
+		</item>
+	</channel>
+</rss>
