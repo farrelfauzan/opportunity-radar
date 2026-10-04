@@ -1,2 +1,0 @@
-ALTER TABLE "article_triage" ADD CONSTRAINT "article_triage_why_length_check" CHECK (char_length("article_triage"."why_en") <= 300 and char_length("article_triage"."why_id") <= 300);--> statement-breakpoint
-ALTER TABLE "article_triage" ADD CONSTRAINT "article_triage_error_length_check" CHECK (char_length("article_triage"."error") <= 300);
