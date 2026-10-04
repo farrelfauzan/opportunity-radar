@@ -38,6 +38,7 @@ For one of the owner's own ventures: how far the build is, and whether the marke
 | venture.market.score | score / 100 | skor / 100 |
 | venture.market.vsYesterday | {change} vs yesterday | {change} dibanding kemarin |
 | venture.market.noScore | No score yet: no related news in the last 30 days | Belum ada skor: tidak ada berita terkait dalam 30 hari terakhir |
+| venture.market.trend | Last {n} days: from {first} to {last} | {n} hari terakhir: dari {first} ke {last} |
 | venture.winds.title | What helps and what hurts | Apa yang membantu dan menghambat |
 | venture.winds.evidence | Evidence | Bukti |
 | venture.news.title | Related news, 30 days | Berita terkait, 30 hari |
