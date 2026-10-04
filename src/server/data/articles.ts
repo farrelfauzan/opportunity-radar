@@ -3,7 +3,7 @@ import { db } from "./client.ts";
 import { articles, CATEGORIES, REGIONS, sources, type Category, type Region } from "./schema.ts";
 
 export type Article = typeof articles.$inferSelect;
-export type ArticleWithSource = Article & { sourceName: string };
+export type ArticleWithSource = Article & { sourceName: string; sourceSlug: string };
 
 export type NewArticle = {
   sourceId: number;
@@ -107,7 +107,7 @@ export function articlesQuery(filter: ArticleFilter) {
     throw new Error("day must be YYYY-MM-DD");
   }
   return db()
-    .select({ article: articles, sourceName: sources.name })
+    .select({ article: articles, sourceName: sources.name, sourceSlug: sources.slug })
     .from(articles)
     .innerJoin(sources, eq(articles.sourceId, sources.id))
     .where(
@@ -128,5 +128,5 @@ export function articlesQuery(filter: ArticleFilter) {
  */
 export async function listArticles(filter: ArticleFilter): Promise<ArticleWithSource[]> {
   const rows = await articlesQuery(filter);
-  return rows.map((row) => ({ ...row.article, sourceName: row.sourceName }));
+  return rows.map((row) => ({ ...row.article, sourceName: row.sourceName, sourceSlug: row.sourceSlug }));
 }

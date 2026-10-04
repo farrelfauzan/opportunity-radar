@@ -90,6 +90,22 @@ export function formatDateTimeWib(value: When, locale: Locale): string {
   return `${p.day} ${p.month} ${p.year}, ${p.hour}${locale === "id" ? "." : ":"}${p.minute} WIB`;
 }
 
+/** The WIB clock time: "09:30" (en), "09.30" (id). */
+export function formatTimeWib(value: When, locale: Locale): string {
+  const date = toDate(value);
+  if (!date) return MISSING;
+  const p = wibParts(date, locale);
+  return `${p.hour}${locale === "id" ? "." : ":"}${p.minute}`;
+}
+
+/** The WIB date without the year: "3 Oct" (en), "3 Okt" (id). */
+export function formatDateShortWib(value: When, locale: Locale): string {
+  const date = toDate(value);
+  if (!date) return MISSING;
+  const p = wibParts(date, locale);
+  return `${p.day} ${p.month}`;
+}
+
 /**
  * "just now", "59m ago", "23h ago", "6d ago", then the WIB date ("26 Sep", with
  * the year when it is not the current year). A future time reads "just now".

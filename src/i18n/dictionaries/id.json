@@ -37,6 +37,78 @@
     "hoursAgo": "{n} jam lalu",
     "daysAgo": "{n} hari lalu"
   },
+  "news": {
+    "summary": {
+      "line": "{articles} · {sources} · diperbarui setiap 30 menit",
+      "articles": {
+        "one": "{n} artikel hari ini",
+        "other": "{n} artikel hari ini"
+      },
+      "sources": {
+        "one": "{n} sumber",
+        "other": "{n} sumber"
+      }
+    },
+    "cat": {
+      "all": "Semua",
+      "business": "Bisnis",
+      "politics": "Politik & kebijakan",
+      "tech": "Teknologi & AI",
+      "markets": "Pasar",
+      "commodities": "Komoditas"
+    },
+    "region": {
+      "label": "Wilayah",
+      "all": "Indonesia + Global",
+      "id": "Indonesia",
+      "global": "Global"
+    },
+    "item": {
+      "meta": "{source} · {ago} · {region}",
+      "openExternal": "Dibuka di situs penerbit"
+    },
+    "empty": "Tidak ada artikel untuk filter ini",
+    "loadMore": "Muat lebih banyak",
+    "sources": {
+      "title": "Sumber",
+      "indonesia": "Indonesia: {names}",
+      "global": "Global: {names}",
+      "note": "Hanya judul dan tautan; artikel lengkap dibuka di situs penerbit."
+    },
+    "credit": {
+      "line": "Sumber: {publisher}",
+      "lineLicence": "Sumber: {publisher} · {licence}",
+      "original": "Baca artikel asli",
+      "publisher": {
+        "conversation-id": "The Conversation Indonesia",
+        "conversation-global": "The Conversation",
+        "federal-reserve": "Federal Reserve Board",
+        "ecb": "Bank Sentral Eropa (ECB)"
+      },
+      "licence": {
+        "cc-by-nd-4": "CC BY-ND 4.0"
+      }
+    }
+  },
+  "state": {
+    "loading": "Memuat…",
+    "error": {
+      "title": "Tidak dapat memuat sekarang",
+      "body": "Coba lagi sebentar lagi. Jika terus terjadi, database lokal mungkin berhenti.",
+      "retry": "Coba lagi"
+    },
+    "never": {
+      "title": "Belum ada data",
+      "bodyNews": "Pemeriksaan berita pertama berjalan dalam 30 menit."
+    },
+    "stale": {
+      "today": "{what} terakhir diperbarui {time} WIB",
+      "earlier": "{what} terakhir diperbarui {date}, {time} WIB",
+      "what": {
+        "news": "Berita"
+      }
+    }
+  },
   "calc": {
     "title": "Kalkulator",
     "intro": "Proyeksi sementara dari asumsi Anda sendiri. Ubah angka mana pun; hasil diperbarui saat Anda mengetik.",

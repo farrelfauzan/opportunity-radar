@@ -178,6 +178,7 @@ describe("listArticles: a WIB calendar day, newest first", () => {
     const list = await listArticles({ day: "2026-10-03", region: "global", category: "tech-ai" });
     expect(list.map((a) => a.headline)).toEqual(["global-tech"]);
     expect(list[0].sourceName).toBe("TechCrunch");
+    expect(list[0].sourceSlug).toBe("techcrunch");
 
     const global = await listArticles({ day: "2026-10-03", region: "global" });
     expect(global.map((a) => a.headline)).toEqual(["global-business", "global-tech"]);
