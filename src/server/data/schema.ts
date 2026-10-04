@@ -23,6 +23,8 @@ export const JOB_STATUSES = ["running", "ok", "partial", "failed", "skipped"] as
 export type JobStatus = (typeof JOB_STATUSES)[number];
 
 const regionCheck = (column: unknown) => sql`${column} in ('indonesia', 'global')`;
+const categoryCheck = (column: unknown) =>
+  sql`${column} in ('business', 'politics', 'tech-ai', 'markets', 'commodities')`;
 
 export const sources = pgTable(
   "sources",
@@ -42,7 +44,10 @@ export const sources = pgTable(
     lastSuccessAt: timestamp("last_success_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [check("sources_region_check", regionCheck(t.region))],
+  (t) => [
+    check("sources_region_check", regionCheck(t.region)),
+    check("sources_category_check", categoryCheck(t.category)),
+  ],
 );
 
 // Headline, snippet and link only (R-1): there is deliberately no body column.
@@ -66,7 +71,8 @@ export const articles = pgTable(
   },
   (t) => [
     check("articles_region_check", regionCheck(t.region)),
-    check("articles_headline_check", sql`${t.headline} <> ''`),
+    check("articles_category_check", categoryCheck(t.category)),
+    check("articles_headline_check", sql`${t.headline} <> '' and char_length(${t.headline}) <= 300`),
     check("articles_snippet_check", sql`char_length(${t.snippet}) <= 500`),
     check("articles_link_check", sql`${t.link} ~* '^https?://'`),
     // News list: a day's articles, newest first, ties broken by id.

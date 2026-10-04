@@ -33,7 +33,13 @@ database, for example `pnpm db:seed --test`. `pnpm db:reset` always works on the
 
 There are two databases on the one server, chosen by env vars in `.env.local` (names in
 `.env.example`): `DATABASE_URL` (development) and `TEST_DATABASE_URL` (used by `pnpm test` and by
-QA). Tests never touch development data. To run the app on the test database:
+QA). Tests never touch development data. The test database must be on this machine and its name
+must end in `_test`; anything else is refused.
+
+**Several sessions on one machine:** every `pnpm test` empties the test database first, so give
+each session (and QA) its own, for example
+`TEST_DATABASE_URL=postgres://postgres@127.0.0.1:54329/opportunity_radar_qa_test pnpm test`.
+It is created on first use. Use the same variable for the `--test` commands. To run the app on the test database:
 `DATABASE_URL="$TEST_DATABASE_URL" pnpm dev` after `set -a; source .env.local; set +a`.
 
 Every worktree on this machine shares the same Postgres container and volume. The local database

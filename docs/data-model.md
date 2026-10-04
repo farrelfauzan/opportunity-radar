@@ -52,8 +52,11 @@ Storage is Postgres (local docker compose, see the README). The schema lives in
 
 `articles`: `id`, `source_id` → sources, `canonical_url` (unique), `link` (the publisher's
 original link), `region`, `category`, `headline`, `snippet`, `published_at`, `fetched_at`.
-Database checks: region is indonesia or global, headline not empty, snippet at most 500
-characters, link starts with `http://` or `https://`. Index on (`published_at desc`, `id desc`).
+Database checks: region is indonesia or global, category is one of the five, headline not empty
+and at most 300 characters (longer ones are cut, ending in "…"), snippet at most 500 characters,
+link starts with `http://` or `https://`. `published_at_estimated` marks articles whose feed gave
+no usable date (OR-8). `sources` also keeps the last check of its feed (ETag, Last-Modified, last
+status, last success). Index on (`published_at desc`, `id desc`).
 Region and category are copied onto the article so the News list is a single-table query, and so
 triage (OR-14) can later re-categorise one article without touching its source.
 
