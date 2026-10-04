@@ -4,6 +4,7 @@ import {
   boolean,
   check,
   date,
+  doublePrecision,
   index,
   integer,
   jsonb,
@@ -257,5 +258,39 @@ export const ventureArticles = pgTable(
     // Deleting (pruning) an article finds its matches without a full scan.
     index("venture_articles_article_idx").on(t.articleId),
     check("venture_articles_relevance_check", sql`${t.relevance} between 0 and 100`),
+  ],
+);
+
+export const LLM_ROLES = ["triage", "report"] as const;
+export type LlmRole = (typeof LLM_ROLES)[number];
+export const LLM_CALL_STATUSES = ["ok", "invalid_output", "error", "budget_exhausted"] as const;
+export type LlmCallStatus = (typeof LLM_CALL_STATUSES)[number];
+
+// One row per LLM request (OR-13), mock or live; the budget cap counts live rows
+// of the current WIB month. A budget_exhausted row records a call that was not made.
+export const llmUsage = pgTable(
+  "llm_usage",
+  {
+    id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    job: text().notNull(),
+    role: text().$type<LlmRole>().notNull(),
+    provider: text().$type<"mock" | "live">().notNull(),
+    model: text().notNull(),
+    inputTokens: integer("input_tokens"),
+    outputTokens: integer("output_tokens"),
+    // The provider sent no usage; tokens were estimated from the text length (about 4 characters a token).
+    usageEstimated: boolean("usage_estimated").notNull().default(false),
+    // Null when the prices for the model's role are not configured.
+    costUsd: doublePrecision("cost_usd"),
+    status: text().$type<LlmCallStatus>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check("llm_usage_role_check", sql`${t.role} in ('triage', 'report')`),
+    check("llm_usage_provider_check", sql`${t.provider} in ('mock', 'live')`),
+    check("llm_usage_status_check", sql`${t.status} in ('ok', 'invalid_output', 'error', 'budget_exhausted')`),
+    check("llm_usage_tokens_check", sql`${t.inputTokens} >= 0 and ${t.outputTokens} >= 0 and ${t.costUsd} >= 0`),
+    // Month-to-date totals for the budget cap.
+    index("llm_usage_provider_created_idx").on(t.provider, t.createdAt),
   ],
 );
