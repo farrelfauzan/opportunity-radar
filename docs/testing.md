@@ -59,14 +59,17 @@ and never put a key or token in one.
   on the server of `TEST_DATABASE_URL` (the name always ends in `_test`). The web server command
   creates and migrates it (`scripts/e2e-db.ts setup`) before the build, because the app refuses to
   start without its database. The global setup (`e2e/global-setup.ts`) then empties the tables and
-  stores the News fixtures (`e2e/news-fixtures.ts`) with times relative to that moment, and a
-  successful `ingest-news` run 5 minutes ago. The database stays after the run; drop it when you
+  stores the News fixtures (`e2e/news-fixtures.ts`) and the Opportunities fixtures
+  (`e2e/opportunity-fixtures.ts`: score history relative to today, one closed opportunity) with
+  times relative to that moment, and a successful `ingest-news` run and a successful `scores` run
+  5 minutes ago. The database stays after the run; drop it when you
   no longer need it.
 - Runs every test at two widths: 1280 px and 390 px, **with one worker**, one project after the
   other: tests that change the shared database (stale banner, a new article, "never ingested")
   reset it to the fixtures when they end.
 - Tests change the data with `runDb(...)` from `e2e/db.ts` (`scripts/e2e-db.ts`: `fixtures
-  --last-run=<minutes ago | ISO time | never> --no-articles`, `add <headline>`).
+  --last-run=<minutes ago | ISO time | never> --no-articles --scores-run=<minutes ago | ISO time | never>
+  --no-opportunities`, `add <headline>`).
 - Fixtures depend on "today" (the WIB day). A run started in the first minutes after WIB midnight
   (00:00 to about 02:00) can miss "today" fixtures: times before midnight are moved to 00:01, so
   the order of the news items is then by id, and the stale test (3 hours ago) can fall on
@@ -74,6 +77,7 @@ and never put a key or token in one.
 - `e2e/news.spec.ts` starts a second server (port `E2E_PORT + 1`, same build) whose database
   connection goes through a small TCP proxy, then stops the proxy: that is how the "store
   unreachable" state is tested without touching the Postgres server other sessions use.
+  `e2e/opportunities.spec.ts` does the same through `e2e/unreachable-server.ts`.
 - **Seeing the error state by hand.** A server whose database is unreachable at start exits by design
   (`src/instrumentation.ts`), so pointing `DATABASE_URL` at a dead address no longer works. Point it at
   a database that is up but has none of the tables instead: `DATABASE_URL=postgres://postgres@127.0.0.1:54329/postgres
