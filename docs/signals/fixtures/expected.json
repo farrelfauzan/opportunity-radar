@@ -420,14 +420,28 @@
     },
     {
       "file": "rising_noisy.csv",
-      "asset_class": "crypto_or_metal",
+      "asset_class": "metal",
+      "as_of": "2026-10-06",
+      "age_days": 4,
+      "expected": "BUY/BUY"
+    },
+    {
+      "file": "rising_noisy.csv",
+      "asset_class": "metal",
+      "as_of": "2026-10-07",
+      "age_days": 5,
+      "expected": "STALE (no verdict)"
+    },
+    {
+      "file": "rising_noisy.csv",
+      "asset_class": "crypto",
       "as_of": "2026-10-05",
       "age_days": 3,
       "expected": "BUY/BUY"
     },
     {
       "file": "rising_noisy.csv",
-      "asset_class": "crypto_or_metal",
+      "asset_class": "crypto",
       "as_of": "2026-10-06",
       "age_days": 4,
       "expected": "STALE (no verdict)"

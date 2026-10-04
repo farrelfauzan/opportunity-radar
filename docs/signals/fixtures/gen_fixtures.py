@@ -221,10 +221,10 @@ for f in fixtures:
         ex["flips"][term] = d
     expected[f["name"]] = ex
 
-# stale cases (as_of vs last_date): stale if age in calendar days > limit (stock 7, crypto/metal 3)
+# stale cases (as_of vs last_date): stale if age in calendar days > limit (stock 7, metal 4, crypto 3)
 last = END
 cases = []
-for cls, lim in (("stock", 7), ("crypto_or_metal", 3)):
+for cls, lim in (("stock", 7), ("metal", 4), ("crypto", 3)):
     for age, res in ((lim, "verdict"), (lim + 1, "STALE")):
         cases.append(dict(file="rising_noisy.csv", asset_class=cls, as_of=(last + timedelta(days=age)).isoformat(), age_days=age, expected=("BUY/BUY" if res == "verdict" else "STALE (no verdict)")))
 json.dump(dict(rules="rules v1", as_of_default="last_date of each file", fixtures=expected, stale_cases=cases), open(os.path.join(OUT, "expected.json"), "w"), indent=2)

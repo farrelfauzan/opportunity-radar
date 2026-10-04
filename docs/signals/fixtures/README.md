@@ -64,10 +64,12 @@ Meaning: replace the LAST close of the file by a hypothetical close x and keep e
 len_14, len_15, len_49: no verdict, so no flip. Short-term flips between BUY/SELL happen at the mean of the previous 49 closes; RSI-driven flips (to or from HOLD) come from the Wilder update and have no simple closed form.
 
 ## Stale-input cases (rising_noisy.csv, last date 2026-10-02)
-Stale = age in calendar days > limit. Stocks limit 7 (IDX Lebaran week: 10), crypto and metals limit 3.
+Stale = age in calendar days > limit. Stocks limit 7 (IDX Lebaran week: 10), metals limit 4, crypto limit 3.
 | asset class | as-of date | age | expected |
 |---|---|---|---|
 | stock | 2026-10-09 | 7 | BUY / BUY |
 | stock | 2026-10-10 | 8 | STALE, no verdict |
-| crypto or metal | 2026-10-05 | 3 | BUY / BUY |
-| crypto or metal | 2026-10-06 | 4 | STALE, no verdict |
+| metal | 2026-10-06 | 4 | BUY / BUY |
+| metal | 2026-10-07 | 5 | STALE, no verdict |
+| crypto | 2026-10-05 | 3 | BUY / BUY |
+| crypto | 2026-10-06 | 4 | STALE, no verdict |
