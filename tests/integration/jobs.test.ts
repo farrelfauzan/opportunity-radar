@@ -14,6 +14,14 @@ type Row = { job: string; status: string; error: string | null; started_at: Date
 const runs = async () =>
   (await db().execute(sql`select job, status, error, started_at, finished_at from job_runs order by id`)) as unknown as Row[];
 
+const untilRunning = async () => {
+  for (let i = 0; i < 200; i++) {
+    if ((await runs()).some((r) => r.status === "running")) return;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error("the job never started");
+};
+
 beforeEach(async () => {
   await db().execute(sql`truncate job_runs restart identity`);
 });
@@ -26,9 +34,11 @@ describe("runner", () => {
   });
 
   test("the record exists while the job is still running", async () => {
-    const running = runJob("sleep", jobs, { args: ["0.3"] });
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    const stop = new AbortController();
+    const running = runJob("sleep", jobs, { args: ["30"], signal: stop.signal });
+    await untilRunning();
     expect(await runs()).toMatchObject([{ job: "sleep", status: "running", finished_at: null }]);
+    stop.abort(new Error("stopped by the test"));
     await running;
   });
 
@@ -190,13 +200,6 @@ describe("pnpm job", () => {
   const start = (args: string[]) => spawn(node, [...nodeArgs, ...args], { cwd: root, env });
   const exited = (child: ReturnType<typeof start>) =>
     new Promise<number | null>((resolve) => child.on("exit", (code) => resolve(code)));
-  const untilRunning = async () => {
-    for (let i = 0; i < 100; i++) {
-      if ((await runs()).some((r) => r.status === "running")) return;
-      await new Promise((resolve) => setTimeout(resolve, 50));
-    }
-    throw new Error("the job never started");
-  };
 
   test("noop runs once and writes a record (server-only and @/ resolve)", async () => {
     const result = job(["noop"]);
@@ -234,10 +237,15 @@ describe("pnpm job", () => {
     ]);
   });
 
-  test("two processes started together: one ok, one skipped, both exit 0", async () => {
-    const [a, b] = [start(["sleep", "2"]), start(["sleep", "2"])];
-    expect(await Promise.all([exited(a), exited(b)])).toEqual([0, 0]);
-    expect((await runs()).map((r) => r.status).sort()).toEqual(["ok", "skipped"]);
+  test("a second process while the first runs: one ok, one skipped, both exit 0", async () => {
+    const first = start(["sleep", "3"]);
+    await untilRunning(); // not a fixed wait: process start-up time varies under load
+    const second = job(["sleep", "3"]);
+
+    expect(second.stdout).toContain("sleep: skipped (already running)");
+    expect(second.status).toBe(0);
+    expect(await exited(first)).toBe(0);
+    expect((await runs()).map((r) => r.status)).toEqual(["ok", "skipped"]);
   });
 
   test("the morning pipeline with a failing second step", async () => {
