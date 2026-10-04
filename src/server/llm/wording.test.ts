@@ -257,6 +257,26 @@ describe("OR-64: normalisation, clause breaks, forecast forms, the authority exc
     expect(normalise("Gold<br>prices")).toBe("Gold prices"); // a block tag separates
   });
 
+  test("both readings of inline tags are checked (Reviewer, PR 94)", () => {
+    for (const line of ["<b>you</b>should buy gold", "you<b>should</b> buy gold", "you<b>should</b>buy gold now", "<i>you</i>should buy gold", "you<span>should</span>buy gold", "shou<b>ld</b> buy gold"]) {
+      expect(bannedWording(line)).not.toBeNull();
+    }
+  });
+
+  test("compounds are not imperatives or ratings; a sentence start after a colon or quote is", () => {
+    for (const line of ["Sell-off in bonds deepened.", "Buy-back plans grew.", "Sell-side analysts disagree.", "Buy-in from banks is slow.", "Strong buy-in from banks."]) {
+      expect(bannedWording(line)).toBeNull();
+    }
+    for (const line of ["Tip: Buy gold today.", '"Buy gold today."', "Morgan Stanley rated the stock a buy.", "BBCA rated as sell by analysts."]) {
+      expect(bannedWording(line)).not.toBeNull();
+    }
+  });
+
+  test("only an institution is excused by a reporting verb before it, not a rule", () => {
+    expect(bannedWording("Reuters said the new rule means funds must invest 30% in bonds.")).toBeNull();
+    expect(bannedWording("Investor harus membeli emas, kata kementerian.")).not.toBeNull();
+  });
+
   test("many < characters stay fast", () => {
     for (const text of ["<".repeat(100_000), "<a ".repeat(33_000)]) {
       const started = performance.now();

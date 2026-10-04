@@ -58,7 +58,7 @@ const GENERAL = [
   // Certainty: "make / be sure to" are instructions for a task, not certainty about a price.
   "(?<!(?:make|be)\\s)sure to", "certain to", "guarantee(?:s|d|ing)?", "surefire", "(?:can't|cannot) go wrong", "no brainer",
   // Analyst ratings.
-  "strong (?:buy|sell)", "(?:buy|sell) rating", "rated a (?:buy|sell)",
+  "strong (?:buy|sell)", "(?:buy|sell) rating", "rated(?: [\\p{L}']+){0,3}? (?:a |as )?(?:buy|sell)",
   // should / need to (EN and ID) followed within two words by a buy/sell verb ("Investors should buy bank stocks").
   // "must / harus / wajib" + verb is the mandate check below.
   `(?:should|need to|sebaiknya|perlu)(?: \\S+){0,2}? (?:${ACTIONS})`,
@@ -110,6 +110,7 @@ const REPORTING_VERBS =
   "says?|said|states?|stated|announces?|announced|shows?|showed|shown|reports?|reported|notes?|noted|warns?|warned|claims?|claimed|estimates?|estimated|added|told|expects|predicted|kata|mengatakan|menyatakan|mengumumkan|menunjukkan|melaporkan|mencatat|menyebut|menyebutkan|memperingatkan|menilai|ujar|ujarnya|tutur|tuturnya|katanya";
 const REPORTING_AFTER = new RegExp(`^(?: [\\p{L}']+){0,2}? (?:${REPORTING_VERBS})(?![\\p{L}])`, "iu");
 // … and before it: "according to the ministry", "menurut OJK", "kata kementerian", "ujar menteri".
+const INSTITUTION = /^(?:OJK|BI|ministry|ministries|authority|authorities|kementerian|otoritas)$/iu;
 const REPORTING_BEFORE = /(?:according to|menurut|kata|ujar|tutur|said|says)\s+(?:[\p{L}']+\s+){0,2}$/iu;
 // Not a sentence end: a period between digits ("12.5%", "Rp 1.000.000"), inside "U.S.", or after these.
 const ABBREVIATION = /(?:^|[^\p{L}])(?:no|u\.s|e\.g|i\.e|mr|mrs|dr|vs|inc|ltd|tbk)$/iu;
@@ -123,7 +124,7 @@ const AUTHORITY_REACH_WORDS = 8;
  * hyphens removed, HTML tags and markdown marks dropped, hyphens and underscores read as spaces, curly
  * apostrophes as straight ones, and runs of spaces collapsed (line breaks are kept: they end a sentence).
  */
-export function normalise(text: string): string {
+export function normalise(text: string, options: { joinInlineTags?: boolean } = {}): string {
   return text
     // HTML entities first, so "&lt;b&gt;" and "&#115;hould" are read as what they show.
     .replace(/&(?:lt|gt|amp|nbsp|quot|apos|#\d{1,6}|#x[0-9a-f]{1,6});/gi, decodeEntity)
@@ -131,14 +132,17 @@ export function normalise(text: string): string {
     .replace(/[­​-‍⁠﻿]/g, "")
     // Tags: only the tag name and the brackets go, the words inside stay and are checked
     // ("<b you should buy gold now>" is still caught); linear on any input.
-    // A bare inline tag inside a word joins it back ("shou<b>ld</b>" → "should"); a block tag
-    // (br, p, div, li) or a tag between words is a space.
+    // A bare inline tag is a space, or (the second reading, `joinInlineTags`) removed between letters,
+    // so "shou<b>ld</b>" is caught as "should" and "<b>you</b>should" as "you should"; block tags
+    // (br, p, div, li) are always a space. `wordingHit` checks both readings.
     .replace(new RegExp(`<\\/?(?:${TAGS})\\s*\\/?>`, "giu"), (tag, at: number, all: string) =>
-      !/^<\/?(?:br|p|div|li|ul|ol)\b/i.test(tag) && /\p{L}/u.test(all[at - 1] ?? "") && /\p{L}/u.test(all[at + tag.length] ?? "") ? "" : " ",
+      options.joinInlineTags && !/^<\/?(?:br|p|div|li|ul|ol)\b/i.test(tag) && /\p{L}/u.test(all[at - 1] ?? "") && /\p{L}/u.test(all[at + tag.length] ?? "") ? "" : " ",
     )
     .replace(new RegExp(`<\\/?(?:${TAGS})\\b`, "gi"), " ")
     .replace(/\/?>/g, " ")
     .replace(/[*`~]/g, "")
+    // Compounds are not instructions or ratings: "Sell-off", "Buy-back", "sell-side", "buy-in".
+    .replace(/(?<![\p{L}])(buy|sell|hold)\s?[-\u2010\u2011]\s?(?=(?:off|back|side|in|out|ups?|downs?)(?![\p{L}]))/giu, "$1")
     .replace(/[_\-‐‑]/g, " ")
     .replace(/[‘’]/g, "'")
     .replace(/[^\S\n]+/g, " ");
@@ -216,7 +220,9 @@ function hasAuthority(text: string, hitStart: number, hitEnd: number): boolean {
   for (const m of text.slice(from, to).matchAll(AUTHORITY_RE)) {
     const at = from + m.index;
     if (REPORTING_AFTER.test(text.slice(at + m[0].length, at + m[0].length + 60))) continue; // "the ministry says"
-    if (REPORTING_BEFORE.test(text.slice(Math.max(0, at - 40), at))) continue; // "according to the ministry"
+    // "according to the ministry": only an institution can be quoted ("Reuters said the new rule means
+    // funds must invest …" keeps "rule" as the authority).
+    if (INSTITUTION.test(m[0]) && REPORTING_BEFORE.test(text.slice(Math.max(0, at - 40), at))) continue;
     return true;
   }
   return false;
@@ -229,7 +235,8 @@ function imperativeStart(text: string): string | null {
   for (const hit of text.matchAll(IMPERATIVE_RE)) {
     let i = hit.index - 1;
     while (i >= 0 && text[i] === " ") i--;
-    if (i < 0 || sentenceEndAt(text, i)) return hit[0];
+    // A sentence start: the text's start, a sentence end, or a colon or opening quote ("Tip: Buy …").
+    if (i < 0 || sentenceEndAt(text, i) || /[:"'\u201C\u00AB(]/.test(text[i])) return hit[0];
   }
   return null;
 }
@@ -248,7 +255,13 @@ export type WordingHit = { id: string; match: string };
 export type WordingContext = { firstStep?: boolean };
 
 export function wordingHit(text: string, list: WordingList = "general", context: WordingContext = {}): WordingHit | null {
-  const normal = normalise(text);
+  const hit = hitIn(normalise(text), list, context);
+  // The second reading, with inline tags removed between letters, only when there are tags at all.
+  if (hit || !/<|&lt;/i.test(text)) return hit;
+  return hitIn(normalise(text, { joinInlineTags: true }), list, context);
+}
+
+function hitIn(normal: string, list: WordingList, context: WordingContext): WordingHit | null {
   for (const { id, pattern } of LISTS[list]) {
     const hit = pattern.exec(normal);
     if (hit) return { id, match: hit[0] };
