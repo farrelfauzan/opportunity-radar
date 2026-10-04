@@ -107,7 +107,15 @@ Round 2 (timing rule added; themes in `samples/themes-round2.json`). **Scorer B 
 
 All 15 differences ≤ 15, and both scorers kept timing on the right side of the new rule. B scored competition lower in every theme, which led to the competition rule in §2.
 
-Round 3 (competition rule added; B scores and commits first, A scores without opening B's file): pending. **OR-11 passes AC1 when every factor difference in round 3 is ≤ 15.**
+Round 3 (competition rule added; themes in `samples/themes-round3.json`). B scored and committed first (2026-10-04T01:28:02Z, commits fb777a7 / dc571a8 on `research/r-2`); A scored from the themes file without opening B's file and committed (2026-10-04T01:28:46Z, commit 1a57825 on `or-11-scoring`); only then were B's scores read. Both blind.
+
+| Theme | A | B | Differences | Overall A / B |
+|---|---|---|---|---|
+| g · Earthquake and flood resilience services, Indonesia | 55, 70, 55, 45, 60 | 50, 55, 40, 50, 45 | 5, 15, 15, 5, 15 | 57 / 48 |
+| h · Household energy-saving and rooftop-solar advice, Worldwide | 70, 65, 30, 65, 65 | 70, 65, 25, 55, 50 | 0, 0, 5, 10, 15 | 59 / 53 |
+| i · Compliance and fleet tools for ride-hailing drivers, Indonesia | 60, 75, 40, 65, 50 | 50, 60, 30, 70, 45 | 10, 15, 10, 5, 5 | 58 / 51 |
+
+**Result: AC1 met.** All 15 factor differences are ≤ 15. The margin is zero on 5 of them, and B is lower than A overall by 6 to 9 points in every theme. The rubric is consistent enough for v1 to rank opportunities, but a single score should not be read finer than about ±10. Re-check after the first two weeks of real runs.
 
 Score files with timestamps: `docs/opportunities/samples/` (copied from the Researcher's branch `research/r-2`).
 
