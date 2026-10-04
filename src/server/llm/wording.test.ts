@@ -241,6 +241,18 @@ describe("OR-64: normalisation, clause breaks, forecast forms, the authority exc
     }
   });
 
+  test("HTML entities are decoded before matching (Reviewer, PR 82)", () => {
+    for (const line of ["you &lt;b&gt;should&lt;/b&gt; buy gold", "you &#115;hould buy gold", "you&nbsp;should&nbsp;buy gold", "you &#x73;hould buy gold"]) {
+      expect(bannedWording(line)).not.toBeNull();
+    }
+    expect(bannedWording("Prices &amp; volumes rose 5%.")).toBeNull();
+    // A word split by a tag is joined back; tags between words still separate them.
+    expect(bannedWording("shou<b>ld</b> buy gold")).not.toBeNull();
+    expect(bannedWording("you &lt;b&gt;sh&lt;/b&gt;ould buy gold")).not.toBeNull();
+    expect(normalise("buy<b></b> now")).toBe("buy now");
+    expect(normalise("Gold<br>prices")).toBe("Gold prices"); // a block tag separates
+  });
+
   test("many < characters stay fast", () => {
     for (const text of ["<".repeat(100_000), "<a ".repeat(33_000)]) {
       const started = performance.now();

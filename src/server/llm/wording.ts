@@ -124,16 +124,33 @@ const AUTHORITY_REACH_WORDS = 8;
  */
 export function normalise(text: string): string {
   return text
+    // HTML entities first, so "&lt;b&gt;" and "&#115;hould" are read as what they show.
+    .replace(/&(?:lt|gt|amp|nbsp|quot|apos|#\d{1,6}|#x[0-9a-f]{1,6});/gi, decodeEntity)
     .normalize("NFKC")
     .replace(/[­​-‍⁠﻿]/g, "")
     // Tags: only the tag name and the brackets go, the words inside stay and are checked
     // ("<b you should buy gold now>" is still caught); linear on any input.
-    .replace(/<\/?(?:a|b|i|u|s|em|strong|span|p|br|div|sup|sub|small|mark|code|del|ins|font|li|ul|ol)\b/gi, " ")
+    // A bare inline tag inside a word joins it back ("shou<b>ld</b>" → "should"); a block tag
+    // (br, p, div, li) or a tag between words is a space.
+    .replace(new RegExp(`<\\/?(?:${TAGS})\\s*\\/?>`, "giu"), (tag, at: number, all: string) =>
+      !/^<\/?(?:br|p|div|li|ul|ol)\b/i.test(tag) && /\p{L}/u.test(all[at - 1] ?? "") && /\p{L}/u.test(all[at + tag.length] ?? "") ? "" : " ",
+    )
+    .replace(new RegExp(`<\\/?(?:${TAGS})\\b`, "gi"), " ")
     .replace(/\/?>/g, " ")
     .replace(/[*`~]/g, "")
     .replace(/[_\-‐‑]/g, " ")
     .replace(/[‘’]/g, "'")
     .replace(/[^\S\n]+/g, " ");
+}
+
+const TAGS = "a|b|i|u|s|em|strong|span|p|br|div|sup|sub|small|mark|code|del|ins|font|li|ul|ol";
+const ENTITIES: Record<string, string> = { "&lt;": "<", "&gt;": ">", "&amp;": "&", "&nbsp;": " ", "&quot;": '"', "&apos;": "'" };
+
+function decodeEntity(entity: string): string {
+  const named = ENTITIES[entity.toLowerCase()];
+  if (named) return named;
+  const code = entity[2] === "x" || entity[2] === "X" ? parseInt(entity.slice(3, -1), 16) : parseInt(entity.slice(2, -1), 10);
+  return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : " ";
 }
 
 /** Whether position `i` ends a sentence: `! ?`, a line break, or a period that is not a decimal or an abbreviation. */
