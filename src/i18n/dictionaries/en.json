@@ -57,6 +57,23 @@
       },
       "none": "Not enough news yet today"
     },
+    "ventures": {
+      "title": "My ventures",
+      "scoreLabel": "{score} out of 100",
+      "subtitle": "Progress from each project's board · market view re-scored daily from the news",
+      "progressMvp": "Progress to MVP",
+      "progressRelease": "Progress to next release",
+      "notConnected": "Progress source not connected",
+      "oppId": "Opportunity · Indonesia",
+      "oppWorld": "Opportunity · Worldwide",
+      "tailwind": "Tailwind",
+      "headwind": "Headwind",
+      "noNews": "No related news this month",
+      "related": {
+        "one": "{n} related news item",
+        "other": "{n} related news items"
+      }
+    },
     "top": {
       "title": "Top opportunities",
       "seeAll": "See all ({n})",
@@ -298,11 +315,17 @@
         "news": "News",
         "opportunities": "Opportunities",
         "brief": "The daily brief",
-        "prices": "Prices"
+        "prices": "Prices",
+        "ventures": "Venture data"
       }
     },
     "marketClosed": "Market closed · last close {date}",
     "partial": "{ok} of {total} sources updated · not updated: {names}"
+  },
+  "venture": {
+    "market": {
+      "noScore": "No score yet: no related news in the last 30 days"
+    }
   },
   "calc": {
     "title": "Calculators",

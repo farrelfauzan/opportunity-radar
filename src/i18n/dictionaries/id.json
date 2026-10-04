@@ -57,6 +57,23 @@
       },
       "none": "Belum cukup berita hari ini"
     },
+    "ventures": {
+      "title": "Usaha saya",
+      "scoreLabel": "{score} dari 100",
+      "subtitle": "Progres dari papan tiap proyek · pandangan pasar dinilai ulang tiap hari dari berita",
+      "progressMvp": "Progres menuju MVP",
+      "progressRelease": "Progres menuju rilis berikutnya",
+      "notConnected": "Sumber progres belum terhubung",
+      "oppId": "Peluang · Indonesia",
+      "oppWorld": "Peluang · Dunia",
+      "tailwind": "Pendorong",
+      "headwind": "Penghambat",
+      "noNews": "Belum ada berita terkait bulan ini",
+      "related": {
+        "one": "{n} berita terkait",
+        "other": "{n} berita terkait"
+      }
+    },
     "top": {
       "title": "Peluang teratas",
       "seeAll": "Lihat semua ({n})",
@@ -298,11 +315,17 @@
         "news": "Berita",
         "opportunities": "Peluang",
         "brief": "Ringkasan harian",
-        "prices": "Harga"
+        "prices": "Harga",
+        "ventures": "Data usaha"
       }
     },
     "marketClosed": "Pasar tutup · penutupan terakhir {date}",
     "partial": "{ok} dari {total} sumber diperbarui · belum diperbarui: {names}"
+  },
+  "venture": {
+    "market": {
+      "noScore": "Belum ada skor: tidak ada berita terkait dalam 30 hari terakhir"
+    }
   },
   "calc": {
     "title": "Kalkulator",
