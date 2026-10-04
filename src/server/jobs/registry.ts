@@ -1,5 +1,6 @@
 import { callLlm } from "@/server/llm/client";
 import { ingestNews } from "@/server/news/ingest";
+import { triageNews } from "@/server/news/triage";
 import type { Job, Registry } from "./runner.ts";
 
 const production = process.env.NODE_ENV === "production";
@@ -71,7 +72,9 @@ export const jobs: Registry = {
   "llm-smoke": llmSmoke,
   // Morning pipeline: triage → opportunities → scores → brief. Each stub is
   // replaced by the real job when its ticket lands (OR-14, OR-15/OR-50, OR-16, OR-22).
-  triage: stub("triage"),
+  // OR-14. Also the second step of `news` (ingest, then triage), the command to run every 30 minutes.
+  triage: { timeoutSeconds: 600, after: ["ingest-news"], run: () => triageNews() },
+  news: { steps: ["ingest-news", "triage"] },
   opportunities: stub("opportunities", ["triage"]),
   scores: stub("scores", ["opportunities"]),
   brief: stub("brief", ["scores"]),
