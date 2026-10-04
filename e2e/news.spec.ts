@@ -397,13 +397,15 @@ test("390 px: no sideways scroll with a very long headline and source name, chip
   expect(panelBox.y).toBeGreaterThanOrEqual(listBox.y + listBox.height);
 });
 
-test("1280 px: the Sources panel sits beside the list", async ({ page }) => {
+test("1280 px: the Sources panel sits beside the list, under the Trending themes panel", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/en/news");
   const listBox = (await page.locator("main ol").boundingBox())!;
+  const themesBox = (await themesCard(page, "en").boundingBox())!;
   const panelBox = (await sourcesCard(page, "en").boundingBox())!;
   expect(panelBox.x).toBeGreaterThanOrEqual(listBox.x + listBox.width);
-  expect(panelBox.y).toBeLessThan(listBox.y + 200);
+  expect(themesBox.y).toBeLessThan(listBox.y + 200);
+  expect(panelBox.y).toBeGreaterThanOrEqual(themesBox.y + themesBox.height);
   expect(await overflows(page)).toBe(false);
 });
 
@@ -946,14 +948,14 @@ for (const locale of ["en", "id"] as const) {
     expect(await overflows(page)).toBe(false);
   });
 
-  test(`${locale}: the themes panel follows the Sources panel: beside the list on a wide screen, below it on a phone`, async ({
+  test(`${locale}: the themes panel comes before the Sources panel: beside the list on a wide screen, below it on a phone`, async ({
     page,
   }) => {
     await page.goto(`/${locale}/news`);
     const list = (await page.locator("main ol").boundingBox())!;
     const sourcesBox = (await sourcesCard(page, locale).boundingBox())!;
     const themesBox = (await themesCard(page, locale).boundingBox())!;
-    expect(themesBox.y).toBeGreaterThanOrEqual(sourcesBox.y + sourcesBox.height);
+    expect(sourcesBox.y).toBeGreaterThanOrEqual(themesBox.y + themesBox.height);
     expect(themesBox.x).toBeGreaterThanOrEqual(0);
     expect(themesBox.x + themesBox.width).toBeLessThanOrEqual(page.viewportSize()!.width);
     if (page.viewportSize()!.width >= 1000) {

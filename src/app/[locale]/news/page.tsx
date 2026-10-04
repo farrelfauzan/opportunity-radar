@@ -203,6 +203,34 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
         </div>
 
         <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-6">
+          {themes.length > 0 && (
+            <Card>
+              <CardContent className="flex flex-col gap-2.5">
+                <h2 className="text-base font-semibold">{m.news.themes.title}</h2>
+                <ul className="flex flex-col gap-2.5">
+                  {themes.map(({ theme, count }) => (
+                    <li key={theme}>
+                      <div className="flex justify-between gap-2">
+                        <span className="[overflow-wrap:anywhere]">{m.news.theme[theme]}</span>
+                        <span className="font-mono text-[13px] text-[#E2DDF0]">{count}</span>
+                      </div>
+                      <span
+                        role="meter"
+                        aria-label={m.news.theme[theme]}
+                        aria-valuemin={0}
+                        aria-valuemax={maxThemeCount}
+                        aria-valuenow={count}
+                        className="mt-1 block h-1.5 overflow-hidden rounded-[3px] bg-[#4B3E75]"
+                      >
+                        <span className="block h-1.5 bg-[#2DD4BF]" style={{ width: `${themeBarPercent(count, maxThemeCount)}%` }} />
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs text-muted-foreground">{m.news.themes.caption}</p>
+              </CardContent>
+            </Card>
+          )}
           <Card>
             <CardContent className="flex flex-col gap-2">
               <h2 className="text-base font-semibold">{m.news.sources.title}</h2>
@@ -232,34 +260,6 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
               <p className="text-xs text-muted-foreground">{m.news.sources.note}</p>
             </CardContent>
           </Card>
-          {themes.length > 0 && (
-            <Card>
-              <CardContent className="flex flex-col gap-2.5">
-                <h2 className="text-base font-semibold">{m.news.themes.title}</h2>
-                <ul className="flex flex-col gap-2.5">
-                  {themes.map(({ theme, count }) => (
-                    <li key={theme}>
-                      <div className="flex justify-between gap-2">
-                        <span className="[overflow-wrap:anywhere]">{m.news.theme[theme]}</span>
-                        <span className="font-mono text-[13px] text-[#E2DDF0]">{count}</span>
-                      </div>
-                      <span
-                        role="meter"
-                        aria-label={m.news.theme[theme]}
-                        aria-valuemin={0}
-                        aria-valuemax={maxThemeCount}
-                        aria-valuenow={count}
-                        className="mt-1 block h-1.5 overflow-hidden rounded-[3px] bg-[#4B3E75]"
-                      >
-                        <span className="block h-1.5 bg-[#2DD4BF]" style={{ width: `${themeBarPercent(count, maxThemeCount)}%` }} />
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="text-xs text-muted-foreground">{m.news.themes.caption}</p>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </>
