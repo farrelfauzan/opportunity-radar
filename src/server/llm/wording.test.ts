@@ -287,6 +287,13 @@ describe("OR-65: suggest, certainty, ratings, sentence-initial imperatives", () 
     "Hold the shares until March.",
     "Invest in gold.",
     "Jual saham sekarang.",
+    "The fund guarantees 10% returns.",
+    "Dana ini pasti akan naik.",
+    // Accepted false positives (Orchestrator): rejected on purpose, then retried.
+    "The government guarantees deposits up to Rp 2 billion.",
+    "Menteri: 'Pemerintah pasti akan menerbitkan aturan baru.'",
+    "Hold on to the receipts for the audit.",
+    "Tahan banting di cuaca ekstrem.",
   ])("rejects %s", (line) => {
     expect(bannedWording(line)).not.toBeNull();
   });
