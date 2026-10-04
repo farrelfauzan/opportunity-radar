@@ -9,11 +9,11 @@ export function AppHeader({ locale }: { locale: Locale }) {
   const t = getT(locale);
   // The first URL segment after the locale; "" is the Radar (home).
   const items = [
-    { section: "", label: t("screens.radar") },
-    { section: "opportunities", label: t("screens.opportunities") },
-    { section: "news", label: t("screens.news") },
-    { section: "invest", label: t("screens.invest") },
-    { section: "calculators", label: t("screens.calculators") },
+    { section: "", label: t("nav.radar") },
+    { section: "opportunities", label: t("nav.opportunities") },
+    { section: "news", label: t("nav.news") },
+    { section: "invest", label: t("nav.invest") },
+    { section: "calculators", label: t("nav.calculators") },
   ];
 
   return (
@@ -29,10 +29,10 @@ export function AppHeader({ locale }: { locale: Locale }) {
           <circle cx="12" cy="12" r="4" />
           <path d="M12 12 L19 5" />
         </svg>
-        Opportunity Radar
+        {t("app.name")}
       </Link>
-      <MainNav locale={locale} label={t("shell.mainNav")} items={items} />
-      <LanguageSwitch locale={locale} label={t("shell.language")} />
+      <MainNav locale={locale} label={t("nav.main")} items={items} />
+      <LanguageSwitch locale={locale} label={t("nav.language")} />
     </header>
   );
 }

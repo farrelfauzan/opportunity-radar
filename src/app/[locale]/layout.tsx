@@ -24,7 +24,8 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(locale)) notFound();
-  return { title: "Opportunity Radar", description: getT(locale)("meta.description") };
+  const t = getT(locale);
+  return { title: t("app.name"), description: t("meta.description") };
 }
 
 export default async function RootLayout({ children, params }: LayoutProps<"/[locale]">) {

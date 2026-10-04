@@ -2,18 +2,29 @@
   "meta": {
     "description": "Peluang bisnis dan sinyal investasi dari berita."
   },
-  "screens": {
+  "app": {
+    "name": "Opportunity Radar"
+  },
+  "nav": {
+    "main": "Utama",
     "radar": "Radar",
     "opportunities": "Peluang",
     "news": "Berita",
     "invest": "Investasi",
-    "asset": "Laporan aset",
-    "calculators": "Kalkulator"
+    "calculators": "Kalkulator",
+    "language": "Bahasa"
   },
-  "shell": {
-    "mainNav": "Utama",
-    "language": "Bahasa",
-    "empty": "Belum ada data"
+  "page": {
+    "title": {
+      "radar": "Radar",
+      "opportunities": "Peluang",
+      "news": "Berita",
+      "invest": "Investasi",
+      "asset": "Laporan aset",
+      "calculators": "Kalkulator"
+    },
+    "documentTitle": "{page} · Opportunity Radar",
+    "emptyFrame": "Belum ada data"
   },
   "notFound": {
     "title": "Halaman tidak ditemukan",

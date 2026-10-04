@@ -21,7 +21,7 @@ test("the real dictionaries are in step", () => {
 });
 
 test("t() reads a dotted key and fills placeholders", () => {
-  expect(createT(en)("screens.opportunities")).toBe("Opportunities");
-  expect(createT(id)("screens.opportunities")).toBe("Peluang");
+  expect(createT(en)("nav.opportunities")).toBe("Opportunities");
+  expect(createT(id)("nav.opportunities")).toBe("Peluang");
   expect(createT(id)("time.hoursAgo", { n: 2 })).toBe("2 jam lalu");
 });

@@ -2,18 +2,29 @@
   "meta": {
     "description": "Business opportunities and investment signals from the news."
   },
-  "screens": {
+  "app": {
+    "name": "Opportunity Radar"
+  },
+  "nav": {
+    "main": "Main",
     "radar": "Radar",
     "opportunities": "Opportunities",
     "news": "News",
     "invest": "Investments",
-    "asset": "Asset report",
-    "calculators": "Calculators"
+    "calculators": "Calculators",
+    "language": "Language"
   },
-  "shell": {
-    "mainNav": "Main",
-    "language": "Language",
-    "empty": "Nothing here yet"
+  "page": {
+    "title": {
+      "radar": "Radar",
+      "opportunities": "Opportunities",
+      "news": "News",
+      "invest": "Investments",
+      "asset": "Asset report",
+      "calculators": "Calculators"
+    },
+    "documentTitle": "{page} · Opportunity Radar",
+    "emptyFrame": "Nothing here yet"
   },
   "notFound": {
     "title": "Page not found",

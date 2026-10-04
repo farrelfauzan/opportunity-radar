@@ -7,19 +7,19 @@ import type { Messages } from "@/i18n/t";
  * A screen that has no content yet: its title and the empty frame. Each
  * feature ticket replaces the page that uses this with the real screen.
  */
-export function emptyScreen(screen: keyof Messages["screens"]) {
+export function emptyScreen(screen: keyof Messages["page"]["title"]) {
   async function generateMetadata(): Promise<Metadata> {
     const t = getT(await currentLocale());
-    return { title: `${t(`screens.${screen}`)} · Opportunity Radar` };
+    return { title: t("page.documentTitle", { page: t(`page.title.${screen}`) }) };
   }
 
   async function Page() {
     const t = getT(await currentLocale());
     return (
       <>
-        <h1 className="text-[26px] font-bold tracking-tight">{t(`screens.${screen}`)}</h1>
+        <h1 className="text-[26px] font-bold tracking-tight">{t(`page.title.${screen}`)}</h1>
         <Card>
-          <CardContent className="text-muted-foreground">{t("shell.empty")}</CardContent>
+          <CardContent className="text-muted-foreground">{t("page.emptyFrame")}</CardContent>
         </Card>
       </>
     );
