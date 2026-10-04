@@ -141,13 +141,13 @@ describe("dropTestDatabase", () => {
   test("drops a test database and does nothing when it is already gone", async () => {
     // (testDatabaseUrl() refuses here: the integration setup points DATABASE_URL at the test database.)
     const url = new URL(databaseUrl("TEST_DATABASE_URL"));
-    url.pathname = "/opportunity_radar_drop_probe_test";
+    url.pathname = "/opportunity_radar_e2e_drop_probe_test";
     const exists = async () => {
       const admin = new URL(url.href);
       admin.pathname = "/postgres";
       const probe = (await import("postgres")).default(admin.href, { max: 1 });
       try {
-        return (await probe`select 1 from pg_database where datname = 'opportunity_radar_drop_probe_test'`).length === 1;
+        return (await probe`select 1 from pg_database where datname = 'opportunity_radar_e2e_drop_probe_test'`).length === 1;
       } finally {
         await probe.end();
       }

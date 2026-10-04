@@ -7,6 +7,11 @@ describe("dropTestDatabase refuses what could be real data", () => {
     await expect(dropTestDatabase("postgres://postgres@127.0.0.1:54329/opportunity_radar")).rejects.toThrow(/_test/);
   });
 
+  test("a _test database that a browser run does not own, including the shared test database", async () => {
+    await expect(dropTestDatabase("postgres://postgres@127.0.0.1:54329/opportunity_radar_test")).rejects.toThrow(/only databases named opportunity_radar_e2e_/);
+    await expect(dropTestDatabase("postgres://postgres@127.0.0.1:54329/opportunity_radar_eng8_test")).rejects.toThrow(/only databases named/);
+  });
+
   test("a database that is not on this machine", async () => {
     await expect(dropTestDatabase("postgres://postgres@db.example.com:5432/opportunity_radar_e2e_3210_test")).rejects.toThrow(/this machine/);
   });
