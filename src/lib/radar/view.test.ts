@@ -68,6 +68,18 @@ describe("sectionStale for prices", () => {
   });
 });
 
+describe("sectionStale for ventures", () => {
+  const now = new Date("2026-10-04T05:00:00Z"); // 12:00 WIB
+  const run = new Date("2026-10-02T23:30:00Z"); // 3 Oct, 06:30 WIB, more than 26 hours ago
+
+  test("names the venture data in both languages; fresh or never run says nothing", () => {
+    expect(sectionStale(run, now, "en", en.state.stale, "ventures")).toBe("Venture data last updated 3 Oct, 06:30 WIB");
+    expect(sectionStale(run, now, "id", id.state.stale, "ventures")).toBe("Data usaha terakhir diperbarui 3 Okt, 06.30 WIB");
+    expect(sectionStale(new Date(now.getTime() - 25 * 3600_000), now, "en", en.state.stale, "ventures")).toBeNull();
+    expect(sectionStale(null, now, "en", en.state.stale, "ventures")).toBeNull();
+  });
+});
+
 describe("staleText", () => {
   const now = new Date("2026-10-04T05:00:00Z"); // 4 Oct, 12:00 WIB
 

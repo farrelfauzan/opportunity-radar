@@ -26,7 +26,7 @@ export function updatedText(date: string, time: string | null, template: string)
   return time === null ? date : fill(template, { date, time });
 }
 
-type StaleWhat = "brief" | "opportunities" | "prices";
+type StaleWhat = "brief" | "opportunities" | "prices" | "ventures";
 
 /**
  * "The daily brief last updated 3 Oct, 07:00 WIB" for a section whose last successful run is more than 26 hours

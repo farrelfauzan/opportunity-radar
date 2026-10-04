@@ -15,6 +15,7 @@ import { MARKET_JOB, marketView, type MarketRowView } from "@/lib/market/view";
 import { categoryLabel, safeHref } from "@/lib/news/view";
 import { horizonKey, inLocale, isNeverScored, trendText } from "@/lib/opportunities/view";
 import { affectedText, briefSourceText, firstRunTime, plural, sectionStale, updatedText } from "@/lib/radar/view";
+import { neverScored, progressPercent, scoreChange } from "@/lib/ventures/view";
 import { cn } from "@/lib/utils";
 import {
   citationCounts,
@@ -23,11 +24,13 @@ import {
   lastSuccessfulRun,
   lastScoringRun,
   listOpportunities,
+  listVentureCards,
   recentLinkedNews,
   wibDay,
   type DailyBrief,
   type LinkedNews,
   type ListedOpportunity,
+  type VentureCard,
 } from "@/server/data";
 
 // Rendered per request (connection() below): the page reads the store, so a build must not prerender it.
@@ -47,7 +50,7 @@ const wrap = "[overflow-wrap:anywhere]";
 const sectionLink = `inline-flex min-h-11 items-center text-primary underline-offset-4 hover:underline ${focusRing}`;
 
 async function load(now: Date) {
-  const [open, lastRun, briefRun, brief, news, market, marketRuns] = await Promise.all([
+  const [open, lastRun, briefRun, brief, news, market, marketRuns, ventures, venturesRun] = await Promise.all([
     listOpportunities({}, now),
     // The same source of truth as "updated" on the Opportunities screen: the last successful
     // "scores" run (the morning pipeline's steps are triage, opportunities, scores, ventures, brief).
@@ -58,9 +61,12 @@ async function load(now: Date) {
     getMarketSnapshot(),
     // The last successful run of each job that feeds the snapshot (several rows share one).
     Promise.all([...new Set(Object.values(MARKET_JOB))].map(async (job) => [job, await lastSuccessfulRun(job)] as const)).then(Object.fromEntries),
+    listVentureCards(wibDay(now)),
+    // The morning step that scores the ventures.
+    lastSuccessfulRun("ventures"),
   ]);
   const top = open.slice(0, TOP_COUNT);
-  return { total: open.length, top, counts: await citationCounts(top.map((o) => o.id)), lastRun, briefRun, brief, news, market, marketRuns };
+  return { total: open.length, top, counts: await citationCounts(top.map((o) => o.id)), lastRun, briefRun, brief, news, market, marketRuns, ventures, venturesRun };
 }
 
 export default async function RadarPage() {
@@ -91,7 +97,7 @@ export default async function RadarPage() {
     );
   }
 
-  const { total, top, counts, lastRun, briefRun, brief, news, market, marketRuns } = data;
+  const { total, top, counts, lastRun, briefRun, brief, news, market, marketRuns, ventures, venturesRun } = data;
   const snapshot = marketView(market, marketRuns, now, locale, m);
 
   // Nothing has ever run: one card in place of the brief; the other sections keep their own empty texts.
@@ -123,6 +129,9 @@ export default async function RadarPage() {
         </section>
       ) : (
         <BriefSection brief={brief} stale={sectionStale(briefRun, now, locale, m.state.stale, "brief")} locale={locale} m={m} />
+      )}
+      {ventures.length > 0 && (
+        <VenturesSection cards={ventures} stale={sectionStale(venturesRun, now, locale, m.state.stale, "ventures")} locale={locale} m={m} />
       )}
       <TopSection
         items={top}
@@ -186,6 +195,132 @@ function BriefSection({
         </CardContent>
       </Card>
     </section>
+  );
+}
+
+const tile = "min-w-0 flex-1 basis-36 rounded-lg bg-black/20 px-3 py-2.5";
+
+function VenturesSection({ cards, stale, locale, m }: { cards: VentureCard[]; stale: string | null; locale: Locale; m: Messages }) {
+  return (
+    <section aria-labelledby="radar-ventures" className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 id="radar-ventures" className={h2}>
+          {m.radar.ventures.title}
+        </h2>
+        <span className="text-xs text-muted-foreground">{m.radar.ventures.subtitle}</span>
+      </div>
+      {stale && (
+        <p role="status" className={staleClass}>
+          {stale}
+        </p>
+      )}
+      <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(320px,100%),1fr))] gap-4">
+        {cards.map((card) => (
+          <li key={card.venture.id} data-venture={card.venture.slug} className="flex">
+            <VentureItem card={card} locale={locale} m={m} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+// Everything from the store below (names, descriptions, winds) is rendered as text, never as markup.
+function VentureItem({ card, locale, m }: { card: VentureCard; locale: Locale; m: Messages }) {
+  const { venture, progress, market, winds, relatedNews } = card;
+  const s = m.radar.ventures;
+  const never = neverScored(market, winds);
+  const percent = progress && progressPercent(progress.percent);
+  const progressLabel = venture.progressGoal === "mvp" ? s.progressMvp : s.progressRelease;
+  const tailwind = winds && inLocale(locale, winds.tailwindEn ?? "", winds.tailwindId ?? "");
+  const headwind = winds && inLocale(locale, winds.headwindEn ?? "", winds.headwindId ?? "");
+  return (
+    <Card className="w-full">
+      <CardContent className="flex min-w-0 flex-1 flex-col gap-3">
+        <div className="flex flex-col gap-0.5">
+          <h3 className={cn("text-[17px] font-bold", wrap)}>{venture.name}</h3>
+          <p className={cn("text-[#E2DDF0]", wrap)}>{inLocale(locale, venture.descriptionEn, venture.descriptionId)}</p>
+        </div>
+        {progress ? (
+          <div data-venture-progress>
+            <div className="flex justify-between gap-2 text-[13px]">
+              <span className="font-semibold">{progressLabel}</span>
+              <span className="font-mono">{percent}%</span>
+            </div>
+            <div
+              role="progressbar"
+              aria-label={progressLabel}
+              aria-valuenow={percent!}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              className="mt-1.5 h-2 overflow-hidden rounded-full bg-white/15"
+            >
+              <span className="block h-2 bg-primary" style={{ width: `${percent}%` }} />
+            </div>
+          </div>
+        ) : (
+          <p data-venture-progress="none" className="text-[13px] text-muted-foreground">
+            {s.notConnected}
+          </p>
+        )}
+        {never ? (
+          <div data-venture-never className="rounded-lg bg-black/20 px-3 py-2.5">
+            <p className="font-semibold">{m.state.never.title}</p>
+            <p className="text-muted-foreground">{fill(m.state.never.body, { time: firstRunTime(locale) })}</p>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            <ScoreTile region="indonesia" label={s.oppId} view={market.indonesia} m={m} />
+            <ScoreTile region="global" label={s.oppWorld} view={market.global} m={m} />
+          </div>
+        )}
+        {(tailwind || headwind) && (
+          <ul className="flex flex-col gap-1.5 text-[#E2DDF0]">
+            {tailwind && (
+              <li data-wind="tailwind" className={wrap}>
+                <span className="font-semibold text-[#5EEAD4]">{s.tailwind}</span> · {tailwind}
+              </li>
+            )}
+            {headwind && (
+              <li data-wind="headwind" className={wrap}>
+                <span className="font-semibold text-[#FDBA74]">{s.headwind}</span> · {headwind}
+              </li>
+            )}
+          </ul>
+        )}
+        {!never && (
+          <p data-venture-news className="text-xs text-muted-foreground">
+            {relatedNews > 0 ? plural(relatedNews, s.related) : s.noNews}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ScoreTile({ region, label, view, m }: { region: string; label: string; view: VentureCard["market"]["global"]; m: Messages }) {
+  const score = view?.score ?? null;
+  const change = score === null ? null : scoreChange(view!.delta, m.opp.trend);
+  return (
+    <div data-venture-score={region} className={tile}>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      {score === null ? (
+        <p className="text-xs text-muted-foreground">{m.venture.market.noScore}</p>
+      ) : (
+        <p className="flex flex-wrap items-baseline gap-x-2 font-mono">
+          <span className="text-[22px] font-medium text-primary">{score}</span>
+          <span className="text-xs text-muted-foreground">/ 100</span>
+          {change && (
+            <span
+              data-trend={change.direction}
+              className={cn("text-xs font-semibold", change.direction === "up" && "text-primary", change.direction === "down" && "text-destructive", change.direction === "flat" && "text-muted-foreground")}
+            >
+              {change.text}
+            </span>
+          )}
+        </p>
+      )}
+    </div>
   );
 }
 
