@@ -64,6 +64,12 @@ triage (OR-14) can later re-categorise one article without touching its source.
 `error`. A row is written when the run starts (`running`) and updated when it ends, so a crashed
 job leaves a record. Index on (`job`, `finished_at desc`).
 
+**Switched-off sources.** A source with `active = false` (its feed was removed or its terms do not
+allow our use) keeps its articles in the database; deleting them is the Tech Lead's call. Those
+articles are invisible: every read of articles for a screen, a count, the triage queue or
+opportunity/venture matching applies `articleIsVisible` (the source is active) from
+`src/server/data/articles.ts`.
+
 ### Access patterns in code
 
 | Pattern | Function in `@/server/data` | Query |
