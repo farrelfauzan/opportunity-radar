@@ -19,6 +19,9 @@ export function LanguageSwitch({ locale, label }: { locale: Locale; label: strin
           <Link
             key={target}
             href={href}
+            // Next 16.3.8 re-requests the prefetch of a link to the current path forever when the path holds %27
+            // (OR-61); a language switch is a click, so nothing is lost without the prefetch.
+            prefetch={false}
             aria-current={target === locale ? "true" : undefined}
             onClick={(event) => {
               event.preventDefault();
