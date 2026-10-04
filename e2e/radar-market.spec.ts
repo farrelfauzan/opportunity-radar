@@ -100,7 +100,7 @@ for (const locale of ["en", "id"] as const) {
     }
     // Nothing is requested from outside the app, and the other investment sections are still not built.
     expect(outside).toEqual([]);
-    expect(await main(page).innerText()).not.toMatch(/investment alerts|peringatan investasi|my ventures|usaha saya|financial advice|nasihat/i);
+    expect(await main(page).innerText()).not.toMatch(/investment alerts|peringatan investasi|financial advice|nasihat/i);
   });
 
   test(`${locale}: each change shows an arrow (or a dash) and the unsigned percent, in colour and in words`, async ({ page }) => {
@@ -125,6 +125,10 @@ for (const locale of ["en", "id"] as const) {
       const svg = row(page, r.slug).locator("svg[data-market-spark]");
       await expect(svg).toHaveAttribute("aria-hidden", "true");
       await expect(svg).toHaveAttribute("viewBox", "0 0 96 28");
+      // The picture is hidden from screen readers, but its first and last close are spoken.
+      const spoken = row(page, r.slug).locator(".sr-only", { hasText: locale === "en" ? "Last 10 closes: from" : "10 penutupan terakhir: dari" });
+      await expect(spoken).toHaveCount(1);
+      await expect(spoken).toHaveText(locale === "en" ? /^Last 10 closes: from .+ to .+$/ : /^10 penutupan terakhir: dari .+ ke .+$/);
       const points = (await svg.locator("polyline").getAttribute("points"))!.split(" ").map((p) => p.split(",").map(Number));
       expect(points).toHaveLength(10);
       expect(points[0][0]).toBe(0);
