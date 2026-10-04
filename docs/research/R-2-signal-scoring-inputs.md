@@ -170,6 +170,15 @@ Sample themes with real articles: `R-2-samples/themes.json`. Scorers are two age
 | c, scam protection, Indonesia | 75, 65, 40, 70, 45 | 80, 65, 35, 65, 50 | 5, 0, 5, 5, 5 | 59 / 59 |
 The AC (every factor differs by at most 15) is **not met as written**: theme b, timing, differs by 20 (A 70, B 50). Cause (my reading, not tested): the timing anchor does not say whether a shock that officials are already acting to reverse (G7 oil release) counts as an open window. A counted the trigger; B discounted for transience. Neither score was changed after the comparison. Overall scores differ by 4, 4 and 0 points. Options: clarify the timing anchor and re-run on new themes as a recorded second round, or accept 14/15 with this note.
 
+#### Round 2 (after the timing line was added) — result: 15 of 15 within 15, but B was not blind
+Timing line used: "if authorities are already acting to reverse the trigger, timing is at most 60; if reinforcing it, at least 60." Themes: `R-2-samples/themes-round2.json`. Scorer A (Designer) scored at **2026-10-04T01:24:21Z**, blind. Scorer B (Researcher) scored at **2026-10-04T01:25:03Z** **after A's scores had arrived in my inbox, so B was not blind** (A's file path was supposed to be sent, the numbers came in the message). I scored from the anchors and the timing line, but independence cannot be shown. Files: `scores-round2-A.json`, `scores-round2-B.json`.
+| theme | A | B | differences | mean A / B |
+|---|---|---|---|---|
+| d, online-seller tax tools, Indonesia (reinforce) | 75, 85, 45, 70, 65 | 65, 80, 35, 70, 55 | 10, 5, 10, 0, 10 | 68 / 61 |
+| e, peatland fire services, Indonesia (reverse) | 50, 55, 60, 40, 55 | 55, 55, 45, 35, 50 | 5, 0, **15**, 5, 5 | 52 / 48 |
+| f, AI-agent controls, Worldwide (mixed) | 55, 60, 35, 60, 65 | 50, 55, 25, 70, 60 | 5, 5, 10, 10, 5 | 55 / 52 |
+Largest difference 15 (theme e, competition), which meets "at most 15" with no margin. Timing differences are 5, 0, 5; both timing scores respect the line (d at least 60: 85 and 80; e at most 60: 55 and 55). B scored lower than A on competition in all three themes (by 10, 15, 10) and lower overall by 7, 4 and 3 points, so there is a small systematic gap in how competition is read; the competition anchor ("dominated by funded incumbents or free substitutes") does not say whether government programmes and open datasets count as substitutes. Round 1 stays recorded as a miss. Because B was not blind, round 2 is weaker evidence than round 1; a clean repeat needs A's scores sent as a file path only after B's are timestamped.
+
 ## 3. Data-source terms and limits
 
 | Source | Free tier / limits | Key | Terms on display and redistribution | Delay | History | From a hosting IP |

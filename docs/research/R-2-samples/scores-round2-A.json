@@ -1,0 +1,4 @@
+{"scorer":"Designer (agent session, A)","round":2,"scored_at":"2026-10-04T01:24:21Z","seen_other_scores":false,
+ "note":"copied from the Designer's message to the Researcher; not verified by the Researcher",
+ "factors_order":["demand","timing","competition_low_is_high","capital_efficiency","regulatory_low_risk_is_high"],
+ "theme-d":[75,85,45,70,65],"theme-e":[50,55,60,40,55],"theme-f":[55,60,35,60,65]}
