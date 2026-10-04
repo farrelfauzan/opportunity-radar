@@ -287,6 +287,7 @@ Section order (desktop and phone): brief → My ventures → Top opportunities �
 |---|---|---|
 | opp.title | Opportunities | Peluang |
 | opp.summary | {n} open · re-scored every morning from the news | {n} terbuka · dinilai ulang setiap pagi dari berita |
+| opp.filter.region.label | Region | Wilayah |
 | opp.filter.region.all | All regions | Semua wilayah |
 | opp.filter.region.id | Indonesia | Indonesia |
 | opp.filter.region.global | Global | Global |
