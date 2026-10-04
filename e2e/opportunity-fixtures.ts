@@ -44,16 +44,27 @@ export function factorsOf(overall: number) {
 }
 
 /** An article that opportunities cite. Stored with the News fixtures, on a day before today (so News counts are unchanged). */
-export type FixtureEvidence = { key: string; source: string; headline: string; snippet: string; ageDays: number };
+export type FixtureEvidence = {
+  key: string;
+  source: string;
+  headline: string;
+  snippet: string;
+  ageDays: number;
+  /** Stored as the article's category and region (default business, indonesia) and, with `why`, as its ok triage. */
+  category?: "business" | "politics" | "tech-ai" | "markets" | "commodities";
+  region?: "indonesia" | "global";
+  /** "Why it matters" of an ok triage (the Radar shows it); an article without one is untriaged. */
+  why?: { en: string; id: string };
+};
 
 export const longEvidenceHeadline = `Superpanjang${"Berita".repeat(16)}Rantai`; // 108 characters with no space
 
 export const evidenceArticles: FixtureEvidence[] = [
-  { key: "antara", source: "antara", headline: "Pemerintah dorong rantai dingin untuk perikanan", snippet: "Snippet one.", ageDays: 1 },
-  { key: "conversation", source: "conversation-id", headline: "Mengapa ikan segar cepat busuk di perjalanan", snippet: "Ringkasan yang dipakai apa adanya.", ageDays: 3 },
-  { key: "ecb", source: "ecb", headline: "ECB signals steady rates for the year", snippet: "The Governing Council kept the key rates unchanged.", ageDays: 6 },
+  { key: "antara", source: "antara", headline: "Pemerintah dorong rantai dingin untuk perikanan", snippet: "Snippet one.", ageDays: 1, why: { en: "Cold-chain demand grows for fish farmers.", id: "Permintaan rantai dingin tumbuh bagi pembudidaya ikan." } },
+  { key: "conversation", source: "conversation-id", headline: "Mengapa ikan segar cepat busuk di perjalanan", snippet: "Ringkasan yang dipakai apa adanya.", ageDays: 3, category: "politics", why: { en: "Spoilage losses open room for fresh-fish logistics.", id: "Kerugian pembusukan membuka peluang logistik ikan segar." } },
+  { key: "ecb", source: "ecb", headline: "ECB signals steady rates for the year", snippet: "The Governing Council kept the key rates unchanged.", ageDays: 6, category: "markets", region: "global", why: { en: "Steady rates keep financing costs predictable.", id: "Suku bunga stabil menjaga biaya pembiayaan tetap terduga." } },
   { key: "off", source: "katadata", headline: "Katadata: sewa panel surya naik", snippet: "Snippet of a source that is switched off.", ageDays: 4 },
-  { key: "markup", source: "bbc-business", headline: `<img src=x onerror="window.__pwned=1"> <b>Bold</b> & "quotes"`, snippet: "<script>window.__pwned=1</script>", ageDays: 8 },
+  { key: "markup", source: "bbc-business", headline: `<img src=x onerror="window.__pwned=1"> <b>Bold</b> & "quotes"`, snippet: "<script>window.__pwned=1</script>", ageDays: 8, category: "tech-ai", region: "global", why: { en: `<b>Bold</b> why & "quotes"`, id: `<b>Tebal</b> mengapa & "kutip"` } },
   { key: "long", source: "kemendag", headline: longEvidenceHeadline, snippet: "Snippet of the long one.", ageDays: 10 },
 ];
 

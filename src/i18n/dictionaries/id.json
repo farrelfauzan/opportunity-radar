@@ -37,6 +37,46 @@
     "hoursAgo": "{n} jam lalu",
     "daysAgo": "{n} hari lalu"
   },
+  "radar": {
+    "title": "Radar hari ini",
+    "updated": "{date} · diperbarui {time} WIB",
+    "brief": {
+      "title": "Ringkasan harian — apa yang berubah bagi peluang bisnis",
+      "source": "Ringkasan AI dari {articles}, {sources}",
+      "articles": {
+        "one": "{n} artikel",
+        "other": "{n} artikel"
+      },
+      "sources": {
+        "one": "{n} sumber",
+        "other": "{n} sumber"
+      },
+      "affected": {
+        "one": "{n} peluang terdampak",
+        "other": "{n} peluang terdampak"
+      },
+      "none": "Belum cukup berita hari ini"
+    },
+    "top": {
+      "title": "Peluang teratas",
+      "seeAll": "Lihat semua ({n})",
+      "score": "skor",
+      "horizon": "Horizon {h}",
+      "basedOn": {
+        "one": "Berdasarkan {n} berita",
+        "other": "Berdasarkan {n} berita"
+      },
+      "empty": "Belum ada peluang. Proses pagi pertama berjalan pukul 07.00 WIB."
+    },
+    "news": {
+      "title": "Berita yang menggerakkan peluang",
+      "all": "Semua berita",
+      "linked": {
+        "one": "Terkait {n} peluang",
+        "other": "Terkait {n} peluang"
+      }
+    }
+  },
   "news": {
     "summary": {
       "line": "{articles} · {sources} · diperbarui setiap 30 menit",
@@ -98,6 +138,8 @@
       "context": "Konteks"
     },
     "why": "Mengapa penting",
+    "whyAi": "AI",
+    "whyAiSr": "Ditulis oleh AI dari artikel, bukan oleh penerbit",
     "linked": "Peluang terkait: {title}",
     "themes": {
       "title": "Tema populer, 7 hari",
@@ -234,14 +276,16 @@
     },
     "never": {
       "title": "Belum ada data",
-      "bodyNews": "Pemeriksaan berita pertama berjalan dalam 30 menit."
+      "bodyNews": "Pemeriksaan berita pertama berjalan dalam 30 menit.",
+      "body": "Pembaruan pertama berjalan pukul {time} WIB."
     },
     "stale": {
       "today": "{what} terakhir diperbarui {time} WIB",
       "earlier": "{what} terakhir diperbarui {date}, {time} WIB",
       "what": {
         "news": "Berita",
-        "opportunities": "Peluang"
+        "opportunities": "Peluang",
+        "brief": "Ringkasan harian"
       }
     },
     "partial": "{ok} dari {total} sumber diperbarui · belum diperbarui: {names}"
