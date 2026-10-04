@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { beforeEach, describe, expect, test } from "vitest";
 import { insertArticle, listArticles, upsertSource, wibDay, type NewArticle } from "@/server/data";
+import { articlesQuery } from "@/server/data/articles";
 import { db } from "@/server/data/client";
 
 let sourceId: number;
@@ -92,6 +93,12 @@ describe("insertArticle: validation", () => {
     expect(Array.from(stored.snippet)).toHaveLength(500);
   });
 
+  test("a headline longer than 300 characters is cut to 300, ending in …", async () => {
+    const { article: stored } = await insertArticle(article({ headline: "😀".repeat(301) }));
+    expect(Array.from(stored.headline)).toHaveLength(300);
+    expect(stored.headline.endsWith("😀…")).toBe(true);
+  });
+
   test("an empty snippet is allowed", async () => {
     const { article: stored } = await insertArticle(article({ snippet: undefined }));
     expect(stored.snippet).toBe("");
@@ -100,6 +107,7 @@ describe("insertArticle: validation", () => {
   test.each([
     ["an empty headline", { headline: "   " }, /headline/],
     ["a region outside Indonesia / Global", { region: "asia" as never }, /region/],
+    ["an unknown category", { category: "sports" as never }, /category/],
     ["a javascript: link", { link: "javascript:alert(1)" }, /http\(s\)/],
     ["an ftp link", { link: "ftp://example.com/a" }, /http\(s\)/],
     ["a link that is not a URL", { link: "not a url" }, /http\(s\)/],
@@ -109,15 +117,17 @@ describe("insertArticle: validation", () => {
   });
 
   test("the database itself refuses invalid rows", async () => {
-    const insert = (headline: string, region: string, link: string, snippet: string) =>
+    const insert = (headline: string, region: string, link: string, snippet: string, category = "tech-ai") =>
       db().execute(sql`
         insert into articles (source_id, canonical_url, link, region, category, headline, snippet, published_at)
-        values (${sourceId}, ${link}, ${link}, ${region}, 'tech-ai', ${headline}, ${snippet}, now())`);
+        values (${sourceId}, ${link}, ${link}, ${region}, ${category}, ${headline}, ${snippet}, now())`);
 
     await expect(insert("", "global", "https://example.com/1", "")).rejects.toThrow();
     await expect(insert("h", "asia", "https://example.com/2", "")).rejects.toThrow();
     await expect(insert("h", "global", "ftp://example.com/3", "")).rejects.toThrow();
     await expect(insert("h", "global", "https://example.com/4", "x".repeat(501))).rejects.toThrow();
+    await expect(insert("h", "global", "https://example.com/5", "", "sports")).rejects.toThrow();
+    await expect(insert("x".repeat(301), "global", "https://example.com/6", "")).rejects.toThrow();
     expect(await count()).toBe(0);
   });
 
@@ -181,11 +191,20 @@ describe("listArticles: a WIB calendar day, newest first", () => {
     }
     const list = await listArticles({ day: "2026-10-03" });
     expect(list.map((a) => a.id)).toEqual([...ids].reverse());
+
+    // The index and the join can return ties in id order by themselves, which
+    // would hide a missing tie-break, so the query itself is checked too.
+    expect(articlesQuery({ day: "2026-10-03" }).toSQL().sql).toMatch(
+      /order by "articles"\."published_at" desc, "articles"\."id" desc$/,
+    );
   });
 
   test("an invalid day is rejected", async () => {
     await expect(listArticles({ day: "03-10-2026" })).rejects.toThrow("YYYY-MM-DD");
     await expect(listArticles({ day: "2026-13-40" })).rejects.toThrow("YYYY-MM-DD");
+    await expect(listArticles({ day: "2026-02-30" })).rejects.toThrow("YYYY-MM-DD");
+    await expect(listArticles({ day: "2026-04-31" })).rejects.toThrow("YYYY-MM-DD");
+    await expect(listArticles({ day: "2028-02-29" })).resolves.toEqual([]); // a leap day exists
   });
 
   test("wibDay gives the WIB calendar day of an instant", () => {

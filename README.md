@@ -2,6 +2,7 @@
 
 ## Run it locally
 
+Needs **Node.js 22.18 or newer** (it runs the TypeScript scripts directly) and pnpm.
 **Docker Desktop must be running** for development, QA and the browser tests: the app stores its
 data in a local Postgres started with docker compose.
 
@@ -33,7 +34,13 @@ database, for example `pnpm db:seed --test`. `pnpm db:reset` always works on the
 
 There are two databases on the one server, chosen by env vars in `.env.local` (names in
 `.env.example`): `DATABASE_URL` (development) and `TEST_DATABASE_URL` (used by `pnpm test` and by
-QA). Tests never touch development data. To run the app on the test database:
+QA). Tests never touch development data. The test database must be on this machine and its name
+must end in `_test`; anything else is refused.
+
+**Several sessions on one machine:** every `pnpm test` empties the test database first, so give
+each session (and QA) its own, for example
+`TEST_DATABASE_URL=postgres://postgres@127.0.0.1:54329/opportunity_radar_qa_test pnpm test`.
+It is created on first use. Use the same variable for the `--test` commands. To run the app on the test database:
 `DATABASE_URL="$TEST_DATABASE_URL" pnpm dev` after `set -a; source .env.local; set +a`.
 
 Every worktree on this machine shares the same Postgres container and volume. The local database
@@ -54,7 +61,8 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
 - A job that is already running is not started twice: the second start is recorded as `skipped`.
 - `pnpm job morning` runs triage → opportunities → scores → brief and stops at the first failing
   step; later steps are recorded as `skipped`.
-- `--test` runs against the test database; `--timeout` overrides the job's own time limit.
+- `--test` runs against the test database; `--timeout <seconds>` overrides the job's own time
+  limit (a value that is not a positive number exits with code 2 and runs nothing).
 - `pnpm job ingest-news` fetches the 12 news feeds once (meant to run every 30 minutes) and stores
   new articles: headline, snippet and link only. `pnpm sources:health` prints, per source, the
   last successful check, the last status (`200`, `304`, `403`, `timeout`, …) and the number of

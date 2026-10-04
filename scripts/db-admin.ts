@@ -21,10 +21,13 @@ const target = (url: string) => {
 
 /**
  * The test database URL. Refuses anything that could be development data:
- * the database name must end in "_test" and differ from DATABASE_URL.
+ * a database on this machine, whose name ends in "_test" and differs from DATABASE_URL.
  */
 export function testDatabaseUrl(): string {
   const url = databaseUrl("TEST_DATABASE_URL");
+  if (!["127.0.0.1", "localhost", "[::1]"].includes(new URL(url).hostname)) {
+    throw new Error("Refusing to run: TEST_DATABASE_URL must point at this machine (127.0.0.1 or localhost).");
+  }
   if (!new URL(url).pathname.endsWith("_test")) {
     throw new Error('Refusing to run: the TEST_DATABASE_URL database name must end in "_test".');
   }

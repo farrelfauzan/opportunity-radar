@@ -238,6 +238,16 @@ describe("pnpm job", { timeout: 60_000 }, () => {
     expect(await runs()).toMatchObject([{ job: "fail", status: "failed", error: "boom [redacted]" }]);
   });
 
+  test.each([["abc"], ["-1"], ["0"], ["Infinity"], [undefined]])(
+    "--timeout %s is refused with exit code 2 and nothing recorded",
+    async (value) => {
+      const result = job(["sleep", "0", "--timeout", ...(value === undefined ? [] : [value])]);
+      expect(result.status).toBe(2);
+      expect(result.stderr).toContain("--timeout needs a number of seconds greater than 0");
+      expect(await runs()).toEqual([]);
+    },
+  );
+
   test("a timeout fails the run and exits non-zero; the next run works", async () => {
     expect(job(["sleep", "5", "--timeout", "1"]).status).not.toBe(0);
     expect(job(["sleep", "0"]).status).toBe(0);
