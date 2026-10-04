@@ -5,8 +5,9 @@ import "server-only";
 
 export { checkConnection, closeDb } from "./client.ts";
 export { REGIONS, CATEGORIES, JOB_STATUSES, SECTORS } from "./schema.ts";
-export type { Region, Category, JobStatus, Sector, FactorScores } from "./schema.ts";
+export type { Region, Category, JobStatus, Sector, FactorScores, LlmRole, LlmCallStatus } from "./schema.ts";
 export * from "./articles.ts";
 export * from "./sources.ts";
 export * from "./job-runs.ts";
 export * from "./ventures.ts";
+export * from "./llm-usage.ts";
