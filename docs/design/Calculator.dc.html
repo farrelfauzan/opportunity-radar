@@ -1,3 +1,4 @@
+<!-- Reference only: sample data, not app code. UI text: docs/design/copy.md wins. Signal wording: docs/signals/rules-v1.md wins. -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -20,16 +21,16 @@ a{color:#2DD4BF}a:hover{color:#5EEAD4}
 <svg viewBox="0 0 24 24" style="width: 22px; height: 22px; fill: none; stroke: #2DD4BF; stroke-width: 2; stroke-linecap: round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4"></circle><path d="M12 12 L19 5"></path></svg>
 Opportunity Radar</a>
 <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto">
-<a href="Main.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Radar</a>
-<a href="Opportunities.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Opportunities</a>
-<a href="News.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">News</a>
-<a href="Invest.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #C1B9DA; font-weight: 500">Investments</a>
+<a href="Main.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #D4CEE6; font-weight: 500">Radar</a>
+<a href="Opportunities.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #D4CEE6; font-weight: 500">Opportunities</a>
+<a href="News.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #D4CEE6; font-weight: 500">News</a>
+<a href="Invest.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #D4CEE6; font-weight: 500">Investments</a>
 <a href="Calculator.dc.html" style="padding: 12px; border-radius: 6px; text-decoration: none; color: #FAF8FF; font-weight: 600; background: #4B3E75">Calculators</a>
 </nav>
-<span style="font-size: 12px; color: #C1B9DA; border: 1px dashed #C1B9DA; border-radius: 999px; padding: 2px 10px">Sample data</span>
+<span style="font-size: 12px; color: #D4CEE6; border: 1px dashed #D4CEE6; border-radius: 999px; padding: 2px 10px">Sample data</span>
 <div role="group" aria-label="Language" style="display: flex; border: 1px solid #4B3E75; border-radius: 6px; overflow: hidden">
 <a href="Main.dc.html" aria-current="true" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #362B5A; background: #FAF8FF">EN</a>
-<a href="Main-ID.dc.html" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #C1B9DA">ID</a>
+<a href="Main-ID.dc.html" style="padding: 12px 12px; text-decoration: none; font-size: 12px; font-weight: 600; color: #D4CEE6">ID</a>
 </div>
 <a href="Invest.dc.html#alerts" aria-label="Alerts, 3 new" style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: #FAF8FF">
 <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg>
@@ -40,7 +41,7 @@ Opportunity Radar</a>
 <main style="max-width: 1200px; margin: 0 auto; padding: 24px clamp(16px, 3vw, 32px) 48px; display: flex; flex-direction: column; gap: 24px">
 <div>
 <h1 style="margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.01em">Calculators</h1>
-<div style="color: #C1B9DA">Provisional projections from your own assumptions. Change any number; results update as you type.</div>
+<div style="color: #D4CEE6">Provisional projections from your own assumptions. Change any number; results update as you type.</div>
 </div>
 
 <section aria-labelledby="ic" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
@@ -66,27 +67,27 @@ Opportunity Radar</a>
 <input type="number" min="0" step="0.5" value="{{iv.spread}}" onChange="{{set.spread}}" style="min-height: 44px; width: 100%; box-sizing: border-box; padding: 0 10px; border-radius: 6px; border: 1px solid #65578F; background: rgba(0, 0, 0, 0.18); color: #FAF8FF; font-family: 'Geist Mono', monospace; font-size: 14px"></label>
 <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #E2DDF0">Inflation (%)
 <input type="number" min="0" step="0.5" value="{{iv.infl}}" onChange="{{set.infl}}" style="min-height: 44px; width: 100%; box-sizing: border-box; padding: 0 10px; border-radius: 6px; border: 1px solid #65578F; background: rgba(0, 0, 0, 0.18); color: #FAF8FF; font-family: 'Geist Mono', monospace; font-size: 14px"></label>
-<div style="grid-column: 1 / -1; font-size: 12px; color: #C1B9DA">The asset-type buttons fill in example assumptions, not forecasts. Higher-risk assets get a wider uncertainty band.</div>
+<div style="grid-column: 1 / -1; font-size: 12px; color: #D4CEE6">The asset-type buttons fill in example assumptions, not forecasts. Higher-risk assets get a wider uncertainty band.</div>
 </div>
 <div style="flex: 999 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px">
-<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #C1B9DA">Value after {{iv.years}} years</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500; color: #2DD4BF">{{io.base}}</div></div>
-<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #C1B9DA">You paid in</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500">{{io.paid}}</div></div>
-<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #C1B9DA">In today's money</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500">{{io.real}}</div></div>
+<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #D4CEE6">Value after {{iv.years}} years</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500; color: #2DD4BF">{{io.base}}</div></div>
+<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #D4CEE6">You paid in</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500">{{io.paid}}</div></div>
+<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #D4CEE6">In today's money</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500">{{io.real}}</div></div>
 </div>
 <svg viewBox="0 0 800 220" preserveAspectRatio="none" style="width: 100%; height: 220px; display: block" role="img" aria-label="Projected value over time for pessimistic, base and optimistic returns, compared with the amount paid in">
 <line x1="0" y1="55" x2="800" y2="55" style="stroke: rgba(255, 255, 255, 0.10)"></line><line x1="0" y1="110" x2="800" y2="110" style="stroke: rgba(255, 255, 255, 0.10)"></line><line x1="0" y1="165" x2="800" y2="165" style="stroke: rgba(255, 255, 255, 0.10)"></line>
-<polyline points="{{io.lPaid}}" style="fill: none; stroke: #C1B9DA; stroke-width: 2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke"></polyline>
+<polyline points="{{io.lPaid}}" style="fill: none; stroke: #D4CEE6; stroke-width: 2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke"></polyline>
 <polyline points="{{io.lLow}}" style="fill: none; stroke: #FB923C; stroke-width: 2; vector-effect: non-scaling-stroke"></polyline>
 <polyline points="{{io.lHigh}}" style="fill: none; stroke: #60A5FA; stroke-width: 2; vector-effect: non-scaling-stroke"></polyline>
 <polyline points="{{io.lBase}}" style="fill: none; stroke: #2DD4BF; stroke-width: 3; vector-effect: non-scaling-stroke"></polyline>
 </svg>
-<div style="display: flex; justify-content: space-between; font-size: 12px; color: #C1B9DA"><span>Now</span><span>Year {{iv.years}}</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 12px; color: #D4CEE6"><span>Now</span><span>Year {{iv.years}}</span></div>
 <div style="display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 13px; color: #E2DDF0">
 <span><span style="display: inline-block; width: 16px; height: 3px; background: #60A5FA; vertical-align: middle; margin-right: 6px"></span>Optimistic {{io.high}}</span>
 <span><span style="display: inline-block; width: 16px; height: 3px; background: #2DD4BF; vertical-align: middle; margin-right: 6px"></span>Base {{io.base}}</span>
 <span><span style="display: inline-block; width: 16px; height: 3px; background: #FB923C; vertical-align: middle; margin-right: 6px"></span>Pessimistic {{io.low}}</span>
-<span><span style="display: inline-block; width: 16px; height: 0; border-top: 2px dashed #C1B9DA; vertical-align: middle; margin-right: 6px"></span>Paid in</span>
+<span><span style="display: inline-block; width: 16px; height: 0; border-top: 2px dashed #D4CEE6; vertical-align: middle; margin-right: 6px"></span>Paid in</span>
 </div>
 </div>
 </div>
@@ -95,7 +96,7 @@ Opportunity Radar</a>
 <section aria-labelledby="bc" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 8px 32px rgba(12, 6, 30, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 10px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
 <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px">
 <h2 id="bc" style="margin: 0; font-size: 18px; font-weight: 700">Business projection</h2>
-<span style="font-size: 12px; color: #C1B9DA">Open it from an opportunity or a venture to start with that idea's numbers</span>
+<span style="font-size: 12px; color: #D4CEE6">Open it from an opportunity or a venture to start with that idea's numbers</span>
 </div>
 <div style="display: flex; flex-wrap: wrap; gap: 24px">
 <div style="flex: 1 1 300px; min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-content: start">
@@ -114,20 +115,20 @@ Opportunity Radar</a>
 </div>
 <div style="flex: 999 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px">
-<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #C1B9DA">Monthly break-even</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500; color: #2DD4BF">{{bo.breakeven}}</div></div>
-<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #C1B9DA">Capital paid back</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500; color: #2DD4BF">{{bo.payback}}</div></div>
-<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #C1B9DA">Cash needed at the lowest point</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500; color: #FDBA74">{{bo.lowest}}</div></div>
-<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #C1B9DA">Net cash after {{bv.months}} months</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500">{{bo.end}}</div></div>
+<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #D4CEE6">Monthly break-even</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500; color: #2DD4BF">{{bo.breakeven}}</div></div>
+<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #D4CEE6">Capital paid back</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500; color: #2DD4BF">{{bo.payback}}</div></div>
+<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #D4CEE6">Cash needed at the lowest point</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500; color: #FDBA74">{{bo.lowest}}</div></div>
+<div style="background: rgba(0, 0, 0, 0.18); border-radius: 8px; padding: 10px 12px"><div style="font-size: 12px; color: #D4CEE6">Net cash after {{bv.months}} months</div><div style="font-family: 'Geist Mono', monospace; font-size: 20px; font-weight: 500">{{bo.end}}</div></div>
 </div>
 <svg viewBox="0 0 800 220" preserveAspectRatio="none" style="width: 100%; height: 220px; display: block" role="img" aria-label="Cumulative cash over time; the business has paid back its capital where the line crosses zero">
-<line x1="0" y1="{{bo.zeroY}}" x2="800" y2="{{bo.zeroY}}" style="stroke: #C1B9DA; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke"></line>
+<line x1="0" y1="{{bo.zeroY}}" x2="800" y2="{{bo.zeroY}}" style="stroke: #D4CEE6; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke"></line>
 <polyline points="{{bo.line}}" style="fill: none; stroke: #2DD4BF; stroke-width: 3; vector-effect: non-scaling-stroke"></polyline>
 </svg>
-<div style="display: flex; justify-content: space-between; font-size: 12px; color: #C1B9DA"><span>Month 0</span><span>Dashed line = capital fully paid back</span><span>Month {{bv.months}}</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 12px; color: #D4CEE6"><span>Month 0</span><span>Dashed line = capital fully paid back</span><span>Month {{bv.months}}</span></div>
 </div>
 </div>
 </section>
-<p style="margin: 0; font-size: 12px; color: #C1B9DA">Projections are arithmetic on the assumptions you enter. They are not forecasts or financial advice; real returns and revenues vary and can be negative.</p>
+<p style="margin: 0; font-size: 12px; color: #D4CEE6">Projections are arithmetic on the assumptions you enter. They are not forecasts or financial advice; real returns and revenues vary and can be negative.</p>
 </main>
 </div>
 </x-dc>
