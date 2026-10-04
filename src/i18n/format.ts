@@ -29,6 +29,23 @@ export function formatRupiah(value: Num, locale: Locale): string {
   return `${sign}Rp${NBSP}${digits(amount, locale, 0)}`;
 }
 
+/**
+ * Short form for large amounts: "Rp 425.7 million", "Rp 1.20 billion" (en);
+ * "Rp 425,7 juta", "Rp 1,20 miliar" (id). Below a million it is the whole amount.
+ */
+export function formatRupiahCompact(value: Num, locale: Locale, units: Messages["calc"]["unit"]): string {
+  if (isMissing(value)) return MISSING;
+  const amount = Math.abs(value);
+  if (amount < 1e6) return formatRupiah(value, locale);
+  const [divisor, fractionDigits, unit] =
+    amount >= 1e12
+      ? [1e12, 2, units.trillion]
+      : amount >= 1e9
+        ? [1e9, 2, units.billion]
+        : [1e6, 1, units.million];
+  return `${value < 0 ? MINUS : ""}Rp${NBSP}${digits(amount / divisor, locale, fractionDigits)} ${unit}`;
+}
+
 /** "$1,234.50" (en), "US$1.234,50" (id). */
 export function formatUsd(value: Num, locale: Locale): string {
   if (isMissing(value)) return MISSING;

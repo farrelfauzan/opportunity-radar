@@ -36,5 +36,50 @@
     "minutesAgo": "{n}m ago",
     "hoursAgo": "{n}h ago",
     "daysAgo": "{n}d ago"
+  },
+  "calc": {
+    "title": "Calculators",
+    "intro": "Provisional projections from your own assumptions. Change any number; results update as you type.",
+    "inv": {
+      "title": "Investment projection",
+      "presetGroup": "Asset type assumptions",
+      "preset": {
+        "cash": "Cash & bonds",
+        "gold": "Gold",
+        "stocks": "Stocks",
+        "crypto": "Crypto"
+      },
+      "start": "Starting amount (Rp)",
+      "monthly": "Added each month (Rp)",
+      "years": "Years",
+      "return": "Yearly return (%)",
+      "spread": "Uncertainty (± % points)",
+      "inflation": "Inflation (%)",
+      "presetNote": "The asset-type buttons fill in example assumptions, not forecasts. Higher-risk assets get a wider uncertainty band.",
+      "valueAfter": {
+        "one": "Value after {years} year",
+        "other": "Value after {years} years"
+      },
+      "paid": "You paid in",
+      "real": "In today's money",
+      "axisNow": "Now",
+      "axisYear": "Year {years}",
+      "optimistic": "Optimistic",
+      "base": "Base",
+      "pessimistic": "Pessimistic",
+      "paidLine": "Paid in",
+      "chartLabel": "Projected value over time for pessimistic, base and optimistic returns, compared with the amount paid in"
+    },
+    "unit": {
+      "million": "million",
+      "billion": "billion",
+      "trillion": "trillion"
+    },
+    "disclaimer": "Projections are arithmetic on the assumptions you enter. They are not forecasts or financial advice; real returns and revenues vary and can be negative.",
+    "err": {
+      "required": "Enter a number",
+      "range": "Enter a value from {min} to {max}",
+      "keptPrevious": "Showing the last valid result"
+    }
   }
 }

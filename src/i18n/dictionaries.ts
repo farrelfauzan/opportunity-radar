@@ -10,6 +10,11 @@ import { createT, type Messages } from "./t";
 // Server-only: client components receive the strings they need as props.
 const dictionaries: Record<Locale, Messages> = { en, id };
 
+/** The whole dictionary, for handing a section of it to a client component as props. */
+export function getMessages(locale: Locale): Messages {
+  return dictionaries[locale];
+}
+
 export function getT(locale: Locale) {
   return createT(dictionaries[locale]);
 }

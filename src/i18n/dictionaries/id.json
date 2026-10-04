@@ -36,5 +36,50 @@
     "minutesAgo": "{n} mnt lalu",
     "hoursAgo": "{n} jam lalu",
     "daysAgo": "{n} hari lalu"
+  },
+  "calc": {
+    "title": "Kalkulator",
+    "intro": "Proyeksi sementara dari asumsi Anda sendiri. Ubah angka mana pun; hasil diperbarui saat Anda mengetik.",
+    "inv": {
+      "title": "Proyeksi investasi",
+      "presetGroup": "Asumsi jenis aset",
+      "preset": {
+        "cash": "Kas & obligasi",
+        "gold": "Emas",
+        "stocks": "Saham",
+        "crypto": "Kripto"
+      },
+      "start": "Jumlah awal (Rp)",
+      "monthly": "Tambahan tiap bulan (Rp)",
+      "years": "Tahun",
+      "return": "Imbal hasil per tahun (%)",
+      "spread": "Ketidakpastian (± poin %)",
+      "inflation": "Inflasi (%)",
+      "presetNote": "Tombol jenis aset mengisi contoh asumsi, bukan perkiraan. Aset berisiko lebih tinggi mendapat rentang ketidakpastian lebih lebar.",
+      "valueAfter": {
+        "one": "Nilai setelah {years} tahun",
+        "other": "Nilai setelah {years} tahun"
+      },
+      "paid": "Total setoran Anda",
+      "real": "Dalam nilai uang hari ini",
+      "axisNow": "Sekarang",
+      "axisYear": "Tahun {years}",
+      "optimistic": "Optimis",
+      "base": "Dasar",
+      "pessimistic": "Pesimis",
+      "paidLine": "Setoran",
+      "chartLabel": "Proyeksi nilai dari waktu ke waktu untuk imbal hasil pesimis, dasar, dan optimis, dibandingkan dengan total setoran"
+    },
+    "unit": {
+      "million": "juta",
+      "billion": "miliar",
+      "trillion": "triliun"
+    },
+    "disclaimer": "Proyeksi ini hanya hitungan dari asumsi yang Anda masukkan. Ini bukan perkiraan atau nasihat keuangan; imbal hasil dan pendapatan nyata bervariasi dan bisa negatif.",
+    "err": {
+      "required": "Masukkan angka",
+      "range": "Masukkan nilai dari {min} sampai {max}",
+      "keptPrevious": "Menampilkan hasil valid terakhir"
+    }
   }
 }
