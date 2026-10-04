@@ -2,11 +2,13 @@ import { describe, expect, test } from "vitest";
 import en from "./dictionaries/en.json";
 import id from "./dictionaries/id.json";
 import {
+  formatDateShortWib,
   formatDateTimeWib,
   formatPercent,
   formatRelativeTime,
   formatRupiah,
   formatRupiahCompact,
+  formatTimeWib,
   formatUsd,
 } from "./format";
 
@@ -62,6 +64,19 @@ test("formatDateTimeWib rolls the date over at WIB midnight", () => {
   expect(formatDateTimeWib("2026-10-03T17:30:00Z", "en")).toBe("4 Oct 2026, 00:30 WIB");
   expect(formatDateTimeWib("2026-10-03T17:30:00Z", "id")).toBe("4 Okt 2026, 00.30 WIB");
   expect(formatDateTimeWib(new Date("2026-10-03T16:59:00Z"), "en")).toBe("3 Oct 2026, 23:59 WIB");
+});
+
+test("formatTimeWib and formatDateShortWib read the WIB clock", () => {
+  expect(formatTimeWib("2026-10-03T02:30:00Z", "en")).toBe("09:30");
+  expect(formatTimeWib("2026-10-03T02:30:00Z", "id")).toBe("09.30");
+  expect(formatDateShortWib("2026-10-03T02:30:00Z", "en")).toBe("3 Oct");
+  expect(formatDateShortWib("2026-10-03T02:30:00Z", "id")).toBe("3 Okt");
+  // 17:30 UTC is already the next day in WIB, and midnight reads 00, not 24.
+  expect(formatTimeWib("2026-10-03T17:05:00Z", "en")).toBe("00:05");
+  expect(formatDateShortWib("2026-10-03T17:05:00Z", "en")).toBe("4 Oct");
+  expect(formatTimeWib("2026-10-03T16:59:00Z", "id")).toBe("23.59");
+  expect(formatTimeWib(null, "en")).toBe(DASH);
+  expect(formatDateShortWib("not a date", "id")).toBe(DASH);
 });
 
 describe("formatRelativeTime", () => {

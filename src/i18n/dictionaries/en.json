@@ -37,6 +37,78 @@
     "hoursAgo": "{n}h ago",
     "daysAgo": "{n}d ago"
   },
+  "news": {
+    "summary": {
+      "line": "{articles} · {sources} · refreshed every 30 minutes",
+      "articles": {
+        "one": "{n} article today",
+        "other": "{n} articles today"
+      },
+      "sources": {
+        "one": "{n} source",
+        "other": "{n} sources"
+      }
+    },
+    "cat": {
+      "all": "All",
+      "business": "Business",
+      "politics": "Politics & policy",
+      "tech": "Tech & AI",
+      "markets": "Markets",
+      "commodities": "Commodities"
+    },
+    "region": {
+      "label": "Region",
+      "all": "Indonesia + Global",
+      "id": "Indonesia",
+      "global": "Global"
+    },
+    "item": {
+      "meta": "{source} · {ago} · {region}",
+      "openExternal": "Opens on the publisher's site"
+    },
+    "empty": "No articles for this filter",
+    "loadMore": "Load more",
+    "sources": {
+      "title": "Sources",
+      "indonesia": "Indonesia: {names}",
+      "global": "Global: {names}",
+      "note": "Headlines and links only; the full article opens on the publisher's site."
+    },
+    "credit": {
+      "line": "Source: {publisher}",
+      "lineLicence": "Source: {publisher} · {licence}",
+      "original": "Read the original",
+      "publisher": {
+        "conversation-id": "The Conversation Indonesia",
+        "conversation-global": "The Conversation",
+        "federal-reserve": "Federal Reserve Board",
+        "ecb": "European Central Bank"
+      },
+      "licence": {
+        "cc-by-nd-4": "CC BY-ND 4.0"
+      }
+    }
+  },
+  "state": {
+    "loading": "Loading…",
+    "error": {
+      "title": "Can't load this right now",
+      "body": "Try again in a moment. If it keeps happening, the local database may be stopped.",
+      "retry": "Try again"
+    },
+    "never": {
+      "title": "No data yet",
+      "bodyNews": "The first news check runs within 30 minutes."
+    },
+    "stale": {
+      "today": "{what} last updated {time} WIB",
+      "earlier": "{what} last updated {date}, {time} WIB",
+      "what": {
+        "news": "News"
+      }
+    }
+  },
   "calc": {
     "title": "Calculators",
     "intro": "Provisional projections from your own assumptions. Change any number; results update as you type.",

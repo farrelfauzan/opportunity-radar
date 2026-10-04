@@ -19,18 +19,22 @@ const target = (url: string) => {
   return `${hostname}:${port || 5432}${pathname}`;
 };
 
+const requireTestName = (url: string) => {
+  if (!["127.0.0.1", "localhost", "[::1]"].includes(new URL(url).hostname)) {
+    throw new Error("Refusing to run: TEST_DATABASE_URL must point at this machine (127.0.0.1 or localhost).");
+  }
+  if (!new URL(url).pathname.endsWith("_test")) {
+    throw new Error('Refusing to run: the test database name must end in "_test".');
+  }
+};
+
 /**
  * The test database URL. Refuses anything that could be development data:
  * a database on this machine, whose name ends in "_test" and differs from DATABASE_URL.
  */
 export function testDatabaseUrl(): string {
   const url = databaseUrl("TEST_DATABASE_URL");
-  if (!["127.0.0.1", "localhost", "[::1]"].includes(new URL(url).hostname)) {
-    throw new Error("Refusing to run: TEST_DATABASE_URL must point at this machine (127.0.0.1 or localhost).");
-  }
-  if (!new URL(url).pathname.endsWith("_test")) {
-    throw new Error('Refusing to run: the TEST_DATABASE_URL database name must end in "_test".');
-  }
+  requireTestName(url);
   if (process.env.DATABASE_URL && target(process.env.DATABASE_URL) === target(url)) {
     throw new Error("Refusing to run: TEST_DATABASE_URL points at the development database.");
   }
@@ -69,9 +73,9 @@ export async function migrate(url: string): Promise<void> {
   }
 }
 
-/** Empties the TEST database and migrates it again. Never takes another URL. */
-export async function resetTestDatabase(): Promise<void> {
-  const url = testDatabaseUrl();
+/** Empties a TEST database (the test one by default, or the e2e one) and migrates it again. */
+export async function resetTestDatabase(url = testDatabaseUrl()): Promise<void> {
+  requireTestName(url);
   await ensureDatabase(url);
   const sql = connect(url);
   try {

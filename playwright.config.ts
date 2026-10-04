@@ -1,23 +1,33 @@
 import { defineConfig } from "@playwright/test";
+import { e2eDatabaseUrl, e2ePort } from "./scripts/e2e-env.ts";
 
-// The smoke test builds and starts its own production server on its own port,
+// The browser tests build and start their own production server on its own port,
 // so it never collides with a dev server on 3000. Override with E2E_PORT.
-const port = Number(process.env.E2E_PORT ?? 3210);
+const port = e2ePort();
 const baseURL = `http://localhost:${port}`;
 
 export default defineConfig({
   testDir: "./e2e",
+  globalSetup: "./e2e/global-setup.ts",
   reporter: "list",
+  // One worker: tests that change the shared test database (stale banner, new article)
+  // must not run beside others, and the two viewport projects run one after the other.
+  workers: 1,
   use: { baseURL, browserName: "chromium" },
   projects: [
     { name: "desktop-1280", use: { viewport: { width: 1280, height: 800 } } },
     { name: "phone-390", use: { viewport: { width: 390, height: 844 } } },
   ],
   webServer: {
-    command: `pnpm exec next build && pnpm exec next start -p ${port}`,
+    // The server starts only when its database exists (see src/instrumentation.ts), so it is created first.
+    command: `node --conditions=react-server --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/e2e-db.ts setup && pnpm exec next build && pnpm exec next start -p ${port}`,
     url: baseURL,
-    // Turns on /[locale]/dev/error, which is a 404 in a normal production run.
-    env: { ENABLE_TEST_ROUTES: "1" },
+    env: {
+      // Turns on /[locale]/dev/error, which is a 404 in a normal production run.
+      ENABLE_TEST_ROUTES: "1",
+      // The server uses its own database, never the development one.
+      DATABASE_URL: e2eDatabaseUrl(port),
+    },
     reuseExistingServer: false,
     timeout: 180_000,
   },
