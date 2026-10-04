@@ -84,7 +84,8 @@
       "stale": "Out of date",
       "up": "up {pct}",
       "down": "down {pct}",
-      "flat": "unchanged"
+      "flat": "unchanged",
+      "noChange": "change not available"
     }
   },
   "news": {
@@ -379,10 +380,119 @@
       "ihsg": "IHSG",
       "usdidr": "USD/IDR",
       "goldGram": "Gold / gram",
-      "bitcoin": "Bitcoin"
+      "bitcoin": "Bitcoin",
+      "bbca": "BBCA",
+      "sp500": "S&P 500",
+      "gold": "Gold",
+      "silver": "Silver",
+      "ethereum": "Ethereum"
+    },
+    "kind": {
+      "idx": "Stock · IDX",
+      "index": "Index · {exchange}",
+      "crypto": "Crypto · USD",
+      "metalShort": "IDR per gram"
     }
   },
   "sample": {
-    "badge": "Sample"
+    "badge": "Sample",
+    "label": "Sample data, not real prices",
+    "explain": "These prices are made up to test the app. Real prices are used once the live data source is switched on."
+  },
+  "inv": {
+    "intro": "Compare the risk of each asset type, then see what the rules say.",
+    "term": {
+      "short": "Short term (days–weeks)",
+      "long": "Long term (1 year+)",
+      "shortLabel": "Short term",
+      "longLabel": "Long term"
+    },
+    "classes": {
+      "title": "Asset types and their risk",
+      "items": {
+        "cash": {
+          "name": "Cash & government bonds",
+          "eg": "Money market, SBN",
+          "drop": "A few percent",
+          "long": "Stability and income; often used for emergency savings",
+          "short": "Low-volatility place for cash between trades",
+          "risks": "Inflation, interest-rate changes"
+        },
+        "gold": {
+          "name": "Gold",
+          "eg": "XAU, Antam",
+          "drop": "10–20% over a year",
+          "long": "Store of value; tends to hold up when the rupiah weakens",
+          "short": "Slow mover; the buy/sell spread takes much of a short move",
+          "risks": "No income, USD and interest rates, dealer spread"
+        },
+        "silver": {
+          "name": "Silver",
+          "eg": "XAG",
+          "drop": "20–35%",
+          "long": "Often held as a smaller hedge next to gold",
+          "short": "Swings more than gold; short moves can be large in both directions",
+          "risks": "Industrial demand cycles, thin retail market"
+        },
+        "idStocks": {
+          "name": "Indonesian stocks",
+          "eg": "IDX: BBCA, TLKM",
+          "drop": "30–50% in a crisis",
+          "long": "Growth and dividends over 5 years or more",
+          "short": "Short-term moves are mostly in liquid blue chips",
+          "risks": "Company results, foreign fund flows, rupiah"
+        },
+        "globalStocks": {
+          "name": "Global stocks",
+          "eg": "S&P 500, Nasdaq",
+          "drop": "30–50% in a crisis",
+          "long": "Diversification outside Indonesia",
+          "short": "Driven by earnings dates and US rates",
+          "risks": "USD/IDR rate, valuation, access and tax"
+        },
+        "crypto": {
+          "name": "Crypto",
+          "eg": "BTC, ETH",
+          "drop": "50–80%",
+          "long": "Highly speculative; many holders keep it to a small part of their savings",
+          "short": "Fast moves, 24/7; losses can be large and quick",
+          "risks": "Extreme volatility, regulation, exchange failure"
+        }
+      }
+    },
+    "risk": {
+      "label": "Risk {n}/5 · {label}",
+      "1": "Low",
+      "2": "Low–medium",
+      "3": "Medium",
+      "4": "High",
+      "5": "Very high"
+    },
+    "drop": "Typical drop",
+    "mainRisks": "Main risks",
+    "watchlist": {
+      "title": {
+        "short": "Watchlist — short-term signals",
+        "long": "Watchlist — long-term signals"
+      }
+    },
+    "col": {
+      "asset": "Asset",
+      "price": "Price",
+      "day": "1 day",
+      "month": "30 days",
+      "signal": "Signal",
+      "risk": "Risk"
+    },
+    "disclaimer": "Signals are produced by fixed, published rules on price data. They are information for your own decision, not financial advice, and past behaviour does not guarantee future results."
+  },
+  "signal": {
+    "buy": "BUY",
+    "sell": "SELL",
+    "hold": "HOLD",
+    "none": "Not enough history",
+    "stale": "No signal: prices are out of date",
+    "invalid": "No signal: the price data has errors",
+    "sample": "No signal: sample data"
   }
 }

@@ -46,6 +46,56 @@ describe("IHSG (idx): 1 hour, Mon-Fri 09:00-16:00 WIB", () => {
   });
 });
 
+describe("S&P 500 (us): 1 hour, Mon-Fri 09:30-16:00 New York time", () => {
+  // 2026-10-02 is a Friday in daylight time (EDT, UTC-4): 09:30 New York is 13:30Z.
+  // 2026-11-02 is a Monday in standard time (EST, UTC-5, after the change on Sunday 1 Nov): 09:30 New York is 14:30Z.
+  const utc = (iso: string) => new Date(`${iso}Z`);
+  const old = utc("2026-09-28T00:00:00");
+
+  test("daylight time: 13:30Z opens it, 13:29Z is still closed, 19:59Z is open, 20:00Z closes it", () => {
+    expect(marketState("us", old, utc("2026-10-02T13:29:00"))).toEqual({ closed: true, stale: false });
+    expect(marketState("us", old, utc("2026-10-02T13:30:00"))).toEqual({ closed: false, stale: true });
+    expect(marketState("us", old, utc("2026-10-02T19:59:00"))).toEqual({ closed: false, stale: true });
+    expect(marketState("us", old, utc("2026-10-02T20:00:00"))).toEqual({ closed: true, stale: false });
+  });
+
+  test("standard time, the day after the change: the same New York hours are one hour later in UTC", () => {
+    expect(marketState("us", old, utc("2026-11-02T14:29:00"))).toEqual({ closed: true, stale: false });
+    expect(marketState("us", old, utc("2026-11-02T14:30:00"))).toEqual({ closed: false, stale: true });
+    expect(marketState("us", old, utc("2026-11-02T20:59:00"))).toEqual({ closed: false, stale: true });
+    expect(marketState("us", old, utc("2026-11-02T21:00:00"))).toEqual({ closed: true, stale: false });
+  });
+
+  test("the offset of the date counts, not a fixed one: 20:30Z is closed in October (16:30 EDT) and open in November (15:30 EST)", () => {
+    expect(marketState("us", null, utc("2026-10-02T20:30:00")).closed).toBe(true);
+    expect(marketState("us", null, utc("2026-11-02T20:30:00")).closed).toBe(false);
+  });
+
+  test("the spring change too: Friday 6 March 2026 is EST (14:30Z opens), Monday 9 March is EDT (13:30Z opens)", () => {
+    expect(marketState("us", null, utc("2026-03-06T14:29:00")).closed).toBe(true);
+    expect(marketState("us", null, utc("2026-03-06T14:30:00")).closed).toBe(false);
+    expect(marketState("us", null, utc("2026-03-09T13:29:00")).closed).toBe(true);
+    expect(marketState("us", null, utc("2026-03-09T13:30:00")).closed).toBe(false);
+  });
+
+  test("fresh up to exactly 1 hour inside the hours, stale a minute later", () => {
+    const now = utc("2026-10-02T16:00:00"); // 12:00 EDT
+    expect(marketState("us", minutesBefore(now, 60), now)).toEqual({ closed: false, stale: false });
+    expect(marketState("us", minutesBefore(now, 61), now)).toEqual({ closed: false, stale: true });
+  });
+
+  test("weekends are closed all day in New York time, even when it is already Saturday or Monday in WIB", () => {
+    expect(marketState("us", old, utc("2026-10-03T14:00:00"))).toEqual({ closed: true, stale: false }); // Saturday 10:00 EDT
+    expect(marketState("us", old, utc("2026-10-04T14:00:00"))).toEqual({ closed: true, stale: false }); // Sunday
+    expect(marketState("us", old, utc("2026-10-05T02:00:00"))).toEqual({ closed: true, stale: false }); // Sunday 22:00 EDT, Monday 09:00 WIB
+    expect(marketState("us", old, utc("2026-10-05T13:30:00")).closed).toBe(false); // Monday 09:30 EDT
+  });
+
+  test("a job that never ran is not stale", () => {
+    expect(marketState("us", null, utc("2026-10-02T16:00:00"))).toEqual({ closed: false, stale: false });
+  });
+});
+
 describe("Gold: 1 hour, Mon 05:00 - Sat 04:00 WIB", () => {
   test("fresh up to exactly 1 hour, stale after", () => {
     const now = wib(TUE, "20:00");

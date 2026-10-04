@@ -9,8 +9,8 @@ export type MarketSlug = (typeof MARKET_SLUGS)[number];
 /** How many daily closes the sparkline draws. */
 export const SPARKLINE_CLOSES = 10;
 
-export type MarketRow = {
-  slug: MarketSlug;
+/** The price of one asset with its change and closes (the rows of the market snapshot and of the watchlist share it). */
+export type PriceRow = {
   /** The quote's price; the last close when the asset has no quote. */
   price: number;
   /** When the price is from: the quote's as-of time, or 00:00 UTC of the last candle's day without a quote. */
@@ -29,10 +29,12 @@ export type MarketRow = {
   closes: number[];
 };
 
-type StoredCandle = { day: string; close: number; source: string; fetchedAt: Date };
+export type MarketRow = PriceRow & { slug: MarketSlug };
+
+export type StoredCandle = { day: string; close: number; source: string; fetchedAt: Date };
 
 /**
- * One row of the snapshot from an asset's quote and its newest candles (oldest first), or null with neither.
+ * The price of an asset from its quote and its newest candles (oldest first), or null with neither.
  *
  * - Price shown: the quote's price; without a quote, the last close.
  * - 1-day change: that price against the previous trading day's close. A candle is stamped with its exchange
@@ -43,18 +45,16 @@ type StoredCandle = { day: string; close: number; source: string; fetchedAt: Dat
  *   price and the candle before it the previous close.
  * - Sparkline: the last SPARKLINE_CLOSES closes, oldest first (the view hides it under 2 points).
  */
-export function marketRow(
-  slug: MarketSlug,
+export function priceRow(
   quote: { price: number; asOf: Date; source: string; fetchedAt: Date } | null,
   series: StoredCandle[],
-): MarketRow | null {
+): PriceRow | null {
   const last = series.at(-1);
   if (!quote && !last) return null;
   const closes = series.map((c) => c.close);
   const sameDay = quote && last ? last.day >= quote.asOf.toISOString().slice(0, 10) : !quote;
   const previousClose = (sameDay ? series.at(-2) : last)?.close ?? null;
   return {
-    slug,
     price: quote?.price ?? last!.close,
     asOf: quote?.asOf ?? new Date(`${last!.day}T00:00:00Z`),
     timed: quote !== null,
@@ -64,6 +64,16 @@ export function marketRow(
     previousClose,
     closes,
   };
+}
+
+/** One row of the snapshot: `priceRow` of the asset with its slug. */
+export function marketRow(
+  slug: MarketSlug,
+  quote: { price: number; asOf: Date; source: string; fetchedAt: Date } | null,
+  series: StoredCandle[],
+): MarketRow | null {
+  const row = priceRow(quote, series);
+  return row && { slug, ...row };
 }
 
 /**
