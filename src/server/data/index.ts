@@ -48,3 +48,4 @@ export * from "./briefs.ts";
 export * from "./radar.ts";
 export * from "./news.ts";
 export * from "./prices.ts";
+export * from "./market.ts";

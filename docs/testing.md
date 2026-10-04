@@ -69,7 +69,9 @@ and never put a key or token in one.
   reset it to the fixtures when they end.
 - Tests change the data with `runDb(...)` from `e2e/db.ts` (`scripts/e2e-db.ts`: `fixtures
   --last-run=<minutes ago | ISO time | never> --no-articles --scores-run=<minutes ago | ISO time | never>
-  --no-opportunities`, `add <headline>`).
+  --no-opportunities --no-market --prices-run=<...> --metals-run=<...> --crypto-run=<...>`, `add <headline>`).
+  The market snapshot's fixtures (`e2e/market-fixtures.ts`: four assets, 10 daily closes and a quote each) are stored
+  with the others; the three `--*-run` options set the last successful run of the jobs behind them (default 5 minutes ago).
 - Fixtures depend on "today" (the WIB day). A run started in the first minutes after WIB midnight
   (00:00 to about 02:00) can miss "today" fixtures: times before midnight are moved to 00:01, so
   the order of the news items is then by id, and the stale test (3 hours ago) can fall on

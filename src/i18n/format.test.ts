@@ -5,12 +5,15 @@ import {
   formatDateLongWib,
   formatDateShortWib,
   formatDateTimeWib,
+  formatChange,
+  formatNumber,
   formatPercent,
   formatRelativeTime,
   formatRupiah,
   formatRupiahCompact,
   formatTimeWib,
   formatUsd,
+  formatUsdPrice,
 } from "./format";
 
 // Exact characters: NBSP (U+00A0) after "Rp", minus U+2212, em dash U+2014.
@@ -146,4 +149,48 @@ test("missing values show an em dash", () => {
   expect(formatDateTimeWib(null, "en")).toBe(DASH);
   expect(formatDateTimeWib("not a date", "id")).toBe(DASH);
   expect(formatRelativeTime(undefined, new Date(), "en", en.time)).toBe(DASH);
+});
+
+describe("formatUsdPrice", () => {
+  test("whole dollars from 1,000 up, cents below", () => {
+    expect(formatUsdPrice(98400, "en")).toBe("$98,400");
+    expect(formatUsdPrice(98400.5, "id")).toBe("US$98.401");
+    expect(formatUsdPrice(1000, "en")).toBe("$1,000");
+    expect(formatUsdPrice(999.99, "en")).toBe("$999.99");
+    expect(formatUsdPrice(2.5, "id")).toBe("US$2,50");
+    expect(formatUsdPrice(null, "en")).toBe(DASH);
+  });
+});
+
+describe("formatNumber", () => {
+  test("a plain grouped number in the locale's style", () => {
+    expect(formatNumber(7412.4, "en")).toBe("7,412");
+    expect(formatNumber(7412.4, "id")).toBe("7.412");
+    expect(formatNumber(16240.5, "en", 2)).toBe("16,240.50");
+    expect(formatNumber(16240.5, "id", 2)).toBe("16.240,50");
+    expect(formatNumber(undefined, "en")).toBe(DASH);
+  });
+});
+
+describe("formatChange", () => {
+  test("the unsigned size with one decimal and the direction", () => {
+    expect(formatChange(0.012, "en")).toEqual({ direction: "up", text: "1.2%" });
+    expect(formatChange(0.012, "id")).toEqual({ direction: "up", text: "1,2%" });
+    expect(formatChange(-0.008, "en")).toEqual({ direction: "down", text: "0.8%" });
+    expect(formatChange(-0.008, "id")).toEqual({ direction: "down", text: "0,8%" });
+    expect(formatChange(0.1234, "en")).toEqual({ direction: "up", text: "12.3%" });
+  });
+
+  test("zero and anything that rounds to zero is flat, as 0.0% / 0,0%", () => {
+    expect(formatChange(0, "en")).toEqual({ direction: "flat", text: "0.0%" });
+    expect(formatChange(0, "id")).toEqual({ direction: "flat", text: "0,0%" });
+    expect(formatChange(0.0003, "en")).toEqual({ direction: "flat", text: "0.0%" });
+    expect(formatChange(-0.0003, "id")).toEqual({ direction: "flat", text: "0,0%" });
+    expect(formatChange(-0, "en")).toEqual({ direction: "flat", text: "0.0%" });
+  });
+
+  test("missing values give null", () => {
+    expect(formatChange(null, "en")).toBeNull();
+    expect(formatChange(Number.NaN, "id")).toBeNull();
+  });
 });
