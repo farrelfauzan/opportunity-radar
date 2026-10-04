@@ -39,6 +39,26 @@ QA). Tests never touch development data. To run the app on the test database:
 Every worktree on this machine shares the same Postgres container and volume. The local database
 has no password: its port is published on 127.0.0.1 only.
 
+## Jobs
+
+Jobs (news ingestion, the morning pipeline, later prices and signals) start from the command line
+only; there is no HTTP entry point.
+
+```bash
+pnpm job <name> [arguments] [--timeout <seconds>] [--test]
+```
+
+- `pnpm job nope` (any unknown name) lists the valid jobs.
+- Every run is recorded in `job_runs` when it starts and updated when it ends. Exit code 0 for
+  `ok`, `partial` and `skipped`; non-zero for `failed`.
+- A job that is already running is not started twice: the second start is recorded as `skipped`.
+- `pnpm job morning` runs triage → opportunities → scores → brief and stops at the first failing
+  step; later steps are recorded as `skipped`.
+- `--test` runs against the test database; `--timeout` overrides the job's own time limit.
+- For testing only (not available with `NODE_ENV=production`): `pnpm job noop`,
+  `pnpm job sleep <seconds>`, `pnpm job fail [message]`, and `STUB_FAIL=<step> pnpm job morning`
+  to make one pipeline step fail.
+
 The data model is described in [docs/data-model.md](docs/data-model.md); tests in
 [docs/testing.md](docs/testing.md).
 
