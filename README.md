@@ -24,7 +24,7 @@ development database with sample news. It is safe to run again.
 | `pnpm db:setup` | Everything above, in one step |
 | `pnpm db:up` / `pnpm db:down` | Start / stop Postgres (stopping keeps the data; use it to see the app's error states) |
 | `pnpm db:migrate` | Apply pending migrations. Running it twice changes nothing |
-| `pnpm db:seed` | Add the sample sources and 66 articles, with times relative to now |
+| `pnpm db:seed` | Add the sample sources, 66 articles and 13 opportunities (one closed) with 45 days of score history, with times relative to now. Running it again adds nothing |
 | `pnpm db:set-last-run <job> <minutes ago \| ISO time>` | Record a successful run of a job at that time (stale-data states) |
 | `pnpm db:reset` | Empty the **test** database and migrate it. Refuses any database whose name does not end in `_test` |
 | `pnpm db:generate` | After changing `src/server/data/schema.ts`: write the next migration into `drizzle/` |

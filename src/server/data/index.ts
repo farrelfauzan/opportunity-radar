@@ -4,11 +4,39 @@
 import "server-only";
 
 export { checkConnection, closeDb } from "./client.ts";
-export { REGIONS, CATEGORIES, JOB_STATUSES, SECTORS, THEMES, IMPACTS, ASSET_KINDS } from "./schema.ts";
-export type { Region, Category, JobStatus, Sector, FactorScores, LlmRole, LlmCallStatus, Theme, Impact, AssetKind } from "./schema.ts";
+export {
+  REGIONS,
+  CATEGORIES,
+  JOB_STATUSES,
+  SECTORS,
+  HORIZONS,
+  CAPITAL_LEVELS,
+  OPPORTUNITY_STATUSES,
+  THEMES,
+  IMPACTS,
+  ASSET_KINDS,
+} from "./schema.ts";
+export type {
+  Region,
+  Category,
+  JobStatus,
+  Sector,
+  Horizon,
+  CapitalLevel,
+  OpportunityStatus,
+  FactorScores,
+  LlmRole,
+  LlmCallStatus,
+  Theme,
+  Impact,
+  AssetKind,
+} from "./schema.ts";
 export * from "./articles.ts";
 export * from "./sources.ts";
 export * from "./job-runs.ts";
+export * from "./opportunities.ts";
+export { addDays, computeTrend, daysBetween, TREND_DAYS } from "./trend.ts";
+export type { Trend } from "./trend.ts";
 export * from "./ventures.ts";
 export * from "./llm-usage.ts";
 export * from "./triage.ts";

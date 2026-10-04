@@ -1,9 +1,10 @@
 # Data model v1
 
 Status: **proposed in OR-6, waiting for the Tech Lead's review.** Built so far: `sources`,
-`articles`, `job_runs` (OR-6, OR-8), the venture tables (OR-36), `llm_usage` (OR-13) and
-`article_triage` (OR-14), and `assets`, `candles`, `quotes` (OR-26). Every other entity is the
-plan its ticket follows when it adds its own migration.
+`articles`, `job_runs` (OR-6, OR-8), the venture tables (OR-36), `llm_usage` (OR-13),
+`article_triage` (OR-14), `opportunities`, `opportunity_articles` and `opportunity_scores`
+(OR-17, because the Opportunities screen reads them; migration `0007_opportunities`), and `assets`, `candles`, `quotes` (OR-26). Every other
+entity is the plan its ticket follows when it adds its own migration.
 
 Storage is Postgres (local docker compose, see the README). The schema lives in
 `src/server/data/schema.ts`; pages and jobs reach it only through `@/server/data`.
@@ -46,7 +47,29 @@ Storage is Postgres (local docker compose, see the README). The schema lives in
 | 15 | `job_runs` | One run of a job: name, status (running / ok / partial / failed / skipped), started, finished, counts, error summary | `id` | Latest finished ok or partial run of a job ("updated …", stale banner); recent runs of a job | 90 days (pruning with the article pruning job) | Every screen's "updated" time and stale state; `pnpm sources:health` |
 | 16 | `llm_usage` | One LLM request (OR-13): job, role (triage / report), provider (mock / live), model, input and output tokens (estimated and flagged when the provider sends none), cost (null without prices), status (ok / invalid_output / error / budget_exhausted) | `id` | Live usage this WIB month (budget cap, checked before every live request); by job | Kept 1 year | No screen; the cap check in the LLM client |
 
-### The three tables that exist
+### The three opportunity tables (OR-17)
+
+`opportunities`: `id`, the texts in `_en` and `_id` columns (`title`, `thesis`, `capital_reason`,
+`buyer`, `model`, optional `related_exposure`; `risks` and `first_steps` as two `text[]` columns of
+the same length), `region` (indonesia / global; the LLM contract's `worldwide` is stored as
+`global`), `theme`, `sectors` (1 to 3 ids of the fixed list, `text[]`), `horizon`, `capital_level`,
+`status` (open / closed), `current_score`, `created_at`, `closed_at` (set exactly when closed).
+Checks hold the fixed lists and the length limits of `docs/opportunities/output.schema.json`.
+`current_score` is a cache of the newest `opportunity_scores` row so the list sorts one table: it
+is written only together with that row (`insertOpportunity`, `recordOpportunityScore`), so it
+cannot drift. Every opportunity has at least one score. Index on (`status`, `current_score desc`, `id`).
+
+`opportunity_articles`: (`opportunity_id` → `opportunities`, cascade; `article_id` → `articles`,
+no cascade: a cited article cannot be pruned). `opportunity_scores`: (`opportunity_id`, `day`) as
+the key, `day` the WIB calendar day, `overall` and the five factors as integers 0 to 100 (checks).
+
+The 30-day trend (`src/server/data/trend.ts`): today's WIB day minus 30 days is the baseline day;
+the baseline is the nearest score row on or before it. The trend is `current_score` minus that
+score, or "new" while the first score is fewer than 30 days old (day 0 to 29).
+`listOpportunities` returns open ones by `current_score desc, id`; `lastScoringRun()` is the last
+successful run of the `scores` pipeline step.
+
+### The three tables that exist (news)
 
 `sources`: `id`, `slug` (unique), `name`, `feed_url`, `region` (indonesia / global),
 `category` (the feed's default category), `active`, `created_at`.
