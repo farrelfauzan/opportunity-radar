@@ -15,11 +15,9 @@ const noWait = async () => {};
 beforeEach(async () => {
   await db().execute(sql`truncate assets restart identity cascade`);
   for (const k of ENV) delete process.env[k];
-  process.env.PRICES_CRYPTO = "fixtures";
 });
 afterEach(() => {
   for (const k of ENV) delete process.env[k];
-  process.env.PRICES_CRYPTO = "fixtures";
   vi.restoreAllMocks();
 });
 
@@ -102,7 +100,14 @@ describe("metals job", () => {
       return Response.json({ currency: "USD", name: "x", price: 2000, symbol: url.pathname.split("/").pop(), updatedAt: "2026-10-04T09:59:00Z" });
     });
     await ingestMetals({ transport, now: () => NOW, sleep: async (ms) => void events.push(`wait ${ms}`) });
-    expect(events).toEqual(["GET /price/XAU", "wait 1100", "GET /price/XAG"]);
+    // Also before the first call: a crash and an immediate restart cannot send two within a second.
+    expect(events).toEqual(["wait 1100", "GET /price/XAU", "wait 1100", "GET /price/XAG"]);
+  });
+
+  test("fixtures mode never waits", async () => {
+    const sleep = vi.fn(async () => {});
+    await ingestMetals({ now: () => NOW, sleep });
+    expect(sleep).not.toHaveBeenCalled();
   });
 
   test("the real wait is used when none is injected", async () => {
@@ -114,7 +119,7 @@ describe("metals job", () => {
     });
     await ingestMetals({ transport, now: () => NOW });
     expect(times[1] - times[0]).toBeGreaterThanOrEqual(1100);
-  });
+  }, 15_000);
 
   test("the fallback is not reported as used when the guard kept a real gold-api quote", async () => {
     process.env.PRICES_GOLDAPI = "live";
@@ -179,6 +184,21 @@ describe("crypto job", () => {
       if (url.pathname === "/api/v3/ticker/price") return Response.json({ symbol, price: "121800.5" });
       return Response.json(syntheticKlines(symbol, Number(url.searchParams.get("startTime")), NOW)); // shape only
     });
+
+  test("default (PRICES_CRYPTO unset): no request to Binance or Indodax, or anywhere", async () => {
+    const network = vi.spyOn(globalThis, "fetch");
+    const outcome = await ingestCrypto({ now: () => NOW });
+    expect(outcome.status).toBe("ok");
+    expect(network).not.toHaveBeenCalled();
+    expect((await quoteOf("bitcoin")).source).toBe("synthetic");
+  });
+
+  test("no scheduled pipeline runs a price job (morning, news): prices run only as their own jobs", async () => {
+    const { jobs } = await import("@/server/jobs/registry");
+    for (const [name, job] of Object.entries(jobs)) {
+      if ("steps" in job) for (const step of ["prices", "metals", "crypto"]) expect(job.steps, name).not.toContain(step);
+    }
+  });
 
   test("fixtures: 6 years of daily candles including weekends, paged by 1000, all marked synthetic", async () => {
     const outcome = await ingestCrypto({ now: () => NOW });

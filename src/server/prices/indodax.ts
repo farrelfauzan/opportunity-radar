@@ -1,5 +1,5 @@
 // The rupiah price of a crypto pair from Indodax's public API (OR-27), quote
-// only. Shares the PRICES_CRYPTO switch with Binance (live by default).
+// only. Shares the PRICES_CRYPTO switch with Binance (off by default).
 import { cryptoMode, fetchTicker } from "./binance.ts";
 import { getJson, positive } from "./http.ts";
 import { PriceSourceError } from "./yahoo.ts";

@@ -117,6 +117,21 @@ export function formatDateShortWib(value: When, locale: Locale): string {
   return `${p.day} ${p.month}`;
 }
 
+/** The WIB date with the weekday: "Sunday, 4 October 2026" (en), "Minggu, 4 Oktober 2026" (id). */
+export function formatDateLongWib(value: When, locale: Locale): string {
+  const date = toDate(value);
+  if (!date) return MISSING;
+  const parts = new Intl.DateTimeFormat(tag(locale), {
+    timeZone: WIB,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).formatToParts(date);
+  const part = (type: string) => parts.find((p) => p.type === type)!.value;
+  return `${part("weekday")}, ${part("day")} ${part("month")} ${part("year")}`;
+}
+
 /**
  * "just now", "59m ago", "23h ago", "6d ago", then the WIB date ("26 Sep", with
  * the year when it is not the current year). A future time reads "just now".

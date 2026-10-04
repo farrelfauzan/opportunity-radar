@@ -1,7 +1,8 @@
 // Crypto from Binance's public market-data host (OR-27): daily klines and the
 // latest price, USDT pairs treated as USD. Always `data-api.binance.vision`,
-// never `api.binance.com` (R-1: that host failed from Indonesia). Live by
-// default (no terms question); PRICES_CRYPTO=fixtures serves made-up replies.
+// never `api.binance.com` (R-1: that host failed from Indonesia). Off by
+// default: PRICES_CRYPTO unset or "fixtures" serves made-up replies and nothing
+// goes to Binance or Indodax until their terms are read (Orchestrator); "live" calls them.
 import type { Candle } from "@/server/data";
 import { getJson, positive } from "./http.ts";
 import { priceMode, PriceSourceError, rng } from "./yahoo.ts";
@@ -10,9 +11,9 @@ export const BINANCE = "https://data-api.binance.vision";
 export const KLINE_LIMIT = 1000; // Binance's maximum per call
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** PRICES_CRYPTO (Binance and Indodax): "live" (default when unset) or "fixtures". */
+/** PRICES_CRYPTO (Binance and Indodax): "fixtures" (default when unset) or "live". */
 export function cryptoMode(): "fixtures" | "live" {
-  return priceMode("PRICES_CRYPTO", ["fixtures", "live"], "live");
+  return priceMode("PRICES_CRYPTO", ["fixtures", "live"], "fixtures");
 }
 
 /**

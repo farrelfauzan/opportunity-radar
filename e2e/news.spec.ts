@@ -770,7 +770,7 @@ for (const locale of ["en", "id"] as const) {
     await expect(card.getByText(why[locale].tariff, { exact: true })).toBeVisible();
     await expect(card).not.toContainText(why[other].tariff);
     // Label and text are one block with its own background, not part of the snippet paragraph.
-    const block = label.locator("xpath=..");
+    const block = label.locator("xpath=ancestor::div[1]");
     await expect(block).toContainText(why[locale].tariff);
     await expect(block).toHaveCSS("background-color", /^(rgba\(0, 0, 0, 0\.18\)|oklab\(0 0 0 \/ 0\.18\))$/);
     await expect(card.locator("p", { hasText: why[locale].tariff })).toHaveCount(0);
@@ -988,3 +988,19 @@ test("the language switch keeps the toggle and shows the why in Indonesian", asy
   await expect(items(page)).toHaveCount(3);
   await expect(item(page, headlines.tariff)).toContainText(why.id.tariff);
 });
+
+for (const locale of ["en", "id"] as const) {
+  test(`${locale}: every "why it matters" text carries the AI mark, and nothing else does`, async ({ page }) => {
+    const label = locale === "en" ? "Why it matters" : "Mengapa penting";
+    const aiSr =
+      locale === "en"
+        ? "Written by AI from the article, not by the publisher"
+        : "Ditulis oleh AI dari artikel, bukan oleh penerbit";
+    await page.goto(`/${locale}/news`);
+    const whys = await page.getByText(label, { exact: true }).count();
+    expect(whys).toBeGreaterThan(0);
+    await expect(page.locator(`[title="${aiSr}"]`)).toHaveCount(whys);
+    // The publisher's snippet and the credit line never carry it.
+    await expect(page.locator("p", { hasText: "Ringkasan yang dipakai apa adanya." }).locator(`[title="${aiSr}"]`)).toHaveCount(0);
+  });
+}
