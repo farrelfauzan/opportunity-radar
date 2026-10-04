@@ -149,6 +149,41 @@ describe("venture market view", () => {
     expect(await db().execute(sql`select * from venture_articles`)).toEqual([]);
   });
 
+  test("a rerun only rewrites the running venture's matches: another venture's match of the same article stays", async () => {
+    await news(["PPE checks at every clinic"]); // matches both ventures
+    await assessVentures({ transport: provider(goodReply).transport });
+    const [pv, mk] = [(await getVenture("performa-vision"))!, (await getVenture("meta-klinik"))!];
+
+    // Irrelevant for Performa Vision; an invalid reply for Meta Klinik, so it rewrites nothing itself.
+    const transport = (async (url: string, init?: RequestInit) => {
+      const user = (JSON.parse(String(init?.body)) as { messages: { content: string }[] }).messages[1].content;
+      const ids = (JSON.parse(/<<<VENTURE-[0-9a-f]+\n(.*)\nVENTURE-[0-9a-f]+>>>/.exec(user)![1]) as { articles: { id: number }[] }).articles.map((x) => x.id);
+      const reply = user.includes(pv.name) ? { articles: ids.map((id) => ({ id, relevance: 5 })) } : { articles: "none" };
+      return Response.json({ choices: [{ message: { content: JSON.stringify(reply) } }], usage: { prompt_tokens: 10, completion_tokens: 10 } });
+    }) as unknown as typeof fetch;
+    await assessVentures({ transport });
+
+    const rows = await db().execute(sql`select venture_id from venture_articles`);
+    expect(rows.map((r) => Number(r.venture_id))).toEqual([mk.id]);
+  });
+
+  test("the cap reached mid-run: partial, with the counts of what was assessed", async () => {
+    Object.assign(process.env, { LLM_PROVIDER: "live", LLM_BASE_URL: "https://router.test/v1", LLM_API_KEY: "k-123456", LLM_MODEL_REPORT: "m", LLM_MONTHLY_TOKEN_CAP: "5000" });
+    try {
+      await news(["PPE checks at every clinic"]); // one call per venture
+      const transport = (async (_u: string, init?: RequestInit) => {
+        const user = (JSON.parse(String(init?.body)) as { messages: { content: string }[] }).messages[1].content;
+        const ids = (JSON.parse(/<<<VENTURE-[0-9a-f]+\n(.*)\nVENTURE-[0-9a-f]+>>>/.exec(user)![1]) as { articles: { id: number }[] }).articles.map((x) => x.id);
+        return Response.json({ choices: [{ message: { content: JSON.stringify(goodReply(ids)) } }], usage: { prompt_tokens: 1500, completion_tokens: 2500 } });
+      }) as unknown as typeof fetch;
+      const outcome = await assessVentures({ transport });
+      expect(outcome).toMatchObject({ status: "partial", counts: { ventures: 2, scored: 1 } });
+      expect(outcome.error).toContain("1 ventures assessed before the cap");
+    } finally {
+      for (const k of ["LLM_PROVIDER", "LLM_BASE_URL", "LLM_API_KEY", "LLM_MODEL_REPORT", "LLM_MONTHLY_TOKEN_CAP"]) delete process.env[k];
+    }
+  });
+
   test("a rating for an article not in the input, or a duplicate rating, is rejected", async () => {
     await news(["New PPE rules for factories"]);
     const unknown = await assessVentures({ transport: provider((ids) => ({ ...goodReply(ids), articles: [...goodReply(ids).articles, { id: 999999, relevance: 80 }] })).transport });

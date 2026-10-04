@@ -4,7 +4,20 @@
 // forbid automated collection (R-1 addendum); using it live is decision D9 (OR-53).
 import type { Candle } from "@/server/data";
 
+/** An upstream that failed or answered badly: that asset keeps its values and the run is partial. */
 export class PriceSourceError extends Error {}
+/** A wrong setting (e.g. an unknown PRICES_* value): the run fails. */
+export class PriceConfigError extends Error {}
+
+/** A PRICES_* switch: its value, the default when unset or empty, or a config error. */
+export function priceMode<M extends string>(name: string, modes: readonly M[], fallback: M): M {
+  const mode = process.env[name]?.trim() || fallback;
+  if (!modes.includes(mode as M)) throw new PriceConfigError(`${name} must be ${modes.map((m) => `"${m}"`).join(" or ")}`);
+  return mode as M;
+}
+
+/** "Holds live prices" guard: fixtures mode never writes made-up prices into a real series. */
+export const HOLDS_REAL = "has real prices; fixtures mode writes nothing (is the live switch unset?)";
 
 export type ChartResponse = {
   chart: {
@@ -73,13 +86,16 @@ const PROFILES: Record<string, Profile> = {
   "^JKSE": { start: 5000, drift: 0.0002, vol: 0.009, gmtoffset: 7 * 3600, currency: "IDR", openHour: 9 },
   "BBCA.JK": { start: 6500, drift: 0.0002, vol: 0.013, gmtoffset: 7 * 3600, currency: "IDR", openHour: 9 },
   "^GSPC": { start: 3300, drift: 0.0003, vol: 0.011, gmtoffset: -4 * 3600, currency: "USD", openHour: 9 },
+  // OR-27: COMEX gold and silver futures, USD per troy ounce.
+  "GC=F": { start: 1500, drift: 0.0004, vol: 0.009, gmtoffset: -4 * 3600, currency: "USD", openHour: 9 },
+  "SI=F": { start: 18, drift: 0.0003, vol: 0.016, gmtoffset: -4 * 3600, currency: "USD", openHour: 9 },
 };
 const DEFAULT_PROFILE: Profile = { start: 100, drift: 0.0001, vol: 0.01, gmtoffset: 0, currency: "USD", openHour: 9 };
 
 /** Holiday-like gaps: no row on these month-days in any year. */
 const CLOSED = new Set(["01-01", "05-01", "08-17", "12-25"]);
 
-function rng(seed: string): () => number {
+export function rng(seed: string): () => number {
   let h = 2166136261;
   for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
   return () => {
@@ -149,9 +165,7 @@ const USER_AGENT = "Mozilla/5.0 (compatible; OpportunityRadar/0.1; +https://gith
 
 /** PRICES_YAHOO: "fixtures" (default when unset) or "live". */
 export function yahooMode(): "fixtures" | "live" {
-  const mode = process.env.PRICES_YAHOO?.trim() || "fixtures";
-  if (mode !== "fixtures" && mode !== "live") throw new PriceSourceError('PRICES_YAHOO must be "fixtures" or "live"');
-  return mode;
+  return priceMode("PRICES_YAHOO", ["fixtures", "live"], "fixtures");
 }
 
 /** The chart of one symbol for a range ("5d", "1mo", "1y", "6y"), with where it came from. */

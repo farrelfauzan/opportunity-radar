@@ -3,6 +3,8 @@ import { ingestNews } from "@/server/news/ingest";
 import { writeBrief } from "@/server/opportunities/brief";
 import { assessVentures } from "@/server/ventures/market";
 import { ingestPrices } from "@/server/prices/ingest";
+import { ingestMetals } from "@/server/prices/metals";
+import { ingestCrypto } from "@/server/prices/crypto";
 import { generateOpportunities } from "@/server/opportunities/generate";
 import { scoreOpportunities } from "@/server/opportunities/score";
 import { triageNews } from "@/server/news/triage";
@@ -77,6 +79,9 @@ export const jobs: Registry = {
   "llm-smoke": llmSmoke,
   // OR-26: stocks and indices (Yahoo; synthetic unless PRICES_YAHOO=live) and USD/IDR.
   prices: { timeoutSeconds: 300, run: () => ingestPrices() },
+  // OR-27: gold and silver in rupiah per gram (every 10 minutes) and crypto (every 15), as their own jobs.
+  metals: { timeoutSeconds: 300, run: () => ingestMetals() },
+  crypto: { timeoutSeconds: 300, run: () => ingestCrypto() },
   // Morning pipeline: triage → opportunities → scores → ventures → brief.
   // OR-14. Also the second step of `news` (ingest, then triage), the command to run every 30 minutes.
   triage: step("triage", { timeoutSeconds: 600, after: ["ingest-news"], run: () => triageNews() }),
