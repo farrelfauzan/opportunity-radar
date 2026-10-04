@@ -8,6 +8,8 @@
 //                                         Opportunities fixtures (default: a successful ingestion and a
 //                                         successful scoring run 5 minutes ago)
 //   add <headline>                        store one more article, published now
+//   break <table> | restore <table>       rename a table away and back (articles, opportunities): the page's
+//                                         queries fail like a store that is down, with no second server
 //   deactivate <slug>                     switch a source off (its articles are hidden)
 //   source-status <slug> <status>         set a source's status on the latest ingestion run (e.g. 403, 304)
 // "fixtures" prints {"lastRun": <ISO time or null>}.
@@ -179,6 +181,23 @@ async function sourceStatus(slug: string, status: string) {
   if (rows.length === 0) throw new Error(`No source with slug ${slug}`);
 }
 
+const BREAKABLE = ["articles", "opportunities"];
+
+/** Renames the table away, so every query on it fails. The server keeps running and its connections stay up. */
+async function breakTable(table: string) {
+  if (!BREAKABLE.includes(table)) throw new Error(`Cannot break "${table}"; allowed: ${BREAKABLE.join(", ")}`);
+  const q = sql();
+  await q`alter table ${q(table)} rename to ${q(`${table}__off`)}`;
+}
+
+/** Renames it back. Safe to run when nothing is broken. */
+async function restoreTable(table: string) {
+  if (!BREAKABLE.includes(table)) throw new Error(`Cannot restore "${table}"; allowed: ${BREAKABLE.join(", ")}`);
+  const q = sql();
+  const [{ away }] = await q`select to_regclass(${`${table}__off`}) is not null as away`;
+  if (away) await q`alter table ${q(`${table}__off`)} rename to ${q(table)}`;
+}
+
 async function main() {
   switch (command) {
     case "setup":
@@ -186,6 +205,12 @@ async function main() {
       break;
     case "fixtures":
       await fixtures();
+      break;
+    case "break":
+      await breakTable(args[0]);
+      break;
+    case "restore":
+      await restoreTable(args[0]);
       break;
     case "source-status":
       await sourceStatus(args[0], args[1]);

@@ -71,7 +71,12 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
 - `pnpm job opportunities` (also the second step of `morning`) asks the LLM to group the last 7
   days of relevant, triaged news into opportunities. Each one is checked against the OR-11 contract
   (`docs/opportunities/scoring-v1.md`); one that breaks it is rejected and logged, and nothing is
-  stored for it. Valid ones are stored with their citations and first score.
+  stored for it. Valid ones are stored with their citations and first score. A theme that matches
+  an open opportunity (same theme, region and a shared sector, or 2 shared citations) updates it
+  instead: same id, new citations (at most 50 in total), fresh texts. An opportunity without a new
+  citation for 30 days (a duration of 30 × 24 hours) is closed and stays readable; a closed one is
+  never matched again. Closing only happens on a run that had news to judge by, so a stopped
+  ingestion or a machine that was off never closes anything.
 - `pnpm job morning` runs triage → opportunities → scores → brief and stops at the first failing
   step; later steps are recorded as `skipped`.
 - `--test` runs against the test database; `--timeout <seconds>` overrides the job's own time

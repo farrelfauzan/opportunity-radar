@@ -247,6 +247,75 @@ export async function citeArticles(opportunityId: number, articleIds: number[]):
   });
 }
 
+/** Open opportunities with what matching compares (theme, region, sectors, cited article ids). */
+export async function listOpenForMatching(): Promise<{ id: number; theme: string; region: string; sectors: string[]; citations: number[] }[]> {
+  const rows = await db()
+    .select({
+      id: opportunities.id,
+      theme: opportunities.theme,
+      region: opportunities.region,
+      sectors: opportunities.sectors,
+      citations: sqlTag<number[]>`coalesce(array_agg(${opportunityArticles.articleId}) filter (where ${opportunityArticles.articleId} is not null), '{}')`,
+    })
+    .from(opportunities)
+    .leftJoin(opportunityArticles, eq(opportunityArticles.opportunityId, opportunities.id))
+    .where(eq(opportunities.status, "open"))
+    .groupBy(opportunities.id)
+    .orderBy(asc(opportunities.id));
+  return rows.map((r) => ({ ...r, citations: r.citations.map(Number) }));
+}
+
+/** Text fields an update refreshes; theme, region and sectors stay (they are what the match was on). */
+export type RefreshedFields = Omit<NewOpportunity, "theme" | "region" | "sectors" | "createdAt" | "closedAt">;
+
+/**
+ * A matched opportunity keeps its id: its text fields are refreshed and the new
+ * citations added (an article already cited keeps its first citation time), in
+ * one transaction. An opportunity never exceeds MAX_CITATIONS citations: new
+ * ones beyond the limit are left out (in the order given, most relevant first)
+ * and counted as skipped.
+ */
+export async function refreshOpportunity(
+  id: number,
+  /** New text fields, or null to add citations only (scoring-v1 §4: the text is refreshed only on a same-theme match sharing an article). */
+  fields: RefreshedFields | null,
+  articleIds: number[],
+): Promise<{ added: number; skipped: number }> {
+  return db().transaction(async (tx) => {
+    const open = and(eq(opportunities.id, id), eq(opportunities.status, "open"));
+    const [row] = fields
+      ? await tx.update(opportunities).set(fields).where(open).returning({ id: opportunities.id })
+      : await tx.select({ id: opportunities.id }).from(opportunities).where(open).for("update");
+    if (!row) throw new Error(`Opportunity ${id} is not open`);
+    const cited = new Set(
+      (await tx.select({ articleId: opportunityArticles.articleId }).from(opportunityArticles).where(eq(opportunityArticles.opportunityId, id))).map(
+        (r) => r.articleId,
+      ),
+    );
+    const fresh = [...new Set(articleIds)].filter((a) => !cited.has(a));
+    const room = Math.max(0, MAX_CITATIONS - cited.size);
+    const toAdd = fresh.slice(0, room);
+    if (toAdd.length) {
+      await tx.insert(opportunityArticles).values(toAdd.map((articleId) => ({ opportunityId: id, articleId })));
+    }
+    return { added: toAdd.length, skipped: fresh.length - toAdd.length };
+  });
+}
+
+/**
+ * Closes every open opportunity whose newest citation is older than `days`
+ * (scoring-v1 §4: 30). A closed one stays readable and is never matched again.
+ */
+export async function closeStaleOpportunities(now: Date, days = 30): Promise<number[]> {
+  const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  const rows = await db().execute(sqlTag`
+    update opportunities o set status = 'closed', closed_at = ${now.toISOString()}
+    where o.status = 'open'
+      and coalesce((select max(oa.cited_at) from opportunity_articles oa where oa.opportunity_id = o.id), o.created_at) < ${cutoff.toISOString()}
+    returning o.id`);
+  return rows.map((r) => Number(r.id));
+}
+
 export type RescoreInput = {
   id: number;
   titleEn: string;
@@ -261,10 +330,9 @@ export type RescoreInput = {
 
 /**
  * Open opportunities to re-score on `today` (a WIB day): last scored before
- * today, with at least one cited article fetched on or after the day of that
- * score (new evidence; scoring-v1 §4). Until OR-50's cited_at exists this uses
- * the article's fetch time, which may re-score once too often but never misses
- * new evidence. Each comes with its cited articles, newest first (at most 30).
+ * today, with at least one article of an active source cited on or after the
+ * day of that score (new evidence; scoring-v1 §4). Each comes with its cited
+ * articles, newest first (at most 30).
  */
 export async function opportunitiesToRescore(today: string, limit: number): Promise<RescoreInput[]> {
   const rows = (await db().execute(sqlTag`
@@ -287,7 +355,7 @@ export async function opportunitiesToRescore(today: string, limit: number): Prom
         join articles a on a.id = oa.article_id
         join sources src on src.id = a.source_id and src.active
         where oa.opportunity_id = o.id
-          and a.fetched_at >= (s.last_day::timestamp at time zone 'Asia/Jakarta'))
+          and oa.cited_at >= (s.last_day::timestamp at time zone 'Asia/Jakarta'))
     order by o.id
     limit ${limit}`)) as unknown as {
     id: number; title_en: string; thesis_en: string; theme: string; region: string; sectors: string[];
