@@ -22,6 +22,38 @@ const REJECTED = [
   "Saatnya menjual emas.",
   "Gold prices will soar after the decision.",
   "Investors SHOULD BUY now.",
+  // Forecasts with no policy noun before "will" / "akan" (inverted rule).
+  "The rupiah will fall.",
+  "The IHSG will drop.",
+  "Yields will rise.",
+  "Oil will surge.",
+  "The dollar will weaken.",
+  "BBCA will rally.",
+  "The market will likely climb.",
+  "Demand will rise all year.",
+  "Clinic visits will increase.",
+  "Rupiah akan melemah.",
+  "IHSG akan anjlok.",
+  "Permintaan akan terus meningkat.",
+  // Same clause, more "will" forms, attribution (PR 65 refinements).
+  "The VAT rise means demand will fall.",
+  "Kenaikan PPN berarti permintaan akan turun.",
+  "Gold is set to climb.",
+  "Demand is going to rise.",
+  "Prices are likely to surge.",
+  "Harga bakal naik.",
+  "Demand is expected to increase.",
+  "Permintaan diperkirakan akan meningkat.",
+  // Extra: a policy noun after a comma does not excuse; "bound to"; "diprediksi".
+  "Under the new tax, demand will fall.",
+  "Prices are bound to rebound.",
+  "Penjualan diprediksi naik.",
+  // An attribution excuses only the "expected to" form, not a plain "will" / "akan" (Orchestrator, PR 68).
+  "The minister said gold will surge.",
+  "Menteri mengatakan emas akan naik.",
+  "Menurut analis, harga emas akan melonjak.",
+  // The policy noun must be within the four words before "will".
+  "The VAT on imported household electronic goods will rise.",
 ];
 
 // The ticket's legitimate lines: all pass the general list.
@@ -41,6 +73,16 @@ const PASSING = [
   "The minimum wage will rise 6.5% next year, the ministry announced.",
   "Import duties on steel will fall to 5% under the new trade deal.",
   "Tarif PPN akan naik menjadi 12% mulai Januari.",
+  // Policy noun before "will" / "akan", in the same clause.
+  "The import quota will fall to 1 million tonnes.",
+  "Cukai rokok akan naik 10% tahun depan.",
+  "Upah minimum akan naik 6,5% tahun depan.",
+  // An expectation attributed in the same sentence.
+  "Permintaan diperkirakan akan meningkat, menurut Kementerian Perdagangan.",
+  "Exports are forecast to grow 4%, the central bank said.",
+  "Sales are projected to rise 3%, BPS reported. Margins stayed flat.",
+  "Gold is expected to surge, according to the minister.",
+  "Emas diperkirakan naik, menurut menteri.",
 ];
 
 describe("general list", () => {
@@ -58,13 +100,18 @@ describe("general list", () => {
     expect(bannedWording("Didisarankannya")).toBeNull();
   });
 
+  test("the attribution must be in the same sentence as the expectation", () => {
+    expect(bannedWording("Demand is expected to increase. The ministry said so last week.")).toBe("is expected to increase");
+    expect(bannedWording("The ministry said so. Permintaan diperkirakan naik.")).toBe("diperkirakan naik");
+  });
+
   test("bare imperatives in first steps and descriptive must/harus/wajib pass", () => {
     for (const line of ["Call three distributors this week.", "Banks must report by March.", "Importir wajib melapor."]) expect(bannedWording(line)).toBeNull();
   });
 });
 
 describe("signal list: the general list plus rules-v1 §7.4", () => {
-  test.each(["Prices should recover.", "Hindari saham ini.", "Gold will rise.", "Buy in 3 parts over six weeks.", "Platform wajib memverifikasi.", ...REJECTED])(
+  test.each(["Prices should recover.", "Hindari saham ini.", "Gold will rise.", "VAT will increase to 12%.", "Exports are forecast to grow 4%, the bank said.", "Buy in 3 parts over six weeks.", "Platform wajib memverifikasi.", ...REJECTED])(
     "rejects %s",
     (line) => {
       expect(bannedWording(line, "signal")).not.toBeNull();
@@ -77,7 +124,9 @@ describe("signal list: the general list plus rules-v1 §7.4", () => {
 });
 
 describe("helpers", () => {
-  test("assertDescriptive names the field and the wording", () => {
+  test("assertDescriptive names the field and the wording, as an AdviceError", async () => {
+    const { AdviceError } = await import("./wording.ts");
+    expect(() => assertDescriptive({ x: "Demand will rise." })).toThrow(AdviceError);
     expect(() => assertDescriptive({ "lines[0].en": "Fine.", "lines[0].id": "Anda harus beli." })).toThrow(/^lines\[0\]\.id: advice wording "/);
     expect(() => assertDescriptive({ a: "Fine." })).not.toThrow();
   });

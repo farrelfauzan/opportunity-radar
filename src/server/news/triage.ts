@@ -18,7 +18,7 @@ import {
 import type { JobOutcome } from "@/server/jobs/runner";
 import { callLlm, InvalidOutputError, type LlmCall } from "@/server/llm/client";
 import { fenceUntrusted } from "@/server/llm/fence";
-import { adviceIn, bannedWording } from "@/server/llm/wording";
+import { adviceIn, bannedWording, WORDING_RULE } from "@/server/llm/wording";
 
 export const BATCH_SIZE = 10;
 const MAX_WHY_WORDS = 30;
@@ -79,19 +79,26 @@ export function checkItem(raw: unknown): { id: number; result: Omit<Extract<Tria
  * Advice wording in the first reply also asks for the retry; in the retry's reply only
  * the items with it fail (checkItem), so one stubborn article never fails its whole batch.
  */
-function envelopeParser(): (value: unknown) => unknown[] {
+function envelopeParser(counts: { wording_rejected: number }): (value: unknown) => unknown[] {
   let attempt = 0;
   return (value) => {
     const items = (value as { items?: unknown } | null)?.items;
     if (!Array.isArray(items)) throw new Error('expected {"items": [...]}');
     const advice = attempt++ === 0 ? adviceIn(items) : null;
-    if (advice) throw new Error(`advice wording "${advice}" (describe, never instruct)`);
+    if (advice) {
+      counts.wording_rejected++;
+      throw new Error(`advice wording "${advice}" (describe, never instruct)`);
+    }
     return items;
   };
 }
 
 /** Triage of one batch. Never throws for bad output: those articles are returned as failed. */
-export async function triageBatch(batch: TriageInput[], transport?: LlmCall<unknown>["fetch"]): Promise<TriageResult[]> {
+export async function triageBatch(
+  batch: TriageInput[],
+  transport?: LlmCall<unknown>["fetch"],
+  counts: { wording_rejected: number } = { wording_rejected: 0 },
+): Promise<TriageResult[]> {
   const fence = fenceUntrusted(
     "ARTICLES",
     batch.map(({ id, headline, snippet, source, region, feedCategory }) => ({ id, headline, snippet, source, region, feedCategory })),
@@ -102,10 +109,10 @@ export async function triageBatch(batch: TriageInput[], transport?: LlmCall<unkn
       job: "triage",
       role: "triage",
       messages: [
-        { role: "system", content: `${SYSTEM}\n${fence.rule}` },
+        { role: "system", content: `${SYSTEM}\n${WORDING_RULE}\n${fence.rule}` },
         { role: "user", content: `Triage these ${batch.length} articles.\n${fence.block}` },
       ],
-      parse: envelopeParser(),
+      parse: envelopeParser(counts),
       maxTokens: MAX_TOKENS,
       fetch: transport,
     });
@@ -139,7 +146,7 @@ export async function triageBatch(batch: TriageInput[], transport?: LlmCall<unkn
  * (cap reached, provider down) keeps its work; the rest waits for the next run.
  */
 export async function triageNews(options: { transport?: LlmCall<unknown>["fetch"]; maxArticles?: number } = {}): Promise<JobOutcome> {
-  const counts = { ok: 0, failed: 0, batches: 0 };
+  const counts = { ok: 0, failed: 0, batches: 0, wording_rejected: 0 };
   const limit = options.maxArticles ?? Number.POSITIVE_INFINITY;
   const done = new Set<number>();
   while (counts.ok + counts.failed < limit) {
@@ -148,7 +155,8 @@ export async function triageNews(options: { transport?: LlmCall<unknown>["fetch"
     // Every stored result leaves the queue; an article coming back means storing failed.
     if (batch.some((a) => done.has(a.id))) throw new Error("triage made no progress: results were not stored");
     for (const a of batch) done.add(a.id);
-    const results = await triageBatch(batch, options.transport);
+    const results = await triageBatch(batch, options.transport, counts);
+    counts.wording_rejected += results.filter((r) => r.status === "failed" && r.error.includes("advice wording")).length;
     await saveTriage(results);
     counts.batches++;
     for (const r of results) counts[r.status]++;

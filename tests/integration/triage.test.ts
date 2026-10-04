@@ -347,7 +347,8 @@ describe("wording guard (OR-63)", () => {
     const outcome = await triageNews({ transport });
 
     expect(requests).toHaveLength(2); // the first reply is retried
-    expect(outcome.counts).toMatchObject({ ok: 2, failed: 1 });
+    expect(requests[0].system).toContain("is expected to ..., according to ...");
+    expect(outcome.counts).toMatchObject({ ok: 2, failed: 1, wording_rejected: 2 }); // the first reply, and the item in the retry
     const rows = await triageRows();
     expect(rows[1]).toMatchObject({ article_id: ids[1], status: "failed", category: "business" });
     expect(rows[1].error).toMatch(/^why has advice wording "/);

@@ -441,7 +441,8 @@ describe("wording guard (OR-63)", () => {
     const outcome = await generateOpportunities({ transport, now: () => NOW });
 
     expect(requests).toHaveLength(2);
-    expect(outcome.counts).toMatchObject({ created: 0, rejected: 1 });
+    expect(requests[0].system).toContain("is expected to ..., according to ...");
+    expect(outcome.counts).toMatchObject({ created: 0, rejected: 1, wording_rejected: 2 });
     expect(await stored()).toEqual([]);
   });
 

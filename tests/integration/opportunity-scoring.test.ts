@@ -176,7 +176,7 @@ describe("review follow-ups", () => {
   });
 
   test("the cap reached mid-run: partial, with the counts of what was scored", async () => {
-    Object.assign(process.env, { LLM_PROVIDER: "live", LLM_BASE_URL: "https://router.test/v1", LLM_API_KEY: "k-123456", LLM_MODEL_REPORT: "m", LLM_MONTHLY_TOKEN_CAP: "2000" });
+    Object.assign(process.env, { LLM_PROVIDER: "live", LLM_BASE_URL: "https://router.test/v1", LLM_API_KEY: "k-123456", LLM_MODEL_REPORT: "m", LLM_MONTHLY_TOKEN_CAP: "2600" }); // room for one call (prompt + 1,500 out), not two
     try {
       await opportunity(yesterday);
       await opportunity(yesterday);
@@ -227,9 +227,11 @@ describe("wording guard (OR-63)", () => {
     const bad = { factors: { ...GOOD.factors, demand: { score: 80, reason: advice } } };
     const { transport, requests } = provider(bad, bad);
 
-    await scoreOpportunities({ transport });
+    const outcome = await scoreOpportunities({ transport });
 
     expect(requests).toHaveLength(2);
+    expect(requests[0].system).toContain("is expected to ..., according to ...");
+    expect(outcome.counts).toMatchObject({ wording_rejected: 2 });
     expect(await scoresOf(id)).toEqual([{ day: yesterday, overall: 60 }]);
   });
 });

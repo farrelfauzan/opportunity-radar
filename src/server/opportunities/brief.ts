@@ -5,7 +5,7 @@ import { briefArticles, CATEGORIES, opportunityChanges, saveBrief, wibDay, type 
 import type { JobOutcome } from "@/server/jobs/runner";
 import { callLlm, type LlmCall } from "@/server/llm/client";
 import { fenceUntrusted } from "@/server/llm/fence";
-import { assertDescriptive } from "@/server/llm/wording";
+import { assertDescriptive, countingAdvice, WORDING_RULE } from "@/server/llm/wording";
 
 const MIN_ARTICLES = 10;
 const MAX_INPUT_ARTICLES = 200;
@@ -81,7 +81,7 @@ export async function writeBrief(options: { transport?: LlmCall<unknown>["fetch"
     input.push({ ...a, item });
   }
   // The counts are of the articles the brief was written from ("AI summary of N articles from M sources").
-  const counts = { articles: input.length, articles_relevant: relevant.length, sources: new Set(input.map((a) => a.sourceId)).size, lines: 0 };
+  const counts = { articles: input.length, articles_relevant: relevant.length, sources: new Set(input.map((a) => a.sourceId)).size, lines: 0, wording_rejected: 0 };
   if (input.length < relevant.length) console.info(`brief: ${input.length} of ${relevant.length} relevant articles used`);
   if (input.length < MIN_ARTICLES) {
     console.info(`brief: only ${input.length} articles fit the input: no brief today`);
@@ -95,10 +95,10 @@ export async function writeBrief(options: { transport?: LlmCall<unknown>["fetch"
     job: "brief",
     role: "report",
     messages: [
-      { role: "system", content: `${SYSTEM}\n${fence.rule}` },
+      { role: "system", content: `${SYSTEM}\n${WORDING_RULE}\n${fence.rule}` },
       { role: "user", content: `Write today's brief.\n${fence.block}` },
     ],
-    parse: (value) => parseBrief(value, articleIds, opportunityIds),
+    parse: countingAdvice((value) => parseBrief(value, articleIds, opportunityIds), counts),
     maxTokens: 2000,
     fetch: options.transport,
   });

@@ -214,7 +214,8 @@ describe("wording guard (OR-63)", () => {
     const outcome = await assessVentures({ transport });
 
     expect(requests).toHaveLength(2); // Performa Vision matched: first reply and its retry
-    expect(outcome).toMatchObject({ status: "partial", counts: { rejected: 1 } });
+    expect(requests[0].system).toContain("is expected to ..., according to ...");
+    expect(outcome).toMatchObject({ status: "partial", counts: { rejected: 1, wording_rejected: 2 } });
     expect(outcome.error).toMatch(/tailwind\.en: advice wording "good time to"/);
     expect(await marketRows("performa-vision")).toEqual([]);
   });

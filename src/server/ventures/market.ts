@@ -17,7 +17,7 @@ import {
 import type { JobOutcome } from "@/server/jobs/runner";
 import { BudgetExhaustedError, callLlm, InvalidOutputError, type LlmCall } from "@/server/llm/client";
 import { fenceUntrusted } from "@/server/llm/fence";
-import { assertDescriptive } from "@/server/llm/wording";
+import { assertDescriptive, countingAdvice, WORDING_RULE } from "@/server/llm/wording";
 import { overallScore } from "@/server/opportunities/generate";
 import { keywordMatcher } from "./match.ts";
 
@@ -101,7 +101,12 @@ const NO_NEWS = (candidateIds: number[] = []): VentureMarketInput => ({
 
 type Candidate = Awaited<ReturnType<typeof ventureNewsCandidates>>[number];
 
-async function viewOf(venture: Venture, news: Candidate[], transport?: LlmCall<unknown>["fetch"]): Promise<VentureMarketInput> {
+async function viewOf(
+  venture: Venture,
+  news: Candidate[],
+  transport: LlmCall<unknown>["fetch"] | undefined,
+  counts: { wording_rejected: number },
+): Promise<VentureMarketInput> {
   const matches = keywordMatcher(venture.keywords);
   const candidates = news.filter((a) => matches(`${a.headline} ${a.snippet}`)).slice(0, MAX_CANDIDATES);
   if (candidates.length === 0) return NO_NEWS();
@@ -115,10 +120,10 @@ async function viewOf(venture: Venture, news: Candidate[], transport?: LlmCall<u
     job: "ventures",
     role: "report",
     messages: [
-      { role: "system", content: `${SYSTEM}\n${fence.rule}` },
+      { role: "system", content: `${SYSTEM}\n${WORDING_RULE}\n${fence.rule}` },
       { role: "user", content: `Assess the market for this venture.\n${fence.block}` },
     ],
-    parse: (value) => parseVentureReply(value, inputIds),
+    parse: countingAdvice((value) => parseVentureReply(value, inputIds), counts),
     maxTokens: 3000,
     fetch: transport,
   });
@@ -143,13 +148,13 @@ export async function assessVentures(options: { transport?: LlmCall<unknown>["fe
   const now = options.now?.() ?? new Date();
   const day = wibDay(now);
   const news = await ventureNewsCandidates(new Date(now.getTime() - WINDOW_DAYS * 24 * 60 * 60 * 1000));
-  const counts = { ventures: 0, scored: 0, no_news: 0, rejected: 0 };
+  const counts = { ventures: 0, scored: 0, no_news: 0, rejected: 0, wording_rejected: 0 };
   const reasons: string[] = [];
   for (const venture of await listVentures()) {
     counts.ventures++;
     let view: VentureMarketInput;
     try {
-      view = await viewOf(venture, news, options.transport);
+      view = await viewOf(venture, news, options.transport, counts);
     } catch (error) {
       if (error instanceof BudgetExhaustedError) {
         // Stop, but keep what this run did.

@@ -169,6 +169,7 @@ describe("wording guard (OR-63)", () => {
     await expect(writeBrief({ transport })).rejects.toThrow(/advice wording/);
 
     expect(requests).toHaveLength(2);
+    expect(requests[0].system).toContain("diperkirakan ..., menurut ..."); // the prompt asks for sourced expectations
     expect(await getBrief(today)).toBeNull();
   });
 
@@ -178,9 +179,10 @@ describe("wording guard (OR-63)", () => {
     const good = (d: { articles: { id: number }[] }) => ({ lines: [line([d.articles[0].id]), line([d.articles[1].id]), line([d.articles[2].id])] });
     const { transport, requests } = sequence(bad, good);
 
-    await writeBrief({ transport });
+    const outcome = await writeBrief({ transport });
 
     expect(requests).toHaveLength(2);
+    expect(outcome.counts).toMatchObject({ wording_rejected: 1 });
     expect((await getBrief(today))!.lines.map((l) => l.en)).not.toContain("You should buy gold now, you must act.");
   });
 

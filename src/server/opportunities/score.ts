@@ -6,7 +6,7 @@
 import { FACTOR_KEYS, opportunitiesToRescore, recordOpportunityScore, wibDay, type FactorScores } from "@/server/data";
 import type { JobOutcome } from "@/server/jobs/runner";
 import { BudgetExhaustedError, callLlm, InvalidOutputError, type LlmCall } from "@/server/llm/client";
-import { assertDescriptive } from "@/server/llm/wording";
+import { assertDescriptive, countingAdvice, WORDING_RULE } from "@/server/llm/wording";
 import { fenceUntrusted } from "@/server/llm/fence";
 import { overallScore } from "./generate.ts";
 
@@ -63,7 +63,7 @@ export async function scoreOpportunities(
   const now = options.now?.() ?? new Date();
   const today = wibDay(now);
   const due = await opportunitiesToRescore(today, MAX_PER_RUN);
-  const counts = { due: due.length, scored: 0, rejected: 0, skipped: 0 };
+  const counts = { due: due.length, scored: 0, rejected: 0, skipped: 0, wording_rejected: 0 };
   const reasons: string[] = [];
   for (const o of due) {
     // A score must rest on evidence: never ask without cited articles (all may be from switched-off sources).
@@ -82,10 +82,10 @@ export async function scoreOpportunities(
         job: "scores",
         role: "report",
         messages: [
-          { role: "system", content: `${SYSTEM}\n${fence.rule}` },
+          { role: "system", content: `${SYSTEM}\n${WORDING_RULE}\n${fence.rule}` },
           { role: "user", content: `Score this opportunity on today's evidence.\n${fence.block}` },
         ],
-        parse: parseFactors,
+        parse: countingAdvice(parseFactors, counts),
         maxTokens: MAX_TOKENS,
         fetch: options.transport,
       });
