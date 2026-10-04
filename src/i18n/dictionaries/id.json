@@ -128,6 +128,30 @@
       "paidLine": "Setoran",
       "chartLabel": "Proyeksi nilai dari waktu ke waktu untuk imbal hasil pesimis, dasar, dan optimis, dibandingkan dengan total setoran"
     },
+    "biz": {
+      "title": "Proyeksi bisnis",
+      "capital": "Modal awal (Rp)",
+      "fixed": "Biaya tetap per bulan (Rp)",
+      "revenue": "Pendapatan bulan pertama (Rp)",
+      "growth": "Pertumbuhan pendapatan per bulan (%)",
+      "margin": "Margin kotor (%)",
+      "months": "Jumlah bulan proyeksi",
+      "breakeven": "Impas bulanan",
+      "payback": "Modal kembali",
+      "lowest": "Kas yang dibutuhkan di titik terendah",
+      "end": {
+        "one": "Kas bersih setelah {months} bulan",
+        "other": "Kas bersih setelah {months} bulan"
+      },
+      "month": "Bulan ke-{n}",
+      "notWithin": {
+        "one": "Tidak dalam {months} bulan",
+        "other": "Tidak dalam {months} bulan"
+      },
+      "axisStart": "Bulan ke-0",
+      "paybackLine": "Garis putus-putus = modal kembali penuh",
+      "chartLabel": "Kas kumulatif dari waktu ke waktu; modal usaha sudah kembali saat garis memotong garis nol putus-putus"
+    },
     "unit": {
       "million": "juta",
       "billion": "miliar",

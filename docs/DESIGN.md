@@ -29,7 +29,7 @@ Single user (the owner). Bilingual: English and Bahasa Indonesia.
 - Every signal screen states: rule-based information, not financial advice.
 
 ## Look
-**Dark mode** (the only theme): a dark purple theme: page is a clear gradient (violet #5B34A6 glow top-left, magenta #7A2E8E glow right, over #2E1C57 → #1D1236), cards are glass: 8% white fill, 18px backdrop blur, 16% white border, soft shadow (purple glows repeat lower on the page so the glass reads everywhere), borders #4B3E75, text #FAF8FF / muted #D4CEE6 (was #C1B9DA; lightened 2026-10-04 to reach 4.5:1 on the glass card), one teal accent (#2DD4BF), orange (#FB923C) for sell/down. Geist + Geist Mono. Buy/sell always carry a word (and a shape on charts), never colour alone. Top navigation that wraps on phones.
+**Dark mode** (the only theme): a dark purple theme: page is a clear gradient (violet #5B34A6 glow top-left, magenta #7A2E8E glow right, over #2E1C57 → #1D1236), cards are glass: 8% white fill, 18px backdrop blur, 16% white border, soft shadow (purple glows repeat lower on the page so the glass reads everywhere), borders #4B3E75, text #FAF8FF / muted #D4CEE6 (was #C1B9DA; lightened 2026-10-04 to reach 4.5:1 on the glass card); non-text lines and borders (e.g. the 200-day average, `--chart-4`) stay #C1B9DA, one teal accent (#2DD4BF), orange (#FB923C) for sell/down. Geist + Geist Mono. Buy/sell always carry a word (and a shape on charts), never colour alone. Top navigation that wraps on phones.
 
 ## Decisions
 Numbering matches the sprint plan in Notion (D1–D16). Rows marked "Designer, delegated" were decided under the Tech Lead's 2026-10-04 rule "decide inside the ticket"; he confirms them at merge.
@@ -64,3 +64,4 @@ Numbering matches the sprint plan in Notion (D1–D16). Rows marked "Designer, d
 - 2026-10-04 — Tech Lead: the Engineer drafts the infrastructure proposal and the CDK ticket (OR-48); database preference EC2 + docker compose, cost-efficient. Storage and hosting rows updated; OR-5/6/7/20 scope waits for his pick.
 - 2026-10-04 — OR-12: all UI copy in EN and ID plus screen states and stale thresholds in `docs/design/copy.md`. Muted text #C1B9DA → #D4CEE6 (3.79:1 → 4.66:1 on the card at the violet glow, OR-1). Advice-like canvas wording replaced ("Suggested approach…", instruction-like risk texts, "avoided −6.2%"), per D10 decided by the Designer on the Tech Lead's delegation.
 - 2026-10-04 — OR-35: screen 7, Venture view (`/[locale]/ventures/[slug]`), spec in `docs/design/venture-view.md`; one tailwind/headwind pair per venture, as on the Radar card.
+- 2026-10-04 — Muted colour scope: #D4CEE6 is for text only; chart lines and borders keep #C1B9DA (`--chart-4` in the app). Reference files aligned.

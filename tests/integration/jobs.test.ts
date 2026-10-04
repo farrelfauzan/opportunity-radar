@@ -221,14 +221,14 @@ describe("pnpm job", { timeout: 60_000 }, () => {
   test.each(["nope", "constructor"])("an unknown job (%s) exits non-zero, lists the valid jobs and writes nothing", async (name) => {
     const result = job([name]);
     expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain(`Unknown job "${name}". Valid jobs: triage, opportunities, scores, brief, morning`);
+    expect(result.stderr).toContain(`Unknown job "${name}". Valid jobs: ingest-news, triage, opportunities, scores, brief, morning`);
     expect(await runs()).toEqual([]);
   });
 
   test("the test jobs are not registered in production", () => {
     const result = job(["noop"], { NODE_ENV: "production" });
     expect(result.status).not.toBe(0);
-    expect(result.stderr).toContain("Valid jobs: triage, opportunities, scores, brief, morning\n");
+    expect(result.stderr).toContain("Valid jobs: ingest-news, triage, opportunities, scores, brief, morning\n");
   });
 
   test("a failed job exits non-zero with the canary redacted", async () => {
@@ -237,6 +237,16 @@ describe("pnpm job", { timeout: 60_000 }, () => {
     expect(result.stdout).not.toContain("abc123");
     expect(await runs()).toMatchObject([{ job: "fail", status: "failed", error: "boom [redacted]" }]);
   });
+
+  test.each([["abc"], ["-1"], ["0"], ["Infinity"], [undefined]])(
+    "--timeout %s is refused with exit code 2 and nothing recorded",
+    async (value) => {
+      const result = job(["sleep", "0", "--timeout", ...(value === undefined ? [] : [value])]);
+      expect(result.status).toBe(2);
+      expect(result.stderr).toContain("--timeout needs a number of seconds greater than 0");
+      expect(await runs()).toEqual([]);
+    },
+  );
 
   test("a timeout fails the run and exits non-zero; the next run works", async () => {
     expect(job(["sleep", "5", "--timeout", "1"]).status).not.toBe(0);

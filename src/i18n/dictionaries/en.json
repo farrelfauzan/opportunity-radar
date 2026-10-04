@@ -128,6 +128,30 @@
       "paidLine": "Paid in",
       "chartLabel": "Projected value over time for pessimistic, base and optimistic returns, compared with the amount paid in"
     },
+    "biz": {
+      "title": "Business projection",
+      "capital": "Starting capital (Rp)",
+      "fixed": "Fixed cost per month (Rp)",
+      "revenue": "First-month revenue (Rp)",
+      "growth": "Revenue growth per month (%)",
+      "margin": "Gross margin (%)",
+      "months": "Months to project",
+      "breakeven": "Monthly break-even",
+      "payback": "Capital paid back",
+      "lowest": "Cash needed at the lowest point",
+      "end": {
+        "one": "Net cash after {months} month",
+        "other": "Net cash after {months} months"
+      },
+      "month": "Month {n}",
+      "notWithin": {
+        "one": "Not within {months} month",
+        "other": "Not within {months} months"
+      },
+      "axisStart": "Month 0",
+      "paybackLine": "Dashed line = capital fully paid back",
+      "chartLabel": "Cumulative cash over time; the business has paid back its capital where the line crosses the dashed zero line"
+    },
     "unit": {
       "million": "million",
       "billion": "billion",

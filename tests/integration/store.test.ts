@@ -100,6 +100,12 @@ describe("connection details", () => {
     });
   });
 
+  test("the test database must be on this machine", () => {
+    withEnv({ TEST_DATABASE_URL: "postgres://postgres@db.example.com:5432/opportunity_radar_test" }, () => {
+      expect(() => testDatabaseUrl()).toThrow("must point at this machine");
+    });
+  });
+
   test("the test database must be named *_test and differ from development", () => {
     withEnv({ TEST_DATABASE_URL: "postgres://postgres@127.0.0.1:54329/opportunity_radar" }, () => {
       expect(() => testDatabaseUrl()).toThrow('must end in "_test"');

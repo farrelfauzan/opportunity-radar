@@ -34,7 +34,8 @@ pnpm exec playwright install chromium
   equals `DATABASE_URL`. Development data is never read or changed.
 - The network block of the unit tests does not apply here.
 - Two runs on this machine wait for each other (a Postgres advisory lock), because every worktree
-  shares one database server.
+  shares one database server. A run empties the test database, so data seeded there by someone
+  else is lost: each session should use its own `TEST_DATABASE_URL` (see the README).
 - `client-import.test.ts` builds a temporary copy of the app (`.tmp-client-import-*`, removed
   afterwards) with a Client Component that imports `@/server/data`, and asserts that `next build`
   fails. It takes about 10 seconds.
