@@ -46,7 +46,7 @@ Contents: 1 Shell · 2 States (all screens) · 3 News · 4 Calculators · 5 Rada
 | error.title | Something went wrong | Terjadi kesalahan |
 | error.retry | Try again | Coba lagi |
 
-`nav.main` is the accessible name of the main navigation (screen readers already say "navigation"). The alert bell (`nav.alerts.*`) ships with OR-34. The canvas badge "Sample data" is never shipped.
+`nav.main` is the accessible name of the main navigation (screen readers already say "navigation"). The alert bell (`nav.alerts.*`) ships with OR-34. The canvas's header badge "Sample data" is not shipped in the header; sample prices are labelled where they appear (§8.2).
 
 ## 2. States (all screens)
 
@@ -563,6 +563,27 @@ Use `asset.reverse.title` ("What would change this to {verdict}") when every lis
 | asset.chart.markerSell | Sell signal ▼ on {date} at {price} | Sinyal jual ▼ pada {date} di {price} |
 
 `asset.chart.summary` is the chart's text alternative for screen readers; the marker texts are the tooltips and the markers' accessible names.
+
+## 8.2 Sample (synthetic) price data
+
+Until live price sources are switched on (OR-53, OR-54, waiting for the Tech Lead's D9 decision), stored prices may be `synthetic`: made up in the shape of the real source. A price, chart, signal or alert built on them must never look real. Decided 2026-10-04 (Orchestrator).
+
+| Key | EN | ID |
+|---|---|---|
+| sample.label | Sample data, not real prices | Data contoh, bukan harga nyata |
+| sample.badge | Sample | Contoh |
+| sample.explain | These prices are made up to test the app. Real prices are used once the live data source is switched on. | Harga ini dibuat untuk menguji aplikasi. Harga nyata dipakai setelah sumber data langsung diaktifkan. |
+| sample.signalNote | Signal computed on sample data, not on real prices. | Sinyal dihitung dari data contoh, bukan dari harga nyata. |
+| sample.alertsNone | No alerts while prices are sample data | Tidak ada peringatan selama harga masih data contoh |
+
+Where it goes (any series whose source is `synthetic`):
+- Investments watchlist (OR-30): `sample.badge` as a word next to the price of each synthetic row; when any row is synthetic, one `sample.label` line above the table with `sample.explain` as its description.
+- Asset report (OR-31, OR-32): `sample.label` with `sample.explain` directly under the asset header, above the chart; the chart's text alternative (`asset.chart.summary`) ends with `sample.label`; both signal cards and the report start with `sample.signalNote`.
+- Market snapshot on the Radar (OR-28): `sample.badge` on each synthetic row.
+- Alerts (OR-34): no alert is created from a synthetic series; the bell counts none; when no alert exists because prices are synthetic, the alert lists show `sample.alertsNone` instead of the normal empty text.
+- Signal explanation (OR-33): the generated text for a synthetic series starts with `sample.signalNote`; the news check stays context as usual.
+
+The label is a word in muted text with a dashed outline (like the canvas's former "Sample data" badge), never colour alone. It describes the data; it is not a warning about the signal and adds no advice.
 
 ## 9. Login (OR-19, parked)
 
