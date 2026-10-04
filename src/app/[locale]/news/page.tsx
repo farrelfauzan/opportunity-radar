@@ -7,6 +7,7 @@ import { formatRelativeTime } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { fill, type Messages } from "@/i18n/t";
 import { newsHref, PAGE_SIZE, parseNewsQuery, type NewsQuery } from "@/lib/news/query";
+import { creditFor } from "@/lib/news/credit";
 import { INGEST_JOB, isNeverIngested, safeHref, staleBanner } from "@/lib/news/view";
 import {
   CATEGORIES,
@@ -41,14 +42,9 @@ const chip =
 const heading = "text-[26px] font-bold tracking-tight";
 
 async function load({ category, region }: NewsQuery) {
-  const filtered = category !== undefined || region !== undefined;
-  const today = listArticles({});
-  const [all, list, sources, lastRun] = await Promise.all([
-    today,
-    filtered ? listArticles({ category, region }) : today,
-    listSources(),
-    lastSuccessfulRun(INGEST_JOB),
-  ]);
+  // One query for the day; the filter is applied to it, so the header counts and the list agree.
+  const [all, sources, lastRun] = await Promise.all([listArticles({}), listSources(), lastSuccessfulRun(INGEST_JOB)]);
+  const list = all.filter((a) => (!category || a.category === category) && (!region || a.region === region));
   return { all, list, sources, lastRun };
 }
 
@@ -112,7 +108,7 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
       </div>
 
       {banner && (
-        <p role="status" className="rounded-lg border border-destructive px-4 py-3 text-destructive">
+        <p role="status" className="rounded-lg border border-glass-border bg-white/8 px-4 py-3 text-foreground">
           {banner}
         </p>
       )}
@@ -241,7 +237,33 @@ function Item({
           <span className="text-base font-semibold [overflow-wrap:anywhere]">{article.headline}</span>
         )}
         {article.snippet && <p className="text-[#E2DDF0] [overflow-wrap:anywhere]">{article.snippet}</p>}
+        <CreditLine sourceSlug={article.sourceSlug} m={m} />
       </CardContent>
     </Card>
+  );
+}
+
+/** "Source: The Conversation · CC BY-ND 4.0": required wherever an item from a licensed source is shown. */
+function CreditLine({ sourceSlug, m }: { sourceSlug: string; m: Messages }) {
+  const credit = creditFor(sourceSlug);
+  if (!credit) return null;
+  const publisher = m.news.credit.publisher[credit.publisher];
+  if (!credit.licence) {
+    return <p className="text-xs text-muted-foreground">{fill(m.news.credit.line, { publisher })}</p>;
+  }
+  const [before, after] = fill(m.news.credit.lineLicence, { publisher, licence: "\u0000" }).split("\u0000");
+  return (
+    <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
+      {before}
+      <a
+        href={credit.licence.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      >
+        {m.news.credit.licence[credit.licence.key]}
+      </a>
+      {after}
+    </p>
   );
 }

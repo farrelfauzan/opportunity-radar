@@ -88,7 +88,7 @@ test("AC1: today's articles show newest first, with source, time, region and a h
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("News");
   await expect(page).toHaveTitle("News · Opportunity Radar");
 
-  // 5 minutes old, so it is the newest of all 75 articles.
+  // 5 minutes old, so it is the newest of all the articles.
   const first = items(page).first();
   await expect(first).toContainText(headlines.newest);
   await expect(first).toContainText("Tech & AI");
@@ -102,7 +102,7 @@ test("AC1: today's articles show newest first, with source, time, region and a h
 
   // Newest first: an article of 80 minutes comes before the one of 2 hours.
   await page.goto("/en/news?category=politics&region=indonesia");
-  await expect(items(page)).toHaveCount(2);
+  await expect(items(page)).toHaveCount(3); // + the licensed-source article, 121 minutes old
   await expect(items(page).nth(0)).not.toContainText(headlines.twoHours);
   await expect(items(page).nth(1)).toContainText(headlines.twoHours);
   await expect(items(page).nth(1)).toContainText("Antara · 2h ago · Indonesia");
@@ -312,16 +312,16 @@ test("the header counts describe the whole day, not the filter", async ({ page }
     await expect(page.locator("main")).toContainText(copy[locale].summary);
     await expect(items(page)).toHaveCount(2);
   }
-  // 75 articles of 5 sources; the 6th configured source and yesterday's article are not counted.
-  expect(stats).toEqual({ articles: 75, sources: 5 });
-  expect(fixtureSources).toHaveLength(6);
+  // 77 articles of 7 sources; the 8th configured source and yesterday's article are not counted.
+  expect(stats).toEqual({ articles: 77, sources: 7 });
+  expect(fixtureSources).toHaveLength(8);
 });
 
 test("the Sources panel lists the configured sources by region with the note", async ({ page }) => {
   await page.goto("/en/news");
   const card = sourcesCard(page, "en");
-  await expect(card).toContainText(`Indonesia: Antara, ${"CNBC Indonesia"}, Katadata, ${longSourceName}`);
-  await expect(card).toContainText("Global: BBC Business, TechCrunch");
+  await expect(card).toContainText(`Indonesia: Antara, CNBC Indonesia, Katadata, ${longSourceName}, The Conversation Indonesia`);
+  await expect(card).toContainText("Global: BBC Business, European Central Bank, TechCrunch");
   await expect(card).toContainText(copy.en.note);
 });
 
@@ -358,14 +358,14 @@ test("30 items show no Load more, 31 items show it; a filter change resets the p
   await expect(page.getByRole("link", { name: "Load more" })).toHaveCount(1);
 });
 
-test("Load more steps through all 75 articles", async ({ page }) => {
+test("Load more steps through all the articles", async ({ page }) => {
   await page.goto("/en/news");
   await expect(items(page)).toHaveCount(30);
   await page.getByRole("link", { name: "Load more" }).click();
   await expect(items(page)).toHaveCount(60);
   await page.getByRole("link", { name: "Load more" }).click();
   await expect(page).toHaveURL("/en/news?shown=90");
-  await expect(items(page)).toHaveCount(75);
+  await expect(items(page)).toHaveCount(stats.articles);
   await expect(page.getByRole("link", { name: "Load more" })).toHaveCount(0);
 });
 
@@ -409,10 +409,10 @@ test("1280 px: the Sources panel sits beside the list", async ({ page }) => {
 // ---- States ----------------------------------------------------------------------------------
 
 test("a skeleton shows while the screen loads on client-side navigation", async ({ page }) => {
-  // The link prefetches the loading skeleton; wait for that, then slow down the real request.
-  const prefetched = page.waitForResponse((response) => /\/en\/news/.test(response.url()));
-  await page.goto("/en/calculators");
-  await prefetched;
+  // The header link prefetches the loading skeleton. Wait until the page is idle, so the
+  // prefetch has finished and the skeleton is in the router cache; then slow the real request.
+  await page.goto("/en/calculators", { waitUntil: "networkidle" });
+  await page.waitForTimeout(500);
   await page.route(/\/en\/news/, async (route) => {
     if (!route.request().headers()["next-router-prefetch"]) await new Promise((resolve) => setTimeout(resolve, 1500));
     await route.continue();
@@ -565,4 +565,34 @@ test.describe("store unreachable", () => {
       await page.goto("about:blank");
     });
   }
+});
+
+test("items from licensed sources carry a credit line; others do not", async ({ page }) => {
+  const deed = "https://creativecommons.org/licenses/by-nd/4.0/";
+  const item = (headline: string) => page.getByRole("listitem").filter({ hasText: headline });
+
+  await page.goto("/en/news?category=politics&region=indonesia");
+  const conversation = item(headlines.conversation);
+  await expect(conversation).toContainText("Source: The Conversation Indonesia · CC BY-ND 4.0");
+  const licence = conversation.getByRole("link", { name: "CC BY-ND 4.0" });
+  await expect(licence).toHaveAttribute("href", deed);
+  await expect(licence).toHaveAttribute("target", "_blank");
+  await expect(licence).toHaveAttribute("rel", "noopener noreferrer");
+  // No derivatives: the summary is shown as stored, in its own language, also on /en.
+  await expect(conversation).toContainText("Ringkasan yang dipakai apa adanya.");
+  await expect(item("Aturan sertifikasi halal diperluas")).not.toContainText("Source:");
+
+  await page.goto("/id/news?category=politics&region=indonesia");
+  await expect(item(headlines.conversation)).toContainText("Sumber: The Conversation Indonesia · CC BY-ND 4.0");
+  await expect(item(headlines.conversation)).toContainText("Ringkasan yang dipakai apa adanya.");
+
+  await page.goto("/en/news?category=markets&region=global");
+  const ecb = item(headlines.ecb);
+  await expect(ecb).toContainText("Source: European Central Bank");
+  await expect(ecb).not.toContainText("CC BY");
+  await expect(ecb.getByRole("link")).toHaveCount(1); // the headline is the required link to the original
+  await expect(item("Stocks edge higher ahead of rate decision")).not.toContainText("Source:");
+
+  await page.goto("/id/news?category=markets&region=global");
+  await expect(item(headlines.ecb)).toContainText("Sumber: Bank Sentral Eropa (ECB)");
 });
