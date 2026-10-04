@@ -59,6 +59,8 @@ Rules use states, not events: there is no "crossed within N days" rule.
 | Currency: USD/IDR change over 30 days | both (IDR-priced gold/silver, US stocks) | **no** | Context only |
 | News check (OR-33: supportive / against counts) | both | **no** | Context only |
 
+Momentum word (OR-29 question, decided 2026-10-04): RSI14 between 30 and 70 inclusive → "Supports buy" above 50, "Supports sell" below 50, "Neutral" at exactly 50; RSI outside 30–70 → "Neutral" (stretched: it is what makes the short term HOLD). The 50 midline is used for this display word only; it never changes a verdict.
+
 "Agree" = rule checks pointing the same way as the verdict; for HOLD, the count is of Neutral checks. Currency and news never move a verdict in v1 (D10).
 
 ## 4. Data quality, history and staleness
