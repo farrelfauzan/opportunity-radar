@@ -237,6 +237,61 @@ describe("untrusted article text is fenced", () => {
   });
 });
 
+describe("OR-14 review follow-ups", () => {
+  test("a why over 300 characters fails that item and keeps its feed category", async () => {
+    const ids = await addArticles(3);
+    const longWord = "x".repeat(100_000);
+    const { transport } = triageProvider((batch) => ({
+      items: batch.map((id) =>
+        id === ids[0]
+          ? { ...goodItem(id), why: { en: longWord, id: "Pendek." } }
+          : id === ids[1]
+            ? { ...goodItem(id), why: { en: "Short.", id: "a".repeat(301) } }
+            : goodItem(id),
+      ),
+    }));
+
+    await triageNews({ transport });
+
+    expect((await triageRows()).map((r) => [r.status, r.error, r.category])).toEqual([
+      ["failed", "why is longer than 300 characters", "business"],
+      ["failed", "why is longer than 300 characters", "business"],
+      ["ok", null, "tech-ai"],
+    ]);
+  });
+
+  test("the database refuses a why over 300 characters directly", async () => {
+    const [id] = await addArticles(1);
+    await expect(
+      db().execute(sql`insert into article_triage (article_id, status, category, region, relevance, impact, why_en, why_id, themes)
+        values (${id}, 'ok', 'business', 'global', 50, 'context', ${"x".repeat(301)}, 'y', '{other}')`),
+    ).rejects.toThrow();
+  });
+
+  test("a failed item's error is cut to 300 characters", async () => {
+    await addArticles(1);
+    const { transport } = triageProvider((ids) => ({ items: ids.map((id) => ({ ...goodItem(id), category: "c".repeat(5000) })) }));
+
+    await triageNews({ transport });
+
+    const [row] = await triageRows();
+    expect(row.status).toBe("failed");
+    expect(row.error!.length).toBe(300);
+  });
+
+  test("an id repeated in the reply fails that article, whatever the two answers say", async () => {
+    const ids = await addArticles(2);
+    const { transport } = triageProvider((batch) => ({ items: [...batch.map(goodItem), goodItem(ids[0])] }));
+
+    await triageNews({ transport });
+
+    expect((await triageRows()).map((r) => [r.status, r.error])).toEqual([
+      ["failed", "id repeated in the reply"],
+      ["ok", null],
+    ]);
+  });
+});
+
 describe("item contract", () => {
   test("why longer than 30 words, or missing in one language, is rejected", () => {
     expect(checkItem({ ...goodItem(1), why: { en: "word ".repeat(31), id: "kata" } })).toBe("why is longer than 30 words");

@@ -4,7 +4,7 @@
 import "server-only";
 
 export { checkConnection, closeDb } from "./client.ts";
-export { REGIONS, CATEGORIES, JOB_STATUSES, SECTORS, THEMES, IMPACTS } from "./schema.ts";
+export { REGIONS, CATEGORIES, JOB_STATUSES, SECTORS, THEMES, IMPACTS, FACTOR_KEYS } from "./schema.ts";
 export type { Region, Category, JobStatus, Sector, FactorScores, LlmRole, LlmCallStatus, Theme, Impact } from "./schema.ts";
 export * from "./articles.ts";
 export * from "./sources.ts";
