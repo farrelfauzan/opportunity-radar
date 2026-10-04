@@ -1,11 +1,11 @@
 // The prices job (OR-26): daily candles and the latest quote of every Yahoo
 // asset, and USD/IDR from Frankfurter. A source that fails keeps its previous
 // quote (same price, same as-of time) and makes the run "partial".
-import { getQuote, lastCandleDay, setQuote, upsertAsset, upsertCandles, type Asset } from "@/server/data";
+import { getQuote, lastCandleDay, removeSyntheticCandles, setQuote, upsertAsset, upsertCandles, type Asset } from "@/server/data";
 import type { JobOutcome } from "@/server/jobs/runner";
 import { ASSETS } from "./assets.ts";
 import { fetchUsdIdr } from "./frankfurter.ts";
-import { fetchChart, PriceSourceError } from "./yahoo.ts";
+import { fetchChart, PriceSourceError, yahooMode } from "./yahoo.ts";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const BACKFILL_YEARS = 6; // the 5Y chart needs a 200-day average from its first day
@@ -19,10 +19,15 @@ export function rangeFor(lastDay: string | null, now: Date): string {
 }
 
 async function yahooAsset(asset: Asset, transport: typeof fetch | undefined, now: Date) {
-  const chart = await fetchChart(asset.symbol, rangeFor(await lastCandleDay(asset.id), now), transport);
+  // The range comes from the newest candle of the source in use, so the first live run
+  // backfills 6 years instead of continuing a made-up history.
+  const source = yahooMode() === "live" ? "yahoo" : "synthetic";
+  const chart = await fetchChart(asset.symbol, rangeFor(await lastCandleDay(asset.id, source), now), transport);
   // "synthetic" in fixtures mode: made-up prices must never look like Yahoo's.
   const stored = await upsertCandles(asset.id, chart.source, chart.candles);
   if (chart.quote) await setQuote(asset.id, { ...chart.quote, source: chart.source });
+  // Real data now covers this asset: drop the made-up days so a series is never mixed.
+  if (chart.source === "yahoo") await removeSyntheticCandles(asset.id);
   return stored;
 }
 

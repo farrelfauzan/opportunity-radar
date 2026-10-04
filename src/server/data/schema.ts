@@ -549,6 +549,8 @@ export const candles = pgTable(
     primaryKey({ columns: [t.assetId, t.day] }),
     check("candles_prices_check", sql`${t.low} > 0 and ${t.low} <= ${t.open} and ${t.low} <= ${t.close} and ${t.high} >= ${t.open} and ${t.high} >= ${t.close}`),
     check("candles_volume_check", sql`${t.volume} >= 0`),
+    // "synthetic" marks made-up fixtures data, so it can never pass for real prices.
+    check("candles_source_check", sql`${t.source} in ('yahoo', 'synthetic', 'frankfurter')`),
   ],
 );
 
@@ -565,5 +567,8 @@ export const quotes = pgTable(
     source: text().notNull(),
     fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [check("quotes_price_check", sql`${t.price} > 0`)],
+  (t) => [
+    check("quotes_price_check", sql`${t.price} > 0`),
+    check("quotes_source_check", sql`${t.source} in ('yahoo', 'synthetic', 'frankfurter')`),
+  ],
 );

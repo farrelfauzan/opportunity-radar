@@ -78,6 +78,28 @@ describe("prices job", () => {
     expect(bbca.source).toBe("yahoo");
   });
 
+  test("the first live run after fixtures backfills 6 years and leaves no synthetic day behind", async () => {
+    await ingestPrices({ now: () => NOW }); // fixtures: synthetic history
+    process.env.PRICES_YAHOO = "live";
+    const { syntheticChart } = await import("@/server/prices/yahoo");
+    const ranges: string[] = [];
+    const transport = (async (url: string) => {
+      ranges.push(/range=([^&]+)/.exec(url)![1]);
+      return Response.json(syntheticChart(decodeURIComponent(/chart\/([^?]+)/.exec(url)![1]), "6y", NOW));
+    }) as unknown as typeof fetch;
+
+    await ingestPrices({ transport, now: () => NOW });
+
+    expect(ranges).toEqual(["6y", "6y", "6y"]);
+    const sources = await db().execute(sql`select distinct c.source from candles c join assets a on a.id = c.asset_id where a.source = 'yahoo'`);
+    expect(sources).toEqual([{ source: "yahoo" }]);
+  });
+
+  test("the database refuses an unknown price source", async () => {
+    const asset = await upsertAsset({ slug: "y", symbol: "Y", name: "Y", kind: "stock", exchange: null, currency: "IDR", source: "yahoo" });
+    await expect(setQuote(asset.id, { price: 1, asOf: new Date(), source: "made-up" })).rejects.toThrow();
+  });
+
   test("a response with a zero close: that asset fails and keeps its previous quote, the run is partial", async () => {
     await ingestPrices({ now: () => NOW });
     const bbca = (await getAssetBySlug("bbca"))!;

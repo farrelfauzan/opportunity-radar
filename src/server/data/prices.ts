@@ -46,15 +46,28 @@ export async function upsertCandles(assetId: number, source: string, rows: Candl
   return rows.length;
 }
 
-/** The newest stored candle day of an asset, or null. */
-export async function lastCandleDay(assetId: number): Promise<string | null> {
+/** The newest stored candle day of an asset (from one source, if given), or null. */
+export async function lastCandleDay(assetId: number, source?: string): Promise<string | null> {
   const [row] = await db()
     .select({ day: candles.day })
     .from(candles)
-    .where(eq(candles.assetId, assetId))
+    .where(and(eq(candles.assetId, assetId), source ? eq(candles.source, source) : undefined))
     .orderBy(desc(candles.day))
     .limit(1);
   return row?.day ?? null;
+}
+
+/**
+ * Removes an asset's synthetic candles (made-up fixtures data). Called after a
+ * successful live fetch, so real and made-up days are never mixed in one series.
+ * Only rows with source "synthetic" are touched.
+ */
+export async function removeSyntheticCandles(assetId: number): Promise<number> {
+  const removed = await db()
+    .delete(candles)
+    .where(and(eq(candles.assetId, assetId), eq(candles.source, "synthetic")))
+    .returning({ day: candles.day });
+  return removed.length;
 }
 
 /** Daily candles of an asset between two days (inclusive), oldest first. */
