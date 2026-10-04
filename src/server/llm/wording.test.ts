@@ -235,6 +235,10 @@ describe("OR-64: normalisation, clause breaks, forecast forms, the authority exc
       expect(bannedWording(line)).not.toBeNull();
     }
     expect(bannedWording("buy<b></b> now")).not.toBeNull(); // a real tag is still removed
+    // A known tag name followed by words is not one tag: the words are still checked.
+    for (const line of ["<b you should buy gold now>", "<font color=red you should buy gold now>", "<br you should buy gold now/>", "<b <b you should buy gold now>", "<B you must act now>"]) {
+      expect(bannedWording(line)).not.toBeNull();
+    }
   });
 
   test("many < characters stay fast", () => {
