@@ -52,12 +52,16 @@ Rules use states, not events: there is no "crossed within N days" rule.
 
 | Check | Term | Counts toward "{n} of {m} checks agree" | Verdict word |
 |---|---|---|---|
-| Momentum (RSI14 between 30 and 70) | short | yes | Supports buy / Supports sell / Neutral |
+| Momentum (RSI14 between 30 and 70) | short | **no** (display only) | Supports buy / Supports sell / Neutral, marked "not counted" |
 | Trend: close vs SMA50 | short | yes | Supports buy / Supports sell / Neutral |
 | Trend: SMA50 vs SMA200 | long | yes | Supports buy / Supports sell / Neutral |
 | Trend: close vs SMA200 | long | yes | Supports buy / Supports sell / Neutral |
 | Currency: USD/IDR change over 30 days | both (IDR-priced gold/silver, US stocks) | **no** | Context only |
 | News check (OR-33: supportive / against counts) | both | **no** | Context only |
+
+Counter (Orchestrator on the Tech Lead's delegation, 2026-10-04, on the Reviewer's PR 73 nit): the momentum row never counts toward "{n} of {m} checks agree", because its word comes from the 50 midline, which never changes a verdict (the 30 and 70 limits act through §3.1, and a stretched RSI is named by the HOLD trigger). That leaves one counted check in the short term, so the short-term card shows **no** counter; the long-term card shows "{n} of 2 checks agree".
+
+Momentum word (OR-29 question, decided 2026-10-04): RSI14 between 30 and 70 inclusive → "Supports buy" above 50, "Supports sell" below 50, "Neutral" at exactly 50; RSI outside 30–70 → "Neutral" (stretched: it is what makes the short term HOLD). The 50 midline is used for this display word only; it never changes a verdict.
 
 "Agree" = rule checks pointing the same way as the verdict; for HOLD, the count is of Neutral checks. Currency and news never move a verdict in v1 (D10).
 
@@ -69,7 +73,7 @@ Rules use states, not events: there is no "crossed within N days" rule.
 | Any close ≤ 0 in the series | whole series rejected: `INVALID_DATA`, no verdict, logged |
 | Several rows for one date | keep the last one |
 | Gaps in dates | not filled; rows counted as they are |
-| Latest close older than 7 calendar days (stocks), 4 (metals), 3 (crypto) | `STALE`: no verdict; IDX stocks use 10 days in Lebaran week (limit = age in calendar days; equal to the limit is fine). Metals use 4 so a US Monday holiday after a weekend does not trip it |
+| Latest close older than 7 calendar days (stocks), 4 (metals), 3 (crypto) | `STALE`: no verdict; IDX stocks use 12 days from the last close before the IDX Idul Fitri closure until the first close after it (limit = age in calendar days; equal to the limit is fine). The closure dates are a config list per year (2026: last close Tue 17 Mar, reopens Wed 25 Mar; 2027: last close Fri 5 Mar, reopens Tue 16 Mar; R-6), extended each September when IDX publishes its calendar; a year missing from the list falls back to 7 days (no verdict for a few days, the safe side). Metals use 4 so a US Monday holiday after a weekend does not trip it |
 | Cash & bonds | no signal |
 
 ## 5. What would change the signal (OR-32 "What would change this to …")

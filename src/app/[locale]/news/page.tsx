@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CreditLine } from "@/components/credit-line";
+import { WhyLabel } from "@/components/why-label";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { currentLocale, getMessages, getT } from "@/i18n/dictionaries";
@@ -333,7 +334,7 @@ function Item({
         {triage && (
           // Our commentary, kept apart from the stored snippet (a licensed summary is never altered).
           <div className="flex gap-2.5 rounded-lg bg-black/18 px-3 py-2.5">
-            <span className="shrink-0 pt-px text-xs font-semibold text-[#2DD4BF]">{m.news.why}</span>
+            <WhyLabel label={m.news.why} ai={m.news.whyAi} aiSr={m.news.whyAiSr} />
             <span className="min-w-0 text-[#E2DDF0] [overflow-wrap:anywhere]">
               {inLocale(locale, triage.whyEn, triage.whyId)}
             </span>

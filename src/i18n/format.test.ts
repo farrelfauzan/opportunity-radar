@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import en from "./dictionaries/en.json";
 import id from "./dictionaries/id.json";
 import {
+  formatDateLongWib,
   formatDateShortWib,
   formatDateTimeWib,
   formatPercent,
@@ -94,6 +95,16 @@ test("formatTimeWib and formatDateShortWib read the WIB clock", () => {
   expect(formatTimeWib("2026-10-03T16:59:00Z", "id")).toBe("23.59");
   expect(formatTimeWib(null, "en")).toBe(DASH);
   expect(formatDateShortWib("not a date", "id")).toBe(DASH);
+});
+
+test("formatDateLongWib: weekday, day, month and year in WIB", () => {
+  expect(formatDateLongWib("2026-10-03T02:30:00Z", "en")).toBe("Saturday, 3 October 2026");
+  expect(formatDateLongWib("2026-10-03T02:30:00Z", "id")).toBe("Sabtu, 3 Oktober 2026");
+  // 17:05 UTC is already the next day in WIB.
+  expect(formatDateLongWib("2026-10-03T17:05:00Z", "en")).toBe("Sunday, 4 October 2026");
+  expect(formatDateLongWib("2026-10-03T17:05:00Z", "id")).toBe("Minggu, 4 Oktober 2026");
+  expect(formatDateLongWib(null, "en")).toBe(DASH);
+  expect(formatDateLongWib("not a date", "id")).toBe(DASH);
 });
 
 describe("formatRelativeTime", () => {

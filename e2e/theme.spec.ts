@@ -12,7 +12,8 @@ test("the start page shows the dark glass theme", async ({ page }) => {
   await expect(page.locator("body")).toHaveCSS("background-image", /radial-gradient/);
   await expect(page.locator("html")).toHaveCSS("background-color", "rgb(29, 18, 54)");
 
-  const card = page.locator('[data-slot="card"]');
+  // The Radar has several cards: the brief is the first.
+  const card = page.locator('[data-slot="card"]').first();
   await expect(card).toHaveCSS("background-color", "rgba(255, 255, 255, 0.08)");
   await expect(card).toHaveCSS("backdrop-filter", "blur(18px)");
   await expect(card).toHaveCSS("border-top-color", "rgba(255, 255, 255, 0.16)");
