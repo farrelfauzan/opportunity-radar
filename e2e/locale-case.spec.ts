@@ -32,7 +32,12 @@ test("/en and /id still answer 200 after a restart that followed /EN and /ID req
       env: { ...process.env, DATABASE_URL: e2eDatabaseUrl() },
       stdio: "ignore",
     });
-    for (let i = 0; i < 100; i++) {
+    // Up to 90 s: with several sessions running tests the machine can be slow.
+    for (let i = 0; i < 450; i++) {
+      // A server that is gone will never answer (for example it exits at start when its database is unreachable).
+      if (server.exitCode !== null) {
+        throw new Error(`The test server exited with code ${server.exitCode} before it answered; is the e2e database (DATABASE_URL) reachable?`);
+      }
       try {
         await fetch(`http://localhost:${port}/en`, { redirect: "manual" });
         return server;
@@ -41,7 +46,7 @@ test("/en and /id still answer 200 after a restart that followed /EN and /ID req
       }
     }
     server.kill();
-    throw new Error(`The test server did not start on port ${port}`);
+    throw new Error(`The test server did not start on port ${port} within 90 s`);
   };
   const stop = async (server: ChildProcess) => {
     const closed = new Promise((resolve) => server.once("close", resolve));
