@@ -88,3 +88,4 @@ Numbering matches the sprint plan in Notion (D1–D16). Rows marked "Designer, d
 - 2026-10-05 — Market snapshot (OR-28 review): "change not available" label, a hidden 10-close summary for the sparkline, stale line keeps the run time (`copy.md` §5). Wording guard: new phrase families incl. sentence-initial buy/sell outside first steps (`rules-v1.md` §7.4, OR-65). Upkeep: monthly review of the guard's rejection logs (`docs/upkeep.md`).
 - 2026-10-05 — My ventures cards (OR-39): plain related-news count `radar.ventures.related` until OR-51's link; no-score and never-scored states reuse venture-view.md (`copy.md` §5).
 - 2026-10-05 — Signal staleness: age counted in each market's own time zone (WIB for IDX, New York for US stocks and metals, UTC for crypto) (`rules-v1.md` §4, OR-29 review).
+- 2026-10-05 — Add an asset (OR-44): form copy and errors (unknown, duplicate, unsupported market, price below 0.05), remove copy; IDX, US and Binance crypto only (`copy.md` §7).
