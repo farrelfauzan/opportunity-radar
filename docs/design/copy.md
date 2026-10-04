@@ -485,8 +485,9 @@ The watchlist's kind line uses `asset.kind.idx`, `asset.kind.index`, `asset.kind
 |---|---|---|
 | signal.stale | No signal: prices are out of date | Tanpa sinyal: harga belum diperbarui |
 | signal.invalid | No signal: the price data has errors | Tanpa sinyal: data harga bermasalah |
+| signal.sample | No signal: sample data, not real prices | Tanpa sinyal: data contoh, bukan harga nyata |
 
-`signal.none` (§7) is for `INSUFFICIENT`, `signal.stale` for `STALE`, `signal.invalid` for `INVALID_DATA`; cash & bonds use `signal.noSignal`.
+`signal.none` (§7) is for `INSUFFICIENT`, `signal.stale` for `STALE`, `signal.invalid` for `INVALID_DATA`, `signal.sample` for any series whose source is `synthetic` (§8.2); cash & bonds use `signal.noSignal`.
 
 ### Checks: "What we see" (OR-32 checks table, signal cards)
 
@@ -573,15 +574,16 @@ Until live price sources are switched on (OR-53, OR-54, waiting for the Tech Lea
 | sample.label | Sample data, not real prices | Data contoh, bukan harga nyata |
 | sample.badge | Sample | Contoh |
 | sample.explain | These prices are made up to test the app. Real prices are used once the live data source is switched on. | Harga ini dibuat untuk menguji aplikasi. Harga nyata dipakai setelah sumber data langsung diaktifkan. |
-| sample.signalNote | Signal computed on sample data, not on real prices. | Sinyal dihitung dari data contoh, bukan dari harga nyata. |
 | sample.alertsNone | No alerts while prices are sample data | Tidak ada peringatan selama harga masih data contoh |
 
+**No verdict on sample data** (Orchestrator's decision 2026-10-04, on the Reviewer's question): a BUY, HOLD or SELL computed on made-up prices is never shown. The rule engine still computes it (for its tests) and stores it flagged `synthetic`; every screen shows the no-verdict state `signal.sample` instead, no alert is raised, and the chart shows no markers.
+
 Where it goes (any series whose source is `synthetic`):
-- Investments watchlist (OR-30): `sample.badge` as a word next to the price of each synthetic row; when any row is synthetic, one `sample.label` line above the table with `sample.explain` as its description.
-- Asset report (OR-31, OR-32): `sample.label` with `sample.explain` directly under the asset header, above the chart; the chart's text alternative (`asset.chart.summary`) ends with `sample.label`; both signal cards and the report start with `sample.signalNote`.
+- Investments watchlist (OR-30): `sample.badge` as a word next to the price of each synthetic row, and `signal.sample` in its signal column; when any row is synthetic, one `sample.label` line above the table with `sample.explain` as its description.
+- Asset report (OR-31, OR-32): `sample.label` with `sample.explain` directly under the asset header, above the chart; the chart's text alternative (`asset.chart.summary`) ends with `sample.label` and gives no last signal; the chart shows no buy/sell markers; both signal cards show the no-verdict state `signal.sample` with `sample.explain` as the reason; the checks table, explanation, reversal conditions and signal history are not shown.
 - Market snapshot on the Radar (OR-28): `sample.badge` on each synthetic row.
 - Alerts (OR-34): no alert is created from a synthetic series; the bell counts none; when no alert exists because prices are synthetic, the alert lists show `sample.alertsNone` instead of the normal empty text.
-- Signal explanation (OR-33): the generated text for a synthetic series starts with `sample.signalNote`; the news check stays context as usual.
+- Signal explanation (OR-33): no explanation is generated or shown for a synthetic series.
 
 The label is a word in muted text with a dashed outline (like the canvas's former "Sample data" badge), never colour alone. It describes the data; it is not a warning about the signal and adds no advice.
 
