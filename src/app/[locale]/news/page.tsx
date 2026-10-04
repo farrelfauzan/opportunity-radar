@@ -7,18 +7,33 @@ import { currentLocale, getMessages, getT } from "@/i18n/dictionaries";
 import { formatRelativeTime } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { fill, type Messages } from "@/i18n/t";
+import { inLocale } from "@/lib/opportunities/view";
 import { newsHref, PAGE_SIZE, parseNewsQuery, type NewsQuery } from "@/lib/news/query";
-import { INGEST_JOB, isNeverIngested, isStale, partialState, safeHref, staleBanner } from "@/lib/news/view";
+import {
+  themeBarPercent,
+  INGEST_JOB,
+  isNeverIngested,
+  isStale,
+  onlyLinked,
+  partialState,
+  safeHref,
+  staleBanner,
+} from "@/lib/news/view";
 import {
   CATEGORIES,
   lastSuccessfulRun,
   listArticles,
   listSources,
+  newsEnrichment,
   sourceHealth,
+  trendingThemes,
   REGIONS,
   type ArticleWithSource,
   type Category,
+  type Impact,
+  type NewsEnrichment,
 } from "@/server/data";
+import { LinkedToggle } from "./linked-toggle";
 import { RegionSelect } from "./region-select";
 
 // Rendered per request: reading searchParams keeps the page out of every cache,
@@ -40,18 +55,28 @@ const categoryLabel = {
 const chip =
   "inline-flex min-h-11 items-center rounded-md border border-input bg-black/18 px-3.5 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-[current=true]:border-foreground aria-[current=true]:bg-foreground aria-[current=true]:text-background";
 
+// The impact is a word first; the colours (design: News.dc.html) only back it up.
+const impactStyle = {
+  opportunity: "bg-[#1D4B48] text-[#5EEAD4]",
+  risk: "bg-[#5A3320] text-[#FDBA74]",
+  context: "bg-[#4B3E75] text-[#E2DDF0]",
+} as const satisfies Record<Impact, string>;
+
 const heading = "text-[26px] font-bold tracking-tight";
 
-async function load({ category, region }: NewsQuery) {
-  // One query for the day; the filter is applied to it, so the header counts and the list agree.
-  const [all, sources, health, lastRun] = await Promise.all([
+async function load({ category, region, linked }: NewsQuery, now: Date) {
+  // One query for the day; the filters are applied to it, so the header counts and the list agree.
+  const [all, sources, health, lastRun, themes] = await Promise.all([
     listArticles({}),
     listSources(),
     sourceHealth(),
     lastSuccessfulRun(INGEST_JOB),
+    trendingThemes(now),
   ]);
-  const list = all.filter((a) => (!category || a.category === category) && (!region || a.region === region));
-  return { all, list, sources, health, lastRun };
+  const filtered = all.filter((a) => (!category || a.category === category) && (!region || a.region === region));
+  const enrichment = await newsEnrichment(filtered.map((a) => a.id));
+  const list = linked ? onlyLinked(filtered, enrichment) : filtered;
+  return { all, list, enrichment, sources, health, lastRun, themes };
 }
 
 export default async function NewsPage({ searchParams }: PageProps<"/[locale]/news">) {
@@ -62,7 +87,7 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
 
   let data;
   try {
-    data = await load(query);
+    data = await load(query, now);
   } catch (error) {
     // The details stay in the server log; the page shows no host, port or message.
     console.error("News: cannot read the store", error);
@@ -82,7 +107,7 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
     );
   }
 
-  const { all, list, sources, health, lastRun } = data;
+  const { all, list, enrichment, sources, health, lastRun, themes } = data;
 
   if (isNeverIngested(lastRun, all.length)) {
     return (
@@ -107,6 +132,7 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
     { value: "indonesia", label: m.news.region.id, region: "indonesia" },
     { value: "global", label: m.news.region.global, region: "global" },
   ] as const;
+  const maxThemeCount = Math.max(...themes.map((t) => t.count));
 
   return (
     <>
@@ -126,7 +152,7 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
           {[undefined, ...CATEGORIES].map((category) => (
             <Link
               key={category ?? "all"}
-              href={newsHref(locale, { category, region: query.region })}
+              href={newsHref(locale, { category, region: query.region, linked: query.linked })}
               aria-current={category === query.category ? "true" : undefined}
               className={chip}
             >
@@ -140,8 +166,13 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
           options={regionOptions.map((o) => ({
             value: o.value,
             label: o.label,
-            href: newsHref(locale, { category: query.category, region: o.region }),
+            href: newsHref(locale, { category: query.category, region: o.region, linked: query.linked }),
           }))}
+        />
+        <LinkedToggle
+          label={m.news.onlyLinked}
+          checked={query.linked === true}
+          href={newsHref(locale, { category: query.category, region: query.region, linked: query.linked ? undefined : true })}
         />
       </div>
 
@@ -155,7 +186,7 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
             <ol className="flex flex-col gap-3">
               {visible.map((article) => (
                 <li key={article.id}>
-                  <Item article={article} now={now} locale={locale} m={m} />
+                  <Item article={article} extra={enrichment.get(article.id)} now={now} locale={locale} m={m} />
                 </li>
               ))}
             </ol>
@@ -171,35 +202,65 @@ export default async function NewsPage({ searchParams }: PageProps<"/[locale]/ne
           )}
         </div>
 
-        <Card className="min-w-0 flex-[1_1_300px]">
-          <CardContent className="flex flex-col gap-2">
-            <h2 className="text-base font-semibold">{m.news.sources.title}</h2>
-            {partial && (
-              <p className="text-xs font-semibold text-foreground [overflow-wrap:anywhere]">
-                {fill(m.state.partial, {
-                  ok: partial.ok,
-                  total: partial.total,
-                  names: partial.failed.map((s) => s.name).join(", "),
-                })}
-              </p>
-            )}
-            {REGIONS.map((region) => {
-              // A source that did not update is marked with a word, not only with colour.
-              const names = sources
-                .filter((s) => s.active && s.region === region)
-                .map((s) => (failedSlugs.has(s.slug) ? `${s.name} — ${m.news.sources.notUpdated}` : s.name));
-              if (names.length === 0) return null;
-              return (
-                <p key={region} className="text-[#E2DDF0] [overflow-wrap:anywhere]">
-                  {fill(region === "indonesia" ? m.news.sources.indonesia : m.news.sources.global, {
-                    names: names.join(", "),
+        <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-6">
+          {themes.length > 0 && (
+            <Card>
+              <CardContent className="flex flex-col gap-2.5">
+                <h2 className="text-base font-semibold">{m.news.themes.title}</h2>
+                <ul className="flex flex-col gap-2.5">
+                  {themes.map(({ theme, count }) => (
+                    <li key={theme}>
+                      <div className="flex justify-between gap-2">
+                        <span className="[overflow-wrap:anywhere]">{m.news.theme[theme]}</span>
+                        <span className="font-mono text-[13px] text-[#E2DDF0]">{count}</span>
+                      </div>
+                      <span
+                        role="meter"
+                        aria-label={m.news.theme[theme]}
+                        aria-valuemin={0}
+                        aria-valuemax={maxThemeCount}
+                        aria-valuenow={count}
+                        className="mt-1 block h-1.5 overflow-hidden rounded-[3px] bg-[#4B3E75]"
+                      >
+                        <span className="block h-1.5 bg-[#2DD4BF]" style={{ width: `${themeBarPercent(count, maxThemeCount)}%` }} />
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs text-muted-foreground">{m.news.themes.caption}</p>
+              </CardContent>
+            </Card>
+          )}
+          <Card>
+            <CardContent className="flex flex-col gap-2">
+              <h2 className="text-base font-semibold">{m.news.sources.title}</h2>
+              {partial && (
+                <p className="text-xs font-semibold text-foreground [overflow-wrap:anywhere]">
+                  {fill(m.state.partial, {
+                    ok: partial.ok,
+                    total: partial.total,
+                    names: partial.failed.map((s) => s.name).join(", "),
                   })}
                 </p>
-              );
-            })}
-            <p className="text-xs text-muted-foreground">{m.news.sources.note}</p>
-          </CardContent>
-        </Card>
+              )}
+              {REGIONS.map((region) => {
+                // A source that did not update is marked with a word, not only with colour.
+                const names = sources
+                  .filter((s) => s.active && s.region === region)
+                  .map((s) => (failedSlugs.has(s.slug) ? `${s.name} — ${m.news.sources.notUpdated}` : s.name));
+                if (names.length === 0) return null;
+                return (
+                  <p key={region} className="text-[#E2DDF0] [overflow-wrap:anywhere]">
+                    {fill(region === "indonesia" ? m.news.sources.indonesia : m.news.sources.global, {
+                      names: names.join(", "),
+                    })}
+                  </p>
+                );
+              })}
+              <p className="text-xs text-muted-foreground">{m.news.sources.note}</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </>
   );
@@ -218,22 +279,28 @@ function summary(strings: Messages["news"]["summary"], today: ArticleWithSource[
 
 function Item({
   article,
+  extra,
   now,
   locale,
   m,
 }: {
   article: ArticleWithSource;
+  /** Triage and linked opportunity; undefined when there is neither (no tag, no box, no link, no placeholder). */
+  extra: NewsEnrichment | undefined;
   now: Date;
   locale: Locale;
   m: Messages;
 }) {
   // Headline and snippet are rendered as text only, never as markup.
   const href = safeHref(article.link);
+  const triage = extra?.triage;
+  const linked = extra?.linked;
 
   return (
     <Card>
       <CardContent className="flex flex-col gap-2">
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          {/* articles.category is the triage category once triage succeeded (saveTriage overwrites it), the feed category until then. */}
           <span className="font-semibold text-[#E2DDF0]">{m.news.cat[categoryLabel[article.category]]}</span>
           <span className="[overflow-wrap:anywhere]">
             {fill(m.news.item.meta, {
@@ -242,6 +309,11 @@ function Item({
               region: article.region === "indonesia" ? m.news.region.id : m.news.region.global,
             })}
           </span>
+          {triage && (
+            <span className={`ml-auto rounded-full px-2 py-0.5 font-semibold ${impactStyle[triage.impact]}`}>
+              {m.news.impact[triage.impact]}
+            </span>
+          )}
         </div>
         {href ? (
           <a
@@ -258,6 +330,23 @@ function Item({
         )}
         {article.snippet && <p className="text-[#E2DDF0] [overflow-wrap:anywhere]">{article.snippet}</p>}
         <CreditLine sourceSlug={article.sourceSlug} strings={m.news.credit} />
+        {triage && (
+          // Our commentary, kept apart from the stored snippet (a licensed summary is never altered).
+          <div className="flex gap-2.5 rounded-lg bg-black/18 px-3 py-2.5">
+            <span className="shrink-0 pt-px text-xs font-semibold text-[#2DD4BF]">{m.news.why}</span>
+            <span className="min-w-0 text-[#E2DDF0] [overflow-wrap:anywhere]">
+              {inLocale(locale, triage.whyEn, triage.whyId)}
+            </span>
+          </div>
+        )}
+        {linked && (
+          <Link
+            href={`/${locale}/opportunities/${linked.id}`}
+            className="w-fit rounded-sm py-1 text-[13px] text-[#2DD4BF] [overflow-wrap:anywhere] hover:text-[#5EEAD4] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            {fill(m.news.linked, { title: inLocale(locale, linked.titleEn, linked.titleId) })}
+          </Link>
+        )}
       </CardContent>
     </Card>
   );
