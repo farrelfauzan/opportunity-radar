@@ -5,7 +5,17 @@ import { expect, test } from "./fixtures";
 // Most of these paths are 404 pages on purpose.
 test.use({ allowErrorResponses: true });
 
-const paths = ["/en/zzz%27q", "/id/zzz%27q", "/en/invest/a%27b", "/en/opportunities/a%27b", "/en/news/a%27b"];
+// Other characters looped as well: + %21 %28 %29 %2A %7E, a doubled %27%27, %27 with a query.
+const paths = [
+  "/en/zzz%27q",
+  "/id/zzz%27q",
+  "/en/invest/a%27b",
+  "/en/opportunities/a%27b",
+  "/en/news/a%27b",
+  "/en/zzz%21q",
+  "/en/zzz+q",
+  "/en/zzz%27%27q?x=1",
+];
 
 for (const path of paths) {
   test(`${path}: the page answers once and the browser goes quiet`, async ({ page }) => {

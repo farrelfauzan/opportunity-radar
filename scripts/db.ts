@@ -3,7 +3,6 @@
 // --conditions=react-server lets Node load the server-only data module outside Next.js.
 import { existsSync, writeFileSync } from "node:fs";
 import {
-  citeArticles,
   closeDb,
   insertArticle,
   insertOpportunity,
@@ -78,13 +77,14 @@ async function seedOpportunityRows(articles: { id: number; region: Region }[]): 
     const [existing] = await sql()`select id from opportunities where title_en = ${opportunity.titleEn}`;
     if (existing) continue;
     const [first, ...rest] = scores;
-    const row = await insertOpportunity(opportunity, first);
-    for (const score of rest) await recordOpportunityScore(row.id, score);
     const same = articles.filter((a) => a.region === opportunity.region);
-    await citeArticles(
-      row.id,
+    // Cited at creation: citeArticles refuses a closed opportunity, and the seed holds one.
+    const row = await insertOpportunity(
+      opportunity,
+      first,
       [0, 1, 2].map((k) => same[(index * 3 + k) % same.length].id),
     );
+    for (const score of rest) await recordOpportunityScore(row.id, score);
     added++;
   }
   return added;

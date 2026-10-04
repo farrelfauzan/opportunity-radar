@@ -69,7 +69,9 @@ and never put a key or token in one.
   reset it to the fixtures when they end.
 - Tests change the data with `runDb(...)` from `e2e/db.ts` (`scripts/e2e-db.ts`: `fixtures
   --last-run=<minutes ago | ISO time | never> --no-articles --scores-run=<minutes ago | ISO time | never>
-  --no-opportunities`, `add <headline>`).
+  --no-opportunities --no-market --prices-run=<...> --metals-run=<...> --crypto-run=<...>`, `add <headline>`).
+  The market snapshot's fixtures (`e2e/market-fixtures.ts`: four assets, 10 daily closes and a quote each) are stored
+  with the others; the three `--*-run` options set the last successful run of the jobs behind them (default 5 minutes ago).
 - Fixtures depend on "today" (the WIB day). A run started in the first minutes after WIB midnight
   (00:00 to about 02:00) can miss "today" fixtures: times before midnight are moved to 00:01, so
   the order of the news items is then by id, and the stale test (3 hours ago) can fall on
@@ -79,6 +81,9 @@ and never put a key or token in one.
   e2e database, so the page's query fails the way it does when the store is down, and renames it back
   (`runDb("restore", ...)`, in a `finally`). Earlier they started a second server behind a TCP proxy,
   which was too slow and fragile on a busy machine.
+  These tests rely on `workers: 1` (a renamed table must not be read by another test). They no longer cover
+  a server whose database connection is *refused*; no browser test covers that case any more (a server that
+  cannot reach its database at start exits by design).
 - The skeleton tests use `expectSkeletonOnNavigation` (`e2e/skeleton.ts`): it repeats the whole
   sequence (fresh page, wait for the header link's prefetch, hold the data request, click) until the
   skeleton shows or 50 s are up. Without a `loading.tsx` it never shows, so the test still fails.

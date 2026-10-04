@@ -24,7 +24,8 @@ export function CreditLine({ sourceSlug, strings }: { sourceSlug: string; string
         href={credit.licence.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        // 44 px tall to tap: the padding is cancelled by the negative margin, so the line does not grow.
+        className="-my-3.5 inline-block py-3.5 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         {strings.licence[credit.licence.key]}
       </a>
