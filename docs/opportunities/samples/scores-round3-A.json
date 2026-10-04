@@ -1,0 +1,8 @@
+{"scorer":"A (Designer)","round":3,"written_utc":"2026-10-04T01:28:46Z","seen_other_scores":false,
+ "note":"Scored from themes-round3.json (commit dc571a8) only; scores-round3-B.json not opened before this file was written.",
+ "factors":["demand","timing","low_competition","capital_efficiency","low_regulatory_risk"],
+ "scores":{"theme-g":[55,70,55,45,60],"theme-h":[70,65,30,65,65],"theme-i":[60,75,40,65,50]},
+ "reasons":{
+  "theme-g":"Fear after this week's quakes but small businesses have thin budgets; trigger events now and authorities urging preparedness (reinforce, so timing >= 60); insurers, contractors and free BMKG/BNPB information compete; engineering assessments need certified people; building codes and insurance licensing apply.",
+  "theme-h":"Bills rising for the biggest jump in four years; January price change gives a clear window, government under pressure but not yet reversing; free government advice and comparison sites are substitutes (competition rule); advice is light, installation heavy; little regulation for advice.",
+  "theme-i":"Drivers and small operators face new obligations; certification mandatory from the second week of October (reinforce, timing >= 60); Gojek/Grab own the driver tooling; software is capital-light; the law is still in drafting, so rules may shift."}}
