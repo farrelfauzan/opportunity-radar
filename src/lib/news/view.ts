@@ -1,4 +1,4 @@
-import { wibDay } from "@/server/data";
+import { wibDay, type Category } from "@/server/data";
 import { formatDateShortWib, formatTimeWib } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { fill, type Messages } from "@/i18n/t";
@@ -63,6 +63,14 @@ export function safeHref(link: string): string | null {
   }
 }
 
+/** The dictionary key of each news category (news.cat.*): the labels of the News chips, the Radar's brief lines and news items. */
+export const categoryLabel = {
+  business: "business",
+  politics: "politics",
+  "tech-ai": "tech",
+  markets: "markets",
+  commodities: "commodities",
+} as const satisfies Record<Category, keyof Messages["news"]["cat"]>;
 /** The articles an open opportunity cites (what "Only news linked to an opportunity" keeps), in their order. */
 export function onlyLinked<T extends { id: number }>(list: T[], enrichment: Map<number, { linked: unknown }>): T[] {
   return list.filter((article) => enrichment.get(article.id)?.linked != null);

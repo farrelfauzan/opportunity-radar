@@ -6,12 +6,14 @@ const copy = {
     nav: ["Radar", "Opportunities", "News", "Investments", "Calculators"],
     asset: "Asset report",
     empty: "Nothing here yet",
+    radar: "Today's radar",
     language: "Language",
   },
   id: {
     nav: ["Radar", "Peluang", "Berita", "Investasi", "Kalkulator"],
     asset: "Laporan aset",
     empty: "Belum ada data",
+    radar: "Radar hari ini",
     language: "Bahasa",
   },
 } as const;
@@ -36,9 +38,10 @@ for (const locale of ["en", "id"] as const) {
 
     for (const [path, title, currentIndex] of routes(locale)) {
       await page.goto(`/${locale}${path}`);
-      await expect(page.getByRole("heading", { level: 1 }), path).toHaveText(title);
-      // The calculators, news and opportunities screens have content; the others still show the empty frame.
-      if (path !== "/calculators" && path !== "/news" && path !== "/opportunities") {
+      // The Radar's heading is its own text (its title stays "Radar" in the tab and the nav).
+      await expect(page.getByRole("heading", { level: 1 }), path).toHaveText(path === "" ? copy[locale].radar : title);
+      // The radar, calculators, news and opportunities screens have content; the others still show the empty frame.
+      if (path !== "" && path !== "/calculators" && path !== "/news" && path !== "/opportunities") {
         await expect(page.locator("main"), path).toContainText(copy[locale].empty);
       }
       await expect(page, path).toHaveTitle(`${title} · Opportunity Radar`);
