@@ -99,6 +99,13 @@
       "when": 1791123308396,
       "tag": "0013_price_sources",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791127914639,
+      "tag": "0014_signals",
+      "breakpoints": true
     }
   ]
 }
