@@ -238,3 +238,30 @@ describe("venture market view", () => {
     expect((await marketRows("meta-klinik")).map((r) => r.score)).toEqual([50, 50]);
   }, 60_000);
 });
+
+describe("wording guard (OR-63)", () => {
+  const advising = (ids: number[]) => ({ ...goodReply(ids), tailwind: wind([ids[0]], "Now is a good time to invest in this market.") });
+
+  test("an advice wind twice: the venture view is not updated (AC4)", async () => {
+    await news(["New PPE rules for factories"]);
+    const { transport, requests } = provider(advising);
+
+    const outcome = await assessVentures({ transport });
+
+    expect(requests).toHaveLength(2); // Performa Vision matched: first reply and its retry
+    expect(requests[0].system).toContain("is expected to ..., according to ...");
+    expect(outcome).toMatchObject({ status: "partial", counts: { rejected: 1, wording_rejected: 2 } });
+    expect(outcome.error).toMatch(/tailwind\.en: advice wording "good time to"/);
+    expect(await marketRows("performa-vision")).toEqual([]);
+  });
+
+  test("an advice wind, then a clean one on the retry: the clean view is stored (AC5)", async () => {
+    await news(["New PPE rules for factories"]);
+    let n = 0;
+    const { transport } = provider((ids) => (n++ === 0 ? advising(ids) : goodReply(ids)));
+
+    await assessVentures({ transport });
+
+    expect((await marketRows("performa-vision")).length).toBeGreaterThan(0);
+  });
+});
