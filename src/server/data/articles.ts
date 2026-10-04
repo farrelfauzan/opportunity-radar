@@ -102,7 +102,8 @@ export function articlesQuery(filter: ArticleFilter) {
   const day = filter.day ?? wibDay();
   const start = new Date(`${day}T00:00:00+07:00`);
   // The round trip rejects days that do not exist, like 2026-02-30 (which Date rolls into March).
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || Number.isNaN(start.getTime()) || wibDay(start) !== day) {
+  // Days before 1970 are refused too: no article is that old, and year 0 breaks the query.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day < "1970-01-01" || Number.isNaN(start.getTime()) || wibDay(start) !== day) {
     throw new Error("day must be YYYY-MM-DD");
   }
   return db()
