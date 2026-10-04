@@ -60,3 +60,20 @@ Do not use: Tempo bisnis `https://rss.tempo.co/bisnis` (last item 2026-09-14, st
 Conditional GET: only Antara, CNBC Indonesia, CNN Indonesia, TechCrunch, Guardian and CNBC returned ETag or Last-Modified headers [L]. The others did not, so dedupe by URL is required.
 
 Terms read since R-1: gold-api.com permits commercial use, needs no attribution, bans IPs for multiple requests per second, and has no history without a key (R-2 §3). Yahoo's terms prohibit automated collection and commercial reuse (R-2 §3).
+
+## Addendum 2026-10-04 (R-3 request from Engineer-2): replacement for Hacker News
+Hacker News `https://news.ycombinator.com/rss` answers HTTP 419 to Node's `fetch` with the project User-Agent while curl gets 200 [L, reproduced: Node v25.6.1, same UA, 419]. Dropped; no workaround attempted.
+Candidates tested with Node `fetch` and `Mozilla/5.0 (compatible; OpportunityRadar/0.1; +https://github.com/farrelfauzan/opportunity-radar)`, 2026-10-04, residential Indonesian IP [L]:
+| Feed | URL | Node status | Items | Items with empty description | Median description length | ETag / Last-Modified |
+|---|---|---|---|---|---|---|
+| **Wired (recommended)** | https://www.wired.com/feed/rss | 200 (5 repeats 200, with and without Accept header) | 50 | 0 | 143 chars | none |
+| Tech in Asia | https://www.techinasia.com/feed | 200 (5 repeats 200) | 36 | 0 | 94 | both |
+| The Verge | https://www.theverge.com/rss/index.xml | 200 | 10 | 0 | 310 | ETag |
+| Ars Technica | https://feeds.arstechnica.com/arstechnica/index | 200 | 20 | 0 | 79 | Last-Modified |
+| The Register | https://www.theregister.com/headlines.atom | 200 | 50 | 0 | 90 | none |
+| Engadget | https://www.engadget.com/rss.xml | 200 | 20 | 0 | 124 | both |
+| TechCrunch main | https://techcrunch.com/feed/ | 200 | 20 | not measured | not measured | both |
+| MIT Technology Review | https://www.technologyreview.com/feed/ | 200 | 10 | not measured | not measured | both |
+| Rest of World | https://restofworld.org/feed/ | 200 | 12 | not measured | not measured | Last-Modified |
+| VentureBeat | https://venturebeat.com/feed/ | **429** | 0 | — | — | — |
+Recommended for OR-8: **Wired**, region Worldwide, language en, default category tech. Reasons: 50 items, every item has a real one-or-two-sentence description, frequent AI and business coverage, stable 200. Drawback: no ETag or Last-Modified, so dedupe by URL is required (as for six other feeds). Fallback if a second one is wanted: The Verge (richest descriptions, only 10 items, ETag). Tech in Asia (Region: Asia, Lang: en, category tech/startups) fits the Indonesia focus and supports conditional GET, but it is not global. Not read: any publisher's terms of use for RSS (headline, snippet and link only is inference). Not tested from a hosting IP.
