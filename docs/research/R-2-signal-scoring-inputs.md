@@ -179,6 +179,15 @@ Timing line used: "if authorities are already acting to reverse the trigger, tim
 | f, AI-agent controls, Worldwide (mixed) | 55, 60, 35, 60, 65 | 50, 55, 25, 70, 60 | 5, 5, 10, 10, 5 | 55 / 52 |
 Largest difference 15 (theme e, competition), which meets "at most 15" with no margin. Timing differences are 5, 0, 5; both timing scores respect the line (d at least 60: 85 and 80; e at most 60: 55 and 55). B scored lower than A on competition in all three themes (by 10, 15, 10) and lower overall by 7, 4 and 3 points, so there is a small systematic gap in how competition is read; the competition anchor ("dominated by funded incumbents or free substitutes") does not say whether government programmes and open datasets count as substitutes. Round 1 stays recorded as a miss. Because B was not blind, round 2 is weaker evidence than round 1; a clean repeat needs A's scores sent as a file path only after B's are timestamped.
 
+#### Round 3 (clean order, competition line added) — result: 15 of 15 within 15, five at the limit
+Competition line used: "Government programmes, NGO services and free public tools count as substitutes when they serve the same buyer at no cost." Themes: `R-2-samples/themes-round3.json` (commit fb777a7). Order: B (Researcher) scored at **2026-10-04T01:28:02Z**, committed 01:28:11Z (dc571a8, `scores-round3-B.json`); A (Designer) committed at **01:28:46Z** (1a57825, `scores-round3-A.json` on branch or-11-scoring), 35 seconds later. I verified both commit times in git; I cannot verify that A had not opened B's file before scoring (A says it had not).
+| theme | A | B | differences | mean A / B |
+|---|---|---|---|---|
+| g, quake and flood resilience, Indonesia | 55, 70, 55, 45, 60 | 50, 55, 40, 50, 45 | 5, 15, 15, 5, 15 | 57 / 48 |
+| h, household energy advice, Worldwide | 70, 65, 30, 65, 65 | 70, 65, 25, 55, 50 | 0, 0, 5, 10, 15 | 59 / 53 |
+| i, ride-hailing and transport operator tools, Indonesia | 60, 75, 40, 65, 50 | 50, 60, 30, 70, 45 | 10, 15, 10, 5, 5 | 58 / 51 |
+I recomputed the differences from both files: they match the Designer's. The AC (every factor at most 15) is met, but five of the 15 sit exactly at 15 (g timing, g competition, g regulatory, h regulatory, i timing), so one more point on any of them would have failed. B is lower than A overall in every theme (by 9, 6, 7 points), as in rounds 1 and 2. The Designer reads a single score as plus or minus 10 and plans a re-check after two weeks of real runs. Both scorers are agent sessions, not people. Round 1 stays recorded as a miss; round 2 as a pass with B not blind; round 3 is the clean pass.
+
 ## 3. Data-source terms and limits
 
 | Source | Free tier / limits | Key | Terms on display and redistribution | Delay | History | From a hosting IP |
