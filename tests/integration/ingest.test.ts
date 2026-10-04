@@ -279,7 +279,7 @@ describe("the fixture run: all 12 recorded feeds plus the synthetic ones", () =>
     }
 
     const outcome = await ingestNews({ feeds: [...FEEDS, ...synthetic], fetch: fakeFetch(replies).fetcher, now });
-    expect(outcome).toMatchObject({ status: "ok", counts: { sources_ok: 16, sources_failed: 0 } });
+    expect(outcome).toMatchObject({ status: "ok", counts: { sources_ok: 17, sources_failed: 0 } });
     expect(await articleCount()).toBeGreaterThanOrEqual(36);
 
     // The same query is in the README for QA: it must return no rows.
@@ -287,7 +287,7 @@ describe("the fixture run: all 12 recorded feeds plus the synthetic ones", () =>
     expect(await db().execute(sql.raw(query))).toEqual([]);
 
     const sources = await db().execute(sql`select count(distinct source_id) as n from articles`);
-    expect(Number(sources[0].n)).toBe(16); // 11 active feeds + 5 synthetic; Wired is off
+    expect(Number(sources[0].n)).toBe(17); // 12 active feeds + 5 synthetic; 4 feeds are off
     const latin = await db().execute(sql`select headline from articles where link = 'https://example.com/latin1'`);
     expect(latin[0].headline).toBe("Café société: crédit à la hausse");
   });
