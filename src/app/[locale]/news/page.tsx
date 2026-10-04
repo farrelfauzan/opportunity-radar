@@ -1,6 +1,247 @@
-import { emptyScreen } from "../screen";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { currentLocale, getMessages, getT } from "@/i18n/dictionaries";
+import { formatRelativeTime } from "@/i18n/format";
+import type { Locale } from "@/i18n/locales";
+import { fill, type Messages } from "@/i18n/t";
+import { newsHref, PAGE_SIZE, parseNewsQuery, type NewsQuery } from "@/lib/news/query";
+import { INGEST_JOB, isNeverIngested, safeHref, staleBanner } from "@/lib/news/view";
+import {
+  CATEGORIES,
+  lastSuccessfulRun,
+  listArticles,
+  listSources,
+  REGIONS,
+  type ArticleWithSource,
+  type Category,
+} from "@/server/data";
+import { RegionSelect } from "./region-select";
 
-const screen = emptyScreen("news");
+// Rendered per request: reading searchParams keeps the page out of every cache,
+// so a newly stored article shows on the next reload.
 
-export const generateMetadata = screen.generateMetadata;
-export default screen.Page;
+export async function generateMetadata(): Promise<Metadata> {
+  const t = getT(await currentLocale());
+  return { title: t("page.documentTitle", { page: t("page.title.news") }) };
+}
+
+const categoryLabel = {
+  business: "business",
+  politics: "politics",
+  "tech-ai": "tech",
+  markets: "markets",
+  commodities: "commodities",
+} as const satisfies Record<Category, keyof Messages["news"]["cat"]>;
+
+const chip =
+  "inline-flex min-h-11 items-center rounded-md border border-input bg-black/18 px-3.5 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-[current=true]:border-foreground aria-[current=true]:bg-foreground aria-[current=true]:text-background";
+
+const heading = "text-[26px] font-bold tracking-tight";
+
+async function load({ category, region }: NewsQuery) {
+  const filtered = category !== undefined || region !== undefined;
+  const today = listArticles({});
+  const [all, list, sources, lastRun] = await Promise.all([
+    today,
+    filtered ? listArticles({ category, region }) : today,
+    listSources(),
+    lastSuccessfulRun(INGEST_JOB),
+  ]);
+  return { all, list, sources, lastRun };
+}
+
+export default async function NewsPage({ searchParams }: PageProps<"/[locale]/news">) {
+  const locale = await currentLocale();
+  const m = getMessages(locale);
+  const query = parseNewsQuery(await searchParams);
+  const now = new Date();
+
+  let data;
+  try {
+    data = await load(query);
+  } catch (error) {
+    // The details stay in the server log; the page shows no host, port or message.
+    console.error("News: cannot read the store", error);
+    return (
+      <>
+        <h1 className={heading}>{m.page.title.news}</h1>
+        <Card>
+          <CardContent className="flex flex-col items-start gap-3">
+            <p className="text-base font-semibold">{m.state.error.title}</p>
+            <p className="text-muted-foreground">{m.state.error.body}</p>
+            <a href={newsHref(locale, query)} className={buttonVariants()}>
+              {m.state.error.retry}
+            </a>
+          </CardContent>
+        </Card>
+      </>
+    );
+  }
+
+  const { all, list, sources, lastRun } = data;
+
+  if (isNeverIngested(lastRun, all.length)) {
+    return (
+      <>
+        <h1 className={heading}>{m.page.title.news}</h1>
+        <Card>
+          <CardContent className="flex flex-col gap-1">
+            <p className="text-base font-semibold">{m.state.never.title}</p>
+            <p className="text-muted-foreground">{m.state.never.bodyNews}</p>
+          </CardContent>
+        </Card>
+      </>
+    );
+  }
+
+  const banner = staleBanner(lastRun, now, locale, m.state.stale);
+  const visible = list.slice(0, query.shown);
+  const regionOptions = [
+    { value: "all", label: m.news.region.all, region: undefined },
+    { value: "indonesia", label: m.news.region.id, region: "indonesia" },
+    { value: "global", label: m.news.region.global, region: "global" },
+  ] as const;
+
+  return (
+    <>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h1 className={heading}>{m.page.title.news}</h1>
+        <p className="text-muted-foreground">{summary(m.news.summary, all)}</p>
+      </div>
+
+      {banner && (
+        <p role="status" className="rounded-lg border border-destructive px-4 py-3 text-destructive">
+          {banner}
+        </p>
+      )}
+
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <div className="flex flex-wrap gap-1">
+          {[undefined, ...CATEGORIES].map((category) => (
+            <Link
+              key={category ?? "all"}
+              href={newsHref(locale, { category, region: query.region })}
+              aria-current={category === query.category ? "true" : undefined}
+              className={chip}
+            >
+              {m.news.cat[category ? categoryLabel[category] : "all"]}
+            </Link>
+          ))}
+        </div>
+        <RegionSelect
+          label={m.news.region.label}
+          value={query.region ?? "all"}
+          options={regionOptions.map((o) => ({
+            value: o.value,
+            label: o.label,
+            href: newsHref(locale, { category: query.category, region: o.region }),
+          }))}
+        />
+      </div>
+
+      <div className="flex flex-wrap items-start gap-6">
+        <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-3">
+          {visible.length === 0 ? (
+            <Card>
+              <CardContent className="text-muted-foreground">{m.news.empty}</CardContent>
+            </Card>
+          ) : (
+            <ol className="flex flex-col gap-3">
+              {visible.map((article) => (
+                <li key={article.id}>
+                  <Item article={article} now={now} locale={locale} m={m} />
+                </li>
+              ))}
+            </ol>
+          )}
+          {list.length > query.shown && (
+            <Link
+              href={newsHref(locale, { ...query, shown: query.shown + PAGE_SIZE })}
+              scroll={false}
+              className={`${buttonVariants({ variant: "outline" })} h-11 self-start`}
+            >
+              {m.news.loadMore}
+            </Link>
+          )}
+        </div>
+
+        <Card className="min-w-0 flex-[1_1_300px]">
+          <CardContent className="flex flex-col gap-2">
+            <h2 className="text-base font-semibold">{m.news.sources.title}</h2>
+            {REGIONS.map((region) => {
+              const names = sources.filter((s) => s.active && s.region === region).map((s) => s.name);
+              if (names.length === 0) return null;
+              return (
+                <p key={region} className="text-[#E2DDF0] [overflow-wrap:anywhere]">
+                  {fill(region === "indonesia" ? m.news.sources.indonesia : m.news.sources.global, {
+                    names: names.join(", "),
+                  })}
+                </p>
+              );
+            })}
+            <p className="text-xs text-muted-foreground">{m.news.sources.note}</p>
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  );
+}
+
+const plural = (count: number, forms: { one: string; other: string }) =>
+  fill(count === 1 ? forms.one : forms.other, { n: count });
+
+/** "N articles today · M sources · refreshed every 30 minutes": the whole day, not the filter. */
+function summary(strings: Messages["news"]["summary"], today: ArticleWithSource[]): string {
+  return fill(strings.line, {
+    articles: plural(today.length, strings.articles),
+    sources: plural(new Set(today.map((a) => a.sourceId)).size, strings.sources),
+  });
+}
+
+function Item({
+  article,
+  now,
+  locale,
+  m,
+}: {
+  article: ArticleWithSource;
+  now: Date;
+  locale: Locale;
+  m: Messages;
+}) {
+  // Headline and snippet are rendered as text only, never as markup.
+  const href = safeHref(article.link);
+
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-2">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <span className="font-semibold text-[#E2DDF0]">{m.news.cat[categoryLabel[article.category]]}</span>
+          <span className="[overflow-wrap:anywhere]">
+            {fill(m.news.item.meta, {
+              source: article.sourceName,
+              ago: formatRelativeTime(article.publishedAt, now, locale, m.time),
+              region: article.region === "indonesia" ? m.news.region.id : m.news.region.global,
+            })}
+          </span>
+        </div>
+        {href ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-sm text-base font-semibold [overflow-wrap:anywhere] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            {article.headline}
+            <span className="sr-only">. {m.news.item.openExternal}</span>
+          </a>
+        ) : (
+          <span className="text-base font-semibold [overflow-wrap:anywhere]">{article.headline}</span>
+        )}
+        {article.snippet && <p className="text-[#E2DDF0] [overflow-wrap:anywhere]">{article.snippet}</p>}
+      </CardContent>
+    </Card>
+  );
+}
