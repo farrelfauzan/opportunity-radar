@@ -1,0 +1,179 @@
+{
+ "note": "Round 2 sample themes for the OR-11 two-scorer check. Articles are real items from the live RSS feeds on 2026-10-04 (headline, source, link, RSS snippet, cut at 200 characters). Theme text is written by the Researcher. No scores here. Round 2 uses the timing line: authorities reversing the trigger -> timing at most 60; reinforcing it -> at least 60. Theme e is the 'reverse' case, theme d the 'reinforce' case, theme f has mixed signals.",
+ "themes": [
+  {
+   "id": "theme-d",
+   "title": "Tax-compliance and bookkeeping tools for Indonesian online sellers",
+   "thesis": "Income-tax withholding on marketplace sales (PPh 22) took effect on 1 October 2026 and the tax office is tightening digital-transaction oversight: sell simple invoicing, turnover tracking and tax-filing help to small online sellers.",
+   "region": "Indonesia",
+   "sectors": [
+    "retail_ecommerce",
+    "fintech_finance"
+   ],
+   "horizon": "0–6 months",
+   "articles": [
+    {
+     "id": "d1",
+     "source": "CNN Indonesia",
+     "lang": "id",
+     "title": "Pajak Pedagang Online via Shopee, Tokopedia Dkk Resmi Berlaku Hari Ini",
+     "published": "Thu, 01 Oct 2026",
+     "url": "https://www.cnnindonesia.com/ekonomi/20261001185146-532-1410638/pajak-pedagang-online-via-shopee-tokopedia-dkk-resmi-berlaku-hari-ini",
+     "snippet": "Direktorat Jenderal Pajak (DJP) mulai menerapkan pemungutan Pajak Penghasilan (PPh) Pasal 22 melalui marketplace mulai hari ini, Kamis (1/10)."
+    },
+    {
+     "id": "d2",
+     "source": "Republika",
+     "lang": "id",
+     "title": "PPh Pasal 22 E-Commerce Mulai Berlaku,  idEA : Dampak ke Harga Belum Bisa Dipastikan",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://ekonomi.republika.co.id/berita/tmbmau423/pph-pasal-22-ecommerce-mulai-berlaku-idea-dampak-ke-harga-belum-bisa-dipastikan",
+     "snippet": "REPUBLIKA.CO.ID, JAKARTA -- Asosiasi E-Commerce Indonesia (Idea) mengatakan dampak penerapan Pajak Penghasilan (PPh) Pasal 22 atas transaksi perdagangan melalui sistem elektronik belum dapat terlihat"
+    },
+    {
+     "id": "d3",
+     "source": "Katadata",
+     "lang": "id",
+     "title": "Pajak Marketplace Berlaku, UMKM Omzet di Bawah Rp500 Juta Harus Dilindung",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://katadata.co.id/finansial/keuangan/6ac0b197622a5/pajak-marketplace-berlaku-umkm-omzet-di-bawah-rp500-juta-harus-dilindung",
+     "snippet": "Penerapan pemungutan Pajak Penghasilan (PPh) Pasal 22 melalui marketplace mulai berlaku pada 1 Oktober 2026."
+    },
+    {
+     "id": "d4",
+     "source": "CNN Indonesia",
+     "lang": "id",
+     "title": "DJP Perketat Pengawasan Pajak Orang Kaya hingga Transaksi Digital",
+     "published": "Fri, 02 Oct 2026",
+     "url": "https://www.cnnindonesia.com/ekonomi/20261002065025-532-1410749/djp-perketat-pengawasan-pajak-orang-kaya-hingga-transaksi-digital",
+     "snippet": "DJP siapkan strategi pengawasan wajib pajak 2027, fokus pada grup usaha dan individu prominent. Pemanfaatan teknologi dan data untuk tingkatkan kepatuhan pajak."
+    },
+    {
+     "id": "d5",
+     "source": "CNN Indonesia",
+     "lang": "id",
+     "title": "DJP Kejar Penerimaan Pajak 2027 hingga Rp2.593,4 T, Naik 12,2 Persen",
+     "published": "Fri, 02 Oct 2026",
+     "url": "https://www.cnnindonesia.com/ekonomi/20261002093045-532-1410830/djp-kejar-penerimaan-pajak-2027-hingga-rp25934-t-naik-122-persen",
+     "snippet": "DJP menargetkan penerimaan pajak 2027 mencapai Rp2.593,4 triliun, didukung penguatan administrasi dan teknologi."
+    }
+   ]
+  },
+  {
+   "id": "theme-e",
+   "title": "Peatland fire early-warning and community peat-restoration services",
+   "thesis": "Dry-season fires are delaying flights in South Sumatra while the agriculture ministry runs mitigation and drought empties reservoirs: sell fire-risk monitoring, water-table sensors and paid restoration programmes to plantations, villages and local governments.",
+   "region": "Indonesia",
+   "sectors": [
+    "agri_food",
+    "renewables_climate"
+   ],
+   "horizon": "6–12 months",
+   "articles": [
+    {
+     "id": "e1",
+     "source": "Antara",
+     "lang": "id",
+     "title": "Kementan lakukan mitigasi penanggulangan karhutla",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://www.antaranews.com/berita/5770129/kementan-lakukan-mitigasi-penanggulangan-karhutla",
+     "snippet": "Kementerian Pertanian (Kementan) melakukan berbagai upaya mitigasi untuk penanggulangan kebakaran hutan dan lahan ..."
+    },
+    {
+     "id": "e2",
+     "source": "Antara",
+     "lang": "id",
+     "title": "Bandara Palembang tunda delapan penerbangan akibat jarak pandang",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://www.antaranews.com/berita/5769992/bandara-palembang-tunda-delapan-penerbangan-akibat-jarak-pandang",
+     "snippet": "Bandara Internasional Sultan Mahmud Badaruddin II Palembang, Sumatera Selatan, menunda delapan penerbangan pada Sabtu ..."
+    },
+    {
+     "id": "e3",
+     "source": "Katadata",
+     "lang": "id",
+     "title": "Pisang untuk Mencegah Kebakaran Gambut",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://katadata.co.id/indepth/opini/6abf31b4aa676/pisang-untuk-mencegah-kebakaran-gambut",
+     "snippet": "Pencegahan Kebakaran Gambut memerlukan pendekatan holistik, mengubah lahan terdegradasi yang mudah terbakar menjadi area produktif yang dikelola masyarakat dan memberi manfaat ekonomi."
+    },
+    {
+     "id": "e4",
+     "source": "CNBC Indonesia",
+     "lang": "id",
+     "title": "Mantap! Siswi Kelas 12 Ini Sukses Berdayakan 126 Perajin dan Jaga Gambut",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://www.cnbcindonesia.com/news/20261002163019-4-772945/mantap-siswi-kelas-12-ini-sukses-berdayakan-126-perajin-jaga-gambut",
+     "snippet": "Gaia Weave mengembangkan purun menjadi produk modern, meningkatkan pendapatan perajin di Kalimantan Selatan, dan mendukung pelestarian ekosistem lahan basah."
+    },
+    {
+     "id": "e5",
+     "source": "CNBC Indonesia",
+     "lang": "id",
+     "title": "Penampakan Waduk Raksasa RI Hilang, Berubah Jadi Daratan Tandus",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://www.cnbcindonesia.com/news/20261002083546-7-772734/penampakan-waduk-raksasa-ri-hilang-berubah-jadi-daratan-tandus",
+     "snippet": "Waduk Jatigede di Sumedang sedang surut. Akibatnya, Ranting-ranting pohon kering muncul dari dasar Waduk Jatigede, Kabupaten Sumedang, akibat musim kemarau."
+    }
+   ]
+  },
+  {
+   "id": "theme-f",
+   "title": "Permission and safety controls for AI agents used by small businesses",
+   "thesis": "Apple is restricting what AI agents can access, AI-safety staff are quitting OpenAI, the Bank of England warns of AI market shocks and California passes worker-protection laws: sell an easy permission, logging and policy layer for AI agents to small companies that cannot hire a security team.",
+   "region": "Worldwide",
+   "sectors": [
+    "ai_software",
+    "telecom_infra"
+   ],
+   "horizon": "6–12 months",
+   "articles": [
+    {
+     "id": "f1",
+     "source": "TechCrunch AI",
+     "lang": "en",
+     "title": "Apple says it’s tightening macOS ‘Full Disk Access’ controls due to new risks from AI agents",
+     "published": "Fri, 02 Oct 2026",
+     "url": "https://techcrunch.com/2026/10/02/apple-says-its-tightening-macos-full-disk-access-controls-due-to-new-risks-from-ai-agents/",
+     "snippet": "Apple says it will add new controls around macOS’s Full Disk Access permission, warning that increasingly capable AI agents make broad access to users’ files, messages, mail, and browsing history risk"
+    },
+    {
+     "id": "f2",
+     "source": "TechCrunch AI",
+     "lang": "en",
+     "title": "OpenAI safety employee resigns, claiming the company’s ‘culture is broken’",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://techcrunch.com/2026/10/03/openai-safety-employee-resigns-claiming-the-companys-culture-is-broken/",
+     "snippet": "By his own admission, David Robinson is “something of a cliché”: an employee at a leading AI company who issues a dire warning while resigning from their job."
+    },
+    {
+     "id": "f3",
+     "source": "TechCrunch AI",
+     "lang": "en",
+     "title": "Circuit Breaker Labs hopes to make AI safer for your kids (and you)",
+     "published": "Fri, 02 Oct 2026",
+     "url": "https://techcrunch.com/2026/10/02/circuit-breaker-labs-hopes-to-make-ai-safer-for-your-kids-and-you/",
+     "snippet": "With all the talk about how AI might one day kill us all, it's easy to forget that AI has already harmed some people psychologically. Circuit Breaker Labs has created \"crash-test dummies\" to solve tha"
+    },
+    {
+     "id": "f4",
+     "source": "BBC Business",
+     "lang": "en",
+     "title": "AI boom could trigger market shocks, Bank of England boss warns",
+     "published": "Thu, 01 Oct 2026",
+     "url": "https://www.bbc.co.uk/news/articles/cv8e30enrkxyo?at_medium=RSS&at_campaign=rss",
+     "snippet": "Andrew Bailey says the central bank is watching the waves of cash being invested in artificial intelligence \"very carefully\"."
+    },
+    {
+     "id": "f5",
+     "source": "The Guardian Business",
+     "lang": "en",
+     "title": "California’s new laws target workers’ biggest fear of AI taking their jobs",
+     "published": "Sat, 03 Oct 2026",
+     "url": "https://www.theguardian.com/technology/2026/oct/03/california-ai-laws-worker-protection",
+     "snippet": "The state, which is home to many AI companies, is one of the first to roll out workplace regulations targeting the technology California’s laws aimed at protecting workers from the impacts of artific"
+    }
+   ]
+  }
+ ]
+}

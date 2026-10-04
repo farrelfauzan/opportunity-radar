@@ -1,0 +1,4 @@
+{"scorer":"Researcher (agent session, B)","scored_at":"2026-10-04T01:17:30Z","seen_other_scores":false,
+ "basis":"headline+RSS snippet in themes.json plus general knowledge; no extra fetching",
+ "factors_order":["demand","timing","competition_low_is_high","capital_efficiency","regulatory_low_risk_is_high"],
+ "theme-a":[70,75,50,50,55],"theme-b":[70,50,30,70,70],"theme-c":[80,65,35,65,50]}

@@ -25,6 +25,10 @@ Factor scores are integers 0–100; higher is always better on every factor.
 | Demand | no sign anyone wants it; only supply-side news | clear need in one segment, mixed signals | documented unmet demand at scale in several sources (shortages, queues, government targets) |
 | Timing | window closed, or more than 3 years away | trend emerging; window 12–24 months | trigger event in the last 90 days; window opens within 6 months |
 | Low competition | dominated by funded incumbents or free substitutes | several players, none dominant locally | no local player, or only informal sellers |
+
+Competition rule (added before round 3): government programmes, NGO services and free public tools count as substitutes when they serve the same buyer at no cost.
+
+The rupiah figures in the Capital efficiency row and in §3 are the Researcher's proposal (R-2); the Tech Lead confirms or changes them at merge.
 | Capital efficiency | more than Rp 5 bn or 24 months before first revenue | about Rp 500 m, 6–12 months to first revenue | under Rp 50 m, first revenue within 3 months |
 | Low regulatory risk | a licence or ban is likely to block it | a licence is needed but obtainable (e.g. OJK, BPOM) | unregulated, or explicitly supported by government |
 
@@ -36,7 +40,7 @@ Interpolate between anchors. Each factor score comes with a one-sentence reason 
 
 | Field | Values |
 |---|---|
-| Capital level | `low` ≤ Rp 100 m · `medium` Rp 100 m – 1 bn · `high` > Rp 1 bn (plus a one-line reason, EN and ID) |
+| Capital level | `low` < Rp 100 m · `medium` Rp 100 m up to but not including Rp 1 bn · `high` ≥ Rp 1 bn (plus a one-line reason, EN and ID) |
 | Horizon | `0-6m` · `6-12m` · `1-3y` (labels in `copy.md` §6) |
 | Region | `indonesia` · `worldwide` |
 
@@ -52,7 +56,9 @@ The calculator pre-fill amounts per capital level are in `docs/design/copy.md` �
 
 ## 5. LLM output contract (OR-15, OR-16)
 
-Shape is checked with a JSON Schema; the rules marked "code" are checked in code after the schema.
+Shape is checked with `docs/opportunities/output.schema.json` (JSON Schema 2020-12); the rules marked "code" are checked in code after the schema. The table below and the schema say the same thing; if they ever differ, the schema wins for shape and this section wins for code rules.
+
+Prompt safety: article headlines and snippets are untrusted data. They go to the LLM inside clear delimiters with an instruction to treat them as data only; any instruction found in them is ignored. Validation (schema + code rules) is the backstop: output that breaks the contract is rejected whatever the input said.
 
 | Field | Type / rule |
 |---|---|
@@ -75,7 +81,7 @@ Code rules:
 - Response that is not valid JSON: strip exactly one surrounding ```` ```json ```` fence, nothing else; if still invalid, retry once, then mark the item failed.
 - Text is rendered as text, never as markup.
 
-One valid and one invalid example per rule live in `docs/opportunities/contract-examples.json`; OR-15/16 tests load them.
+`docs/opportunities/contract-examples.json` holds one valid example and one invalid example for each rule (11 invalid cases) plus three raw-response cases for the fence rule; OR-15/16 tests load them. Checked on 2026-10-04 with a JSON Schema validator: the valid example passes, every invalid one is rejected by the schema or the code rules.
 
 ## 6. Two-scorer check (OR-11 AC1)
 
@@ -91,7 +97,19 @@ Round 1 (anchors of §2 without the timing rule). Order: demand, timing, low com
 
 Result: 14 of 15 factor differences ≤ 15; **one miss** (theme b timing: A counted the diesel spike as the trigger, B discounted it because governments were releasing reserves). Fix: the timing rule in §2. Round 1 is not re-scored.
 
-Round 2 (with the timing rule, three new themes, A scores first): pending. OR-11 passes AC1 when every factor difference in round 2 is ≤ 15.
+Round 2 (timing rule added; themes in `samples/themes-round2.json`). **Scorer B was not blind**: A's scores reached B in a message before B scored (disclosed by B, `seen_other_scores: true`). Recorded, but not counted as independent evidence.
+
+| Theme | A (2026-10-04T01:24:21Z, blind) | B (2026-10-04T01:25:03Z, not blind) | Differences | Overall A / B |
+|---|---|---|---|---|
+| d · Tax-compliance tools for online sellers, Indonesia | 75, 85, 45, 70, 65 | 65, 80, 35, 70, 55 | 10, 5, 10, 0, 10 | 68 / 61 |
+| e · Peatland fire early warning and restoration, Indonesia | 50, 55, 60, 40, 55 | 55, 55, 45, 35, 50 | 5, 0, 15, 5, 5 | 52 / 48 |
+| f · AI-agent permission controls for small businesses, Worldwide | 55, 60, 35, 60, 65 | 50, 55, 25, 70, 60 | 5, 5, 10, 10, 5 | 55 / 52 |
+
+All 15 differences ≤ 15, and both scorers kept timing on the right side of the new rule. B scored competition lower in every theme, which led to the competition rule in §2.
+
+Round 3 (competition rule added; B scores and commits first, A scores without opening B's file): pending. **OR-11 passes AC1 when every factor difference in round 3 is ≤ 15.**
+
+Score files with timestamps: `docs/opportunities/samples/` (copied from the Researcher's branch `research/r-2`).
 
 ## 7. Fixed sector list (18)
 | id | EN | ID |
