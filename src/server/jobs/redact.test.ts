@@ -22,6 +22,11 @@ test("a short value is redacted when the variable's name says it is a secret", (
   expect(errorSummary(new Error("auth k9z failed for pw1"), env)).toBe("auth [redacted] failed for [redacted]");
 });
 
+test("the secret name check matches whole segments, not substrings", () => {
+  const env = { KEYBOARD_LAYOUT: "us", MONKEY: "abc", SESSION_TOKEN_X: "t1" };
+  expect(errorSummary(new Error("status us abc t1"), env)).toBe("status us abc [redacted]");
+});
+
 test("the summary is the message only, cut at 500 characters", () => {
   const summary = errorSummary(new Error("x".repeat(600)), {});
   expect(summary).toHaveLength(501);

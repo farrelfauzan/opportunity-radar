@@ -2,7 +2,8 @@ const MAX_LENGTH = 500;
 // Shorter values ("1", "true", "en") would shred the message, so they are left
 // alone, unless the variable's name says it holds a secret.
 const MIN_VALUE_LENGTH = 6;
-const SECRET_NAME = /SECRET|TOKEN|KEY|PASSWORD|PASSWD|CREDENTIAL/i;
+// Whole name segments: API_KEY and DB_PASSWORD match, KEYBOARD_LAYOUT does not.
+const SECRET_NAME = /(^|_)(SECRET|TOKEN|KEY|PASSWORD|PASSWD|CREDENTIALS?)(_|$)/i;
 
 /**
  * The error text stored in job_runs: the message only (no stack), with every
