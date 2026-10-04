@@ -43,14 +43,14 @@ describe("gold-api.com reply", () => {
 describe("Binance replies", () => {
   // The documented klines layout: [openTime, open, high, low, close, volume, closeTime, ...], prices as strings.
   const klines = [
-    [1759449600000, "120000.10", "121500.00", "119000.00", "121000.50", "8123.456", 1759535999999, "0", 1000, "0", "0", "0"],
-    [1759536000000, "121000.50", "122000.00", "120500.00", "121800.00", "4000.4", 1759622399999, "0", 900, "0", "0", "0"],
+    [1759449600000, "120000.10", "121500.00", "119000.00", "121000.50", "8123.456", 1759535999999, "982919999.6", 1000, "0", "0", "0"],
+    [1759536000000, "121000.50", "122000.00", "120500.00", "121800.00", "4000.4", 1759622399999, "487248720.4", 900, "0", "0", "0"],
   ];
 
-  test("daily candles by UTC day, numbers from strings, volume rounded", () => {
+  test("daily candles by UTC day, numbers from strings, volume in USD (the quote volume)", () => {
     expect(parseKlines(klines)).toEqual([
-      { day: "2025-10-03", open: 120000.1, high: 121500, low: 119000, close: 121000.5, volume: 8123 },
-      { day: "2025-10-04", open: 121000.5, high: 122000, low: 120500, close: 121800, volume: 4000 },
+      { day: "2025-10-03", open: 120000.1, high: 121500, low: 119000, close: 121000.5, volume: 982920000 },
+      { day: "2025-10-04", open: 121000.5, high: 122000, low: 120500, close: 121800, volume: 487248720 },
     ]);
   });
 
@@ -86,5 +86,21 @@ describe("Indodax reply", () => {
     expect(() => parseIdrTicker({ error: "invalid_pair" })).toThrow();
     expect(() => parseIdrTicker({ ticker: { ...reply.ticker, last: "0" } })).toThrow();
     expect(() => parseIdrTicker({ ticker: { ...reply.ticker, server_time: undefined } })).toThrow();
+  });
+});
+
+describe("getJson", () => {
+  test("refuses redirects and a reply larger than 2 MB", async () => {
+    const { getJson } = await import("./http.ts");
+    let init: RequestInit | undefined;
+    const ok = (async (_u: string, i?: RequestInit) => {
+      init = i;
+      return Response.json({ a: 1 });
+    }) as unknown as typeof fetch;
+    expect(await getJson("https://example.test/x", ok)).toEqual({ a: 1 });
+    expect(init?.redirect).toBe("error");
+
+    const huge = (async () => new Response("x".repeat(2 * 1024 * 1024 + 1))) as unknown as typeof fetch;
+    await expect(getJson("https://example.test/x", huge)).rejects.toThrow("response larger than");
   });
 });

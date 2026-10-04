@@ -11,6 +11,10 @@ import { fxAsset, MIN_BACKFILL_CANDLES, rangeFor } from "./ingest.ts";
 import { fetchChart, HOLDS_REAL, PriceSourceError, yahooMode, type Chart } from "./yahoo.ts";
 
 export const TROY_OUNCE_GRAMS = 31.1035;
+// gold-api.com bans an IP for "multiple requests per second" (R-2 §3): its calls are spaced.
+export const GOLDAPI_GAP_MS = 1100;
+// A futures quote older than this does not stand in for the live price.
+const FALLBACK_MAX_AGE_MS = 4 * 24 * 60 * 60 * 1000;
 
 /** USD per troy ounce → rupiah per gram, to the nearest rupiah. */
 export function perGram(usdPerOunce: number, usdIdr: number): number {
@@ -38,11 +42,14 @@ export function rateLookup(rates: Candle[]): (day: string) => number | null {
 
 const utcDay = (d: Date) => d.toISOString().slice(0, 10);
 
-async function metalAsset(asset: Asset, rateOn: (day: string) => number | null, transport: typeof fetch | undefined, now: Date) {
+type Context = { rateOn: (day: string) => number | null; transport?: typeof fetch; now: Date; spaced: () => Promise<void> };
+
+async function metalAsset(asset: Asset, { rateOn, transport, now, spaced }: Context) {
   const historySource = yahooMode() === "live" ? "yahoo-futures" : "synthetic";
   let chart: Chart | null = null;
   let historyError: PriceSourceError | null = null;
   let stored = 0;
+  let unconverted = 0;
   try {
     if (historySource === "synthetic" && (await hasRealCandles(asset.id))) throw new PriceSourceError(HOLDS_REAL);
     const range = rangeFor(await lastCandleDay(asset.id, historySource), now);
@@ -53,7 +60,10 @@ async function metalAsset(asset: Asset, rateOn: (day: string) => number | null, 
     }
     const converted = chart.candles.flatMap((c) => {
       const rate = rateOn(c.day);
-      if (rate === null) return []; // before the first stored rate: cannot be converted
+      if (rate === null) {
+        unconverted++; // before the first stored rate: cannot be converted
+        return [];
+      }
       return [{ ...c, open: perGram(c.open, rate), high: perGram(c.high, rate), low: perGram(c.low, rate), close: perGram(c.close, rate) }];
     });
     stored =
@@ -72,25 +82,37 @@ async function metalAsset(asset: Asset, rateOn: (day: string) => number | null, 
     return perGram(usd, rate);
   };
   try {
+    await spaced();
     const spot = await fetchSpot(asset.symbol, transport, now);
     await setQuote(asset.id, { price: quoteIn(spot.price, spot.asOf), asOf: spot.asOf, source: spot.source });
   } catch (error) {
     if (!(error instanceof PriceSourceError)) throw error;
-    if (!chart?.quote) throw historyError ?? error; // no fallback either: the previous quote stays
-    await setQuote(asset.id, { price: quoteIn(chart.quote.price, chart.quote.asOf), asOf: chart.quote.asOf, source: historySource });
-    fallback = `gold-api.com failed (${error.message}); quote from the Yahoo futures fallback (${FUTURES[asset.symbol]})`;
+    const failed = `gold-api.com failed (${error.message})`;
+    // No fallback (no futures, or too old): the previous quote stays.
+    if (!chart?.quote) throw historyError ?? new PriceSourceError(failed);
+    if (now.getTime() - chart.quote.asOf.getTime() > FALLBACK_MAX_AGE_MS) throw new PriceSourceError(`${failed}; the futures quote is too old to use`);
+    const futures = `${historySource === "synthetic" ? "synthetic (made-up) futures" : "Yahoo futures"} ${FUTURES[asset.symbol]}`;
+    const written = await setQuote(asset.id, { price: quoteIn(chart.quote.price, chart.quote.asOf), asOf: chart.quote.asOf, source: historySource });
+    fallback = written ? `${failed}; quote from the ${futures} fallback` : `${failed}; the ${futures} fallback was not used over the stored real quote`;
     console.warn(`metals: ${asset.slug}: ${fallback}`);
   }
   if (historyError) throw historyError;
-  return { stored, fallback };
+  return { stored, unconverted, fallback };
 }
 
-export async function ingestMetals(options: { transport?: typeof fetch; now?: () => Date } = {}): Promise<JobOutcome> {
+export async function ingestMetals(
+  options: { transport?: typeof fetch; now?: () => Date; sleep?: (ms: number) => Promise<void> } = {},
+): Promise<JobOutcome> {
   const now = options.now?.() ?? new Date();
-  goldApiMode(); // a wrong switch fails the run before anything is fetched
+  const live = goldApiMode() === "live"; // a wrong switch fails the run before anything is fetched
+  const sleep = options.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+  let goldApiCalls = 0;
+  const spaced = async () => {
+    if (live && goldApiCalls++ > 0) await sleep(GOLDAPI_GAP_MS);
+  };
   yahooMode();
   frankfurterMode();
-  const counts = { assets_ok: 0, assets_failed: 0, candles: 0, fallbacks: 0 };
+  const counts = { assets_ok: 0, assets_failed: 0, candles: 0, fallbacks: 0, days_unconverted: 0 };
   const problems: string[] = [];
 
   // The conversion needs USD/IDR: refreshed here too (at most every 6 hours), else the stored rates are used.
@@ -108,8 +130,9 @@ export async function ingestMetals(options: { transport?: typeof fetch; now?: ()
   for (const config of METALS) {
     const asset = await upsertAsset(config);
     try {
-      const { stored, fallback } = await metalAsset(asset, rateOn, options.transport, now);
+      const { stored, unconverted, fallback } = await metalAsset(asset, { rateOn, transport: options.transport, now, spaced });
       counts.candles += stored;
+      counts.days_unconverted += unconverted;
       counts.assets_ok++;
       if (fallback) {
         counts.fallbacks++;

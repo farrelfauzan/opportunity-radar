@@ -102,12 +102,17 @@ export async function listCandles(assetId: number, from: string, to: string): Pr
     .orderBy(asc(candles.day));
 }
 
-/** Sets the latest price of an asset, with its source and as-of time. A synthetic price never replaces a real one. */
-export async function setQuote(assetId: number, quote: { price: number; asOf: Date; source: string }): Promise<void> {
-  await db()
+/**
+ * Sets the latest price of an asset, with its source and as-of time. A synthetic price
+ * never replaces a real one; returns whether the quote was written.
+ */
+export async function setQuote(assetId: number, quote: { price: number; asOf: Date; source: string }): Promise<boolean> {
+  const written = await db()
     .insert(quotes)
     .values({ assetId, ...quote })
-    .onConflictDoUpdate({ target: quotes.assetId, set: { ...quote, fetchedAt: sql`now()` }, setWhere: notSyntheticOverReal(quotes) });
+    .onConflictDoUpdate({ target: quotes.assetId, set: { ...quote, fetchedAt: sql`now()` }, setWhere: notSyntheticOverReal(quotes) })
+    .returning({ assetId: quotes.assetId });
+  return written.length > 0;
 }
 
 export async function getQuote(assetId: number): Promise<Quote | null> {

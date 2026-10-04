@@ -10,6 +10,7 @@ import { syntheticChart } from "@/server/prices/yahoo";
 
 const NOW = new Date("2026-10-04T10:00:00Z"); // a Sunday: the ECB's latest rate is Friday's
 const ENV = ["PRICES_YAHOO", "PRICES_GOLDAPI", "PRICES_CRYPTO"] as const;
+const noWait = async () => {};
 
 beforeEach(async () => {
   await db().execute(sql`truncate assets restart identity cascade`);
@@ -74,7 +75,7 @@ describe("metals job", () => {
     const { transport, urls } = stub((url) =>
       Response.json({ currency: "USD", name: "x", price: 2000, symbol: url.pathname.split("/").pop(), updatedAt: "2026-10-04T09:59:00Z" }),
     );
-    await ingestMetals({ transport, now: () => NOW });
+    await ingestMetals({ transport, now: () => NOW, sleep: noWait });
 
     expect(urls.sort()).toEqual(["https://api.gold-api.com/price/XAG", "https://api.gold-api.com/price/XAU"]);
     const rate = rateLookup(await listCandles((await asset("usd-idr")).id, "1900-01-01", "2999-12-31"))("2026-10-04")!;
@@ -85,12 +86,71 @@ describe("metals job", () => {
     process.env.PRICES_GOLDAPI = "live";
     const { transport } = stub(() => new Response("unavailable", { status: 503 }));
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const outcome = await ingestMetals({ transport, now: () => NOW });
+    const outcome = await ingestMetals({ transport, now: () => NOW, sleep: noWait });
 
     expect(outcome).toMatchObject({ status: "partial", counts: { assets_ok: 2, fallbacks: 2 } });
-    expect(outcome.error).toContain("gold (gold-api.com failed (503); quote from the Yahoo futures fallback (GC=F))");
+    expect(outcome.error).toContain("gold (gold-api.com failed (503); quote from the synthetic (made-up) futures GC=F fallback)");
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("gold-api.com failed (503)"));
     expect((await quoteOf("gold")).source).toBe("synthetic"); // the futures are made up while PRICES_YAHOO is unset
+  });
+
+  test("gold-api.com calls are at least 1.1 s apart (its terms ban multiple requests per second)", async () => {
+    process.env.PRICES_GOLDAPI = "live";
+    const events: string[] = [];
+    const { transport } = stub((url) => {
+      events.push(`GET ${url.pathname}`);
+      return Response.json({ currency: "USD", name: "x", price: 2000, symbol: url.pathname.split("/").pop(), updatedAt: "2026-10-04T09:59:00Z" });
+    });
+    await ingestMetals({ transport, now: () => NOW, sleep: async (ms) => void events.push(`wait ${ms}`) });
+    expect(events).toEqual(["GET /price/XAU", "wait 1100", "GET /price/XAG"]);
+  });
+
+  test("the real wait is used when none is injected", async () => {
+    process.env.PRICES_GOLDAPI = "live";
+    const times: number[] = [];
+    const { transport } = stub((url) => {
+      times.push(Date.now());
+      return Response.json({ currency: "USD", name: "x", price: 2000, symbol: url.pathname.split("/").pop(), updatedAt: "2026-10-04T09:59:00Z" });
+    });
+    await ingestMetals({ transport, now: () => NOW });
+    expect(times[1] - times[0]).toBeGreaterThanOrEqual(1100);
+  });
+
+  test("the fallback is not reported as used when the guard kept a real gold-api quote", async () => {
+    process.env.PRICES_GOLDAPI = "live";
+    const ok = stub((url) => Response.json({ currency: "USD", name: "x", price: 2000, symbol: url.pathname.split("/").pop(), updatedAt: "2026-10-04T09:59:00Z" }));
+    await ingestMetals({ transport: ok.transport, now: () => NOW, sleep: noWait });
+    const real = await quoteOf("gold");
+
+    const down = stub(() => new Response("unavailable", { status: 503 }));
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const outcome = await ingestMetals({ transport: down.transport, now: () => NOW, sleep: noWait });
+
+    expect(outcome.error).toContain("gold (gold-api.com failed (503); the synthetic (made-up) futures GC=F fallback was not used over the stored real quote)");
+    expect(await quoteOf("gold")).toMatchObject({ price: real.price, source: "gold-api" });
+  });
+
+  test("a futures quote more than 4 days old is not used as the fallback; the run fails with every metal down", async () => {
+    // Fixtures futures end today (they are generated up to the real clock): 6 days later they are too old.
+    process.env.PRICES_GOLDAPI = "live";
+    const later = new Date(Date.now() + 6 * 86400_000);
+    const { transport } = stub(() => new Response("unavailable", { status: 503 }));
+    await expect(ingestMetals({ transport, now: () => later, sleep: noWait })).rejects.toThrow(
+      "gold (gold-api.com failed (503); the futures quote is too old to use)",
+    );
+  });
+
+  test("the metals job writes no made-up history over a real futures history (job check, not only the database)", async () => {
+    process.env.PRICES_YAHOO = "live";
+    const { transport } = stub((url) => Response.json(syntheticChart(decodeURIComponent(url.pathname.split("/").pop()!), "6y", NOW)));
+    await ingestMetals({ transport, now: () => NOW });
+    delete process.env.PRICES_YAHOO;
+
+    // gold-api.com is on fixtures, so only the history is refused: the quotes are written, the run is partial.
+    const outcome = await ingestMetals({ now: () => new Date(NOW.getTime() + 86400_000) }).catch((e: Error) => ({ error: e.message }));
+
+    expect(outcome.error).toContain("gold (has real prices; fixtures mode writes nothing");
+    expect((await sourcesOf("gold")).map((s) => s.source)).toEqual(["yahoo-futures"]);
   });
 
   test("futures history from live Yahoo is stored as yahoo-futures (never as spot) and replaces the made-up history", async () => {
@@ -158,6 +218,24 @@ describe("crypto job", () => {
     const klines = later.urls.filter((u) => u.includes("/klines?symbol=ETHUSDT"));
     expect(klines).toHaveLength(1);
     expect(new URL(klines[0]).searchParams.get("startTime")).toBe(String(Date.UTC(2026, 9, 4)));
+  });
+
+  test("a live first backfill shorter than 200 days is refused; the made-up history stays", async () => {
+    await ingestCrypto({ now: () => NOW });
+    const before = await candlesOf("bitcoin");
+    process.env.PRICES_CRYPTO = "live";
+    const { transport } = stub((url) => {
+      if (url.host === "indodax.com") return Response.json({ ticker: { last: "1999000000", server_time: 1759572000 } });
+      const symbol = url.searchParams.get("symbol")!;
+      if (url.pathname === "/api/v3/ticker/price") return Response.json({ symbol, price: "1" });
+      return Response.json(syntheticKlines(symbol, NOW.getTime() - 10 * 86400_000, NOW)); // 10 days only
+    });
+
+    const outcome = await ingestCrypto({ transport, now: () => NOW });
+
+    expect(outcome.error).toContain("bitcoin (backfill returned 10 days (at least 200 needed))");
+    expect(await candlesOf("bitcoin")).toHaveLength(before.length);
+    expect((await sourcesOf("bitcoin")).map((s) => s.source)).toEqual(["synthetic"]);
   });
 
   test("Binance answering 429: the previous quote stays with its as-of time, and the run is partial", async () => {

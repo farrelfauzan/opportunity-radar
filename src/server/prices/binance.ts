@@ -15,14 +15,19 @@ export function cryptoMode(): "fixtures" | "live" {
   return priceMode("PRICES_CRYPTO", ["fixtures", "live"], "live");
 }
 
-/** Daily candles from a klines reply: [openTime, open, high, low, close, volume, ...]; the day is the UTC day. */
+/**
+ * Daily candles from a klines reply: [openTime, open, high, low, close, volume, closeTime,
+ * quoteVolume, ...]; the day is the UTC day. Volume is the quote volume, in USD (USDT),
+ * since a whole number of coins would lose the precision. The running day is included
+ * (fetched again on the next run): it is not a final close.
+ */
 export function parseKlines(body: unknown): Candle[] {
   if (!Array.isArray(body)) throw new PriceSourceError("not a klines reply");
   const byDay = new Map<string, Candle>();
   for (const k of body as unknown[][]) {
     if (!Array.isArray(k) || !Number.isFinite(k[0])) throw new PriceSourceError("not a klines reply");
     const [open, high, low, close] = [k[1], k[2], k[3], k[4]].map((v, i) => positive(v, ["open", "high", "low", "close"][i]));
-    const volume = Number(k[5]);
+    const volume = Number(k[7]);
     const day = new Date(k[0] as number).toISOString().slice(0, 10);
     byDay.set(day, {
       day,
@@ -60,7 +65,8 @@ export function syntheticKlines(symbol: string, startTime: number, now: Date): u
     price = Math.max(1, price * (1 + 0.001 + p.vol * (r1 + r2 - 1) * 1.7));
     if (t < startTime) continue;
     const f = (v: number) => v.toFixed(2);
-    rows.push([t, f(open), f(Math.max(open, price) * (1 + r3 * 0.01)), f(Math.min(open, price) * (1 - r2 * 0.01)), f(price), (1000 + r1 * 9000).toFixed(5), t + DAY_MS - 1, "0", 0, "0", "0", "0"]);
+    const coins = 1000 + r1 * 9000;
+    rows.push([t, f(open), f(Math.max(open, price) * (1 + r3 * 0.01)), f(Math.min(open, price) * (1 - r2 * 0.01)), f(price), coins.toFixed(5), t + DAY_MS - 1, (coins * price).toFixed(2), 0, "0", "0", "0"]);
   }
   return rows;
 }
