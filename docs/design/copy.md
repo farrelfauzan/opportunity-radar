@@ -497,11 +497,13 @@ The watchlist's kind line uses `asset.kind.idx`, `asset.kind.index`, `asset.kind
 | signal.check.close200.above | The price ({price}) is above the 200-day average ({sma}) | Harga ({price}) di atas rata-rata 200 hari ({sma}) |
 | signal.check.close200.below | The price ({price}) is below the 200-day average ({sma}) | Harga ({price}) di bawah rata-rata 200 hari ({sma}) |
 | signal.check.close200.equal | The price equals the 200-day average ({sma}) | Harga sama dengan rata-rata 200 hari ({sma}) |
-| signal.check.currency | The rupiah moved {pct} against the US dollar over 30 days | Rupiah bergerak {pct} terhadap dolar AS dalam 30 hari |
-| signal.check.news | {supportive} of {total} relevant articles this week lean positive, {against} lean negative | {supportive} dari {total} artikel relevan minggu ini cenderung positif, {against} cenderung negatif |
+| signal.check.currency.weaker | The rupiah weakened {pct} against the US dollar over 30 days (USD/IDR rose) | Rupiah melemah {pct} terhadap dolar AS dalam 30 hari (USD/IDR naik) |
+| signal.check.currency.stronger | The rupiah strengthened {pct} against the US dollar over 30 days (USD/IDR fell) | Rupiah menguat {pct} terhadap dolar AS dalam 30 hari (USD/IDR turun) |
+| signal.check.currency.flat | The rupiah was unchanged against the US dollar over 30 days | Rupiah tidak berubah terhadap dolar AS dalam 30 hari |
+| signal.check.news | Relevant articles this week: {supportive} positive, {against} negative, {total} in total | Artikel relevan minggu ini: {supportive} positif, {against} negatif, total {total} |
 | signal.check.newsNone | No relevant articles this week | Tidak ada artikel relevan minggu ini |
 
-Check names use `asset.check.*` (§8); verdict words use `asset.verdict.*`. The currency and news rows always carry `asset.verdict.context`.
+`{pct}` in the currency rows is unsigned (formatted per locale without a sign): the direction is in the wording, chosen from the sign of the 30-day USD/IDR change (a rise = `weaker`; a change that rounds to 0.0% = `flat`). Check names use `asset.check.*` (§8); verdict words use `asset.verdict.*`. The currency and news rows always carry `asset.verdict.context`.
 
 ### Triggers (signal history and alerts)
 
@@ -509,6 +511,7 @@ Check names use `asset.check.*` (§8); verdict words use `asset.verdict.*`. The 
 |---|---|---|
 | signal.trigger.close50.above | The price closed above the 50-day average. | Harga ditutup di atas rata-rata 50 hari. |
 | signal.trigger.close50.below | The price closed below the 50-day average. | Harga ditutup di bawah rata-rata 50 hari. |
+| signal.trigger.close50.equal | The price closed at the 50-day average. | Harga ditutup tepat di rata-rata 50 hari. |
 | signal.trigger.rsiOut | RSI moved outside 30–70. | RSI keluar dari rentang 30–70. |
 | signal.trigger.rsiBack | RSI moved back between 30 and 70. | RSI kembali ke rentang 30–70. |
 | signal.trigger.longBuy | The 50-day average and the price are both above the 200-day average. | Rata-rata 50 hari dan harga sama-sama di atas rata-rata 200 hari. |
