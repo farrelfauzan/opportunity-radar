@@ -29,13 +29,24 @@ export function formatRupiah(value: Num, locale: Locale): string {
   return `${sign}Rp${NBSP}${digits(amount, locale, 0)}`;
 }
 
+/** From this amount (Rp 1,000 trillion) upwards the calculators show "more than Rp 1,000 trillion". */
+export const BEYOND_RUPIAH = 1e15;
+
 /**
  * Short form for large amounts: "Rp 425.7 million", "Rp 1.20 billion" (en);
  * "Rp 425,7 juta", "Rp 1,20 miliar" (id). Below a million it is the whole amount.
+ * From Rp 1,000 trillion upwards it is `beyond` (calc.result.beyond), with a minus
+ * sign for a loss: never a 40-digit amount and never exponent notation.
  */
-export function formatRupiahCompact(value: Num, locale: Locale, units: Messages["calc"]["unit"]): string {
+export function formatRupiahCompact(
+  value: Num,
+  locale: Locale,
+  units: Messages["calc"]["unit"],
+  beyond: string,
+): string {
   if (isMissing(value)) return MISSING;
   const amount = Math.abs(value);
+  if (amount >= BEYOND_RUPIAH) return `${value < 0 ? MINUS : ""}${beyond}`;
   if (amount < 1e6) return formatRupiah(value, locale);
   const [divisor, fractionDigits, unit] =
     amount >= 1e12
