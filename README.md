@@ -63,6 +63,12 @@ pnpm job <name> [arguments] [--timeout <seconds>] [--test]
   reads each new article once: category, region, relevance, impact, "why it matters" in EN and ID,
   themes). `pnpm job triage` alone triages whatever is waiting. With `LLM_PROVIDER` unset the LLM
   is a local mock: its replies say "[mock]" and nothing leaves the machine.
+- Every AI-written text (triage "why", opportunity texts and factor reasons, venture winds, the daily
+  brief) is checked against one list of advice wording in `src/server/llm/wording.ts` ("describe,
+  never instruct", rules-v1 §7.4): a hit is a contract violation, retried once, then not stored.
+  Forecasts ("will", "is set to", "akan", "bakal" + rise/fall/…) are rejected unless they report
+  announced policy (a tax, tariff, rule … in the same clause) or an expectation attributed in the
+  same sentence ("is expected to …, according to …"). Each run counts `wording_rejected`.
 - `pnpm job prices` stores daily candles and the latest quote of IHSG, BBCA and the S&P 500, and
   USD/IDR (ECB reference rates from Frankfurter, fetched at most every 6 hours). The first run
   backfills 6 years. Yahoo is **off** unless `PRICES_YAHOO=live` (Yahoo's terms are decision D9):

@@ -5,9 +5,12 @@ import { briefArticles, CATEGORIES, opportunityChanges, saveBrief, wibDay, type 
 import type { JobOutcome } from "@/server/jobs/runner";
 import { callLlm, type LlmCall } from "@/server/llm/client";
 import { fenceUntrusted } from "@/server/llm/fence";
+import { assertDescriptive, countingAdvice, WORDING_RULE } from "@/server/llm/wording";
 
 const MIN_ARTICLES = 10;
 const MAX_INPUT_ARTICLES = 200;
+// The data block stays under the client's 200,000-character input guard.
+const MAX_DATA_CHARS = 150_000;
 const MAX_WORDS = 35;
 const MAX_CHARS = 300;
 
@@ -21,7 +24,11 @@ Answer with JSON only: {"lines": [ ... ]}`;
 
 const words = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
 
-/** A checked brief; throws (so the client retries once) when the reply breaks a rule. */
+/**
+ * A checked brief; throws (so the client retries once) when the reply breaks a rule.
+ * Known limit: nothing here can check that a sentence says what its cited articles
+ * say (an invented figure passes); the screen labels the brief as AI-generated.
+ */
 export function parseBrief(value: unknown, articleIds: ReadonlySet<number>, opportunityIds: ReadonlySet<number>): BriefLine[] {
   const lines = (value as { lines?: unknown } | null)?.lines;
   if (!Array.isArray(lines) || lines.length < 3 || lines.length > 5) throw new Error("lines must be a list of 3 to 5");
@@ -33,6 +40,7 @@ export function parseBrief(value: unknown, articleIds: ReadonlySet<number>, oppo
       const text = line[lang];
       if (typeof text !== "string" || !text.trim()) throw new Error(`${at}: ${lang} is empty`);
       if (words(text) > MAX_WORDS || Array.from(text).length > MAX_CHARS) throw new Error(`${at}: ${lang} is longer than ${MAX_WORDS} words`);
+      assertDescriptive({ [`${at}.${lang}`]: text }); // describe, never instruct (OR-63)
     }
     const ids = (value: unknown, name: string) => {
       if (!Array.isArray(value) || !value.every((v) => Number.isInteger(v))) throw new Error(`${at}: ${name} must be a list of ids`);
@@ -51,17 +59,35 @@ export async function writeBrief(options: { transport?: LlmCall<unknown>["fetch"
   const now = options.now?.() ?? new Date();
   const day = wibDay(now);
   const relevant = await briefArticles(new Date(now.getTime() - 24 * 60 * 60 * 1000));
-  const counts = { articles: relevant.length, sources: new Set(relevant.map((a) => a.sourceId)).size, lines: 0 };
   if (relevant.length < MIN_ARTICLES) {
     console.info(`brief: ${relevant.length} relevant articles in 24 h (fewer than ${MIN_ARTICLES}): no brief today`);
+    return { status: "ok", counts: { articles: relevant.length, articles_relevant: relevant.length, sources: 0, lines: 0 } };
+  }
+  // Trimmed to the data budget by priority instead of failing: the day's opportunity changes
+  // first (what the brief names), then the articles, most relevant first.
+  let size = 0;
+  const fits = (item: unknown) => {
+    const itemSize = JSON.stringify(item).length + 1;
+    if (size + itemSize > MAX_DATA_CHARS) return false;
+    size += itemSize;
+    return true;
+  };
+  const changes = [];
+  for (const change of await opportunityChanges(day)) if (fits(change)) changes.push(change);
+  const input = [];
+  for (const a of relevant.slice(0, MAX_INPUT_ARTICLES)) {
+    const item = { id: a.id, category: a.category, headline: a.headline, why: a.why };
+    if (!fits(item)) break;
+    input.push({ ...a, item });
+  }
+  // The counts are of the articles the brief was written from ("AI summary of N articles from M sources").
+  const counts = { articles: input.length, articles_relevant: relevant.length, sources: new Set(input.map((a) => a.sourceId)).size, lines: 0, wording_rejected: 0 };
+  if (input.length < relevant.length) console.info(`brief: ${input.length} of ${relevant.length} relevant articles used`);
+  if (input.length < MIN_ARTICLES) {
+    console.info(`brief: only ${input.length} articles fit the input: no brief today`);
     return { status: "ok", counts };
   }
-  const input = relevant.slice(0, MAX_INPUT_ARTICLES);
-  const changes = await opportunityChanges(day);
-  const fence = fenceUntrusted("BRIEF", {
-    articles: input.map((a) => ({ id: a.id, category: a.category, headline: a.headline, why: a.why })),
-    opportunities: changes,
-  });
+  const fence = fenceUntrusted("BRIEF", { articles: input.map((a) => a.item), opportunities: changes });
   const articleIds = new Set(input.map((a) => a.id));
   const opportunityIds = new Set(changes.map((o) => o.id));
   // Invalid output twice throws: the job fails visibly and the day has no brief.
@@ -69,10 +95,10 @@ export async function writeBrief(options: { transport?: LlmCall<unknown>["fetch"
     job: "brief",
     role: "report",
     messages: [
-      { role: "system", content: `${SYSTEM}\n${fence.rule}` },
+      { role: "system", content: `${SYSTEM}\n${WORDING_RULE}\n${fence.rule}` },
       { role: "user", content: `Write today's brief.\n${fence.block}` },
     ],
-    parse: (value) => parseBrief(value, articleIds, opportunityIds),
+    parse: countingAdvice((value) => parseBrief(value, articleIds, opportunityIds), counts),
     maxTokens: 2000,
     fetch: options.transport,
   });
