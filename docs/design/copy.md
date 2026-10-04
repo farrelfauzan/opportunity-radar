@@ -451,6 +451,109 @@ The asset report reuses `inv.disclaimer` (no separate key). The canvas tab title
 
 The canvas line "Suggested approach: buy in 3 parts over 6 weeks rather than all at once" is removed (D10: instruction, not information). The history column shows "price change since signal" instead of "avoided −6.2%".
 
+## 8.1 Rule texts and asset names (OR-26/27/28, OR-29 → OR-30/31/32/34)
+
+All text the rule engine (OR-29) produces is assembled from these keys; the LLM never writes it. Wording per `docs/signals/rules-v1.md` §7: it describes what the rules see, never instructs. Prices and percentages are formatted per locale (OR-2).
+
+### Asset names and kinds (v1 watchlist and market snapshot)
+
+| Key | EN | ID |
+|---|---|---|
+| asset.name.ihsg | IHSG | IHSG |
+| asset.name.bbca | BBCA | BBCA |
+| asset.name.sp500 | S&P 500 | S&P 500 |
+| asset.name.gold | Gold | Emas |
+| asset.name.silver | Silver | Perak |
+| asset.name.bitcoin | Bitcoin | Bitcoin |
+| asset.name.ethereum | Ethereum | Ethereum |
+| asset.name.usdidr | USD/IDR | USD/IDR |
+| asset.name.goldGram | Gold / gram | Emas / gram |
+| asset.kind.metalShort | IDR per gram | IDR per gram |
+
+The watchlist's kind line uses `asset.kind.idx`, `asset.kind.index`, `asset.kind.crypto` (§8) and `asset.kind.metalShort`. Added assets (OR-44) show their symbol as the name.
+
+### States with no verdict
+
+| Key | EN | ID |
+|---|---|---|
+| signal.stale | No signal: prices are out of date | Tanpa sinyal: harga belum diperbarui |
+| signal.invalid | No signal: the price data has errors | Tanpa sinyal: data harga bermasalah |
+
+`signal.none` (§7) is for `INSUFFICIENT`, `signal.stale` for `STALE`, `signal.invalid` for `INVALID_DATA`; cash & bonds use `signal.noSignal`.
+
+### Checks: "What we see" (OR-32 checks table, signal cards)
+
+| Key | EN | ID |
+|---|---|---|
+| signal.check.rsiInRange | RSI is {rsi}: between 30 and 70 | RSI {rsi}: di antara 30 dan 70 |
+| signal.check.rsiHigh | RSI is {rsi}: above 70 (overbought) | RSI {rsi}: di atas 70 (jenuh beli) |
+| signal.check.rsiLow | RSI is {rsi}: below 30 (oversold) | RSI {rsi}: di bawah 30 (jenuh jual) |
+| signal.check.close50.above | The price ({price}) is above the 50-day average ({sma}) | Harga ({price}) di atas rata-rata 50 hari ({sma}) |
+| signal.check.close50.below | The price ({price}) is below the 50-day average ({sma}) | Harga ({price}) di bawah rata-rata 50 hari ({sma}) |
+| signal.check.close50.equal | The price equals the 50-day average ({sma}) | Harga sama dengan rata-rata 50 hari ({sma}) |
+| signal.check.sma50vs200.above | The 50-day average is above the 200-day average | Rata-rata 50 hari di atas rata-rata 200 hari |
+| signal.check.sma50vs200.below | The 50-day average is below the 200-day average | Rata-rata 50 hari di bawah rata-rata 200 hari |
+| signal.check.sma50vs200.equal | The 50-day and 200-day averages are equal | Rata-rata 50 hari dan 200 hari sama |
+| signal.check.close200.above | The price ({price}) is above the 200-day average ({sma}) | Harga ({price}) di atas rata-rata 200 hari ({sma}) |
+| signal.check.close200.below | The price ({price}) is below the 200-day average ({sma}) | Harga ({price}) di bawah rata-rata 200 hari ({sma}) |
+| signal.check.close200.equal | The price equals the 200-day average ({sma}) | Harga sama dengan rata-rata 200 hari ({sma}) |
+| signal.check.currency | The rupiah moved {pct} against the US dollar over 30 days | Rupiah bergerak {pct} terhadap dolar AS dalam 30 hari |
+| signal.check.news | {supportive} of {total} relevant articles this week lean positive, {against} lean negative | {supportive} dari {total} artikel relevan minggu ini cenderung positif, {against} cenderung negatif |
+| signal.check.newsNone | No relevant articles this week | Tidak ada artikel relevan minggu ini |
+
+Check names use `asset.check.*` (§8); verdict words use `asset.verdict.*`. The currency and news rows always carry `asset.verdict.context`.
+
+### Triggers (signal history and alerts)
+
+| Key | EN | ID |
+|---|---|---|
+| signal.trigger.close50.above | The price closed above the 50-day average. | Harga ditutup di atas rata-rata 50 hari. |
+| signal.trigger.close50.below | The price closed below the 50-day average. | Harga ditutup di bawah rata-rata 50 hari. |
+| signal.trigger.rsiOut | RSI moved outside 30–70. | RSI keluar dari rentang 30–70. |
+| signal.trigger.rsiBack | RSI moved back between 30 and 70. | RSI kembali ke rentang 30–70. |
+| signal.trigger.longBuy | The 50-day average and the price are both above the 200-day average. | Rata-rata 50 hari dan harga sama-sama di atas rata-rata 200 hari. |
+| signal.trigger.longSell | The 50-day average and the price are both below the 200-day average. | Rata-rata 50 hari dan harga sama-sama di bawah rata-rata 200 hari. |
+| signal.trigger.longMixed | The 50-day average and the price no longer point the same way against the 200-day average. | Rata-rata 50 hari dan harga tidak lagi searah terhadap rata-rata 200 hari. |
+| signal.trigger.initial | First signal computed. | Sinyal pertama dihitung. |
+
+OR-29 stores the trigger key per history row (the one that best explains the change: for short term, an RSI move outranks a close-vs-50 move).
+
+### Alert text (OR-34)
+
+| Key | EN | ID |
+|---|---|---|
+| alert.text.short | Short-term signal changed from {from} to {to}. {trigger} | Sinyal jangka pendek berubah dari {from} menjadi {to}. {trigger} |
+| alert.text.long | Long-term signal changed from {from} to {to}. {trigger} | Sinyal jangka panjang berubah dari {from} menjadi {to}. {trigger} |
+
+`{from}` and `{to}` are the verdict words `signal.buy|hold|sell`; `{trigger}` is a `signal.trigger.*` text. `initial` rows raise no alert.
+
+### What would change the signal (OR-32)
+
+| Key | EN | ID |
+|---|---|---|
+| asset.reverse.titleAny | What would change this signal | Apa yang akan mengubah sinyal ini |
+| signal.reverse.close50.below | A close below {price} (the 50-day average) | Penutupan di bawah {price} (rata-rata 50 hari) |
+| signal.reverse.close50.above | A close above {price} (the 50-day average) | Penutupan di atas {price} (rata-rata 50 hari) |
+| signal.reverse.rsiHigh | A close above about {price}, which would lift RSI above 70 | Penutupan di atas sekitar {price}, yang akan menaikkan RSI ke atas 70 |
+| signal.reverse.rsiLow | A close below about {price}, which would push RSI below 30 | Penutupan di bawah sekitar {price}, yang akan menurunkan RSI ke bawah 30 |
+| signal.reverse.close200.below | A close below {price} (the 200-day average) | Penutupan di bawah {price} (rata-rata 200 hari) |
+| signal.reverse.close200.above | A close above {price} (the 200-day average) | Penutupan di atas {price} (rata-rata 200 hari) |
+| signal.reverse.smaDown | The 50-day average moving below the 200-day average | Rata-rata 50 hari bergerak ke bawah rata-rata 200 hari |
+| signal.reverse.smaUp | The 50-day average moving above the 200-day average | Rata-rata 50 hari bergerak ke atas rata-rata 200 hari |
+| signal.reverse.none | No price within the usual range would change this signal | Tidak ada harga dalam rentang wajar yang akan mengubah sinyal ini |
+
+Use `asset.reverse.title` ("What would change this to {verdict}") when every listed condition leads to the same verdict, otherwise `asset.reverse.titleAny`. At most two conditions per term (rules-v1 §5).
+
+### Chart (OR-31)
+
+| Key | EN | ID |
+|---|---|---|
+| asset.chart.summary | {name}: latest price {price}; 50-day average {sma50}; 200-day average {sma200}; last signal {verdict} on {date} | {name}: harga terakhir {price}; rata-rata 50 hari {sma50}; rata-rata 200 hari {sma200}; sinyal terakhir {verdict} pada {date} |
+| asset.chart.markerBuy | Buy signal ▲ on {date} at {price} | Sinyal beli ▲ pada {date} di {price} |
+| asset.chart.markerSell | Sell signal ▼ on {date} at {price} | Sinyal jual ▼ pada {date} di {price} |
+
+`asset.chart.summary` is the chart's text alternative for screen readers; the marker texts are the tooltips and the markers' accessible names.
+
 ## 9. Login (OR-19, parked)
 
 | Key | EN | ID |
