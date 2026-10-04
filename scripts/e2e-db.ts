@@ -3,10 +3,11 @@
 // It only ever touches opportunity_radar_e2e_<E2E_PORT>_test (e2eDatabaseUrl).
 //   setup                                 create, empty and migrate the database
 //   fixtures [--last-run=<minutes ago | ISO time | never>] [--no-articles]
-//            [--scores-run=<minutes ago | ISO time | never>] [--no-opportunities]
-//                                         empty the tables, then store the News fixtures and the
-//                                         Opportunities fixtures (default: a successful ingestion and a
-//                                         successful scoring run 5 minutes ago)
+//            [--scores-run=<minutes ago | ISO time | never>] [--no-opportunities] [--no-brief]
+//            [--brief-day=<days from today, e.g. -1>]
+//                                         empty the tables, then store the News fixtures, the
+//                                         Opportunities fixtures and today's daily brief (default: a
+//                                         successful ingestion and a successful scoring run 5 minutes ago)
 //   add <headline>                        store one more article, published now
 //   break <table> | restore <table>       rename a table away and back (articles, opportunities): the page's
 //                                         queries fail like a store that is down, with no second server
@@ -20,14 +21,18 @@ import {
   insertOpportunity,
   recordOpportunityScore,
   recordSuccessfulRun,
+  saveBrief,
+  saveTriage,
   SCORING_JOB,
   upsertSource,
   wibDay,
   type Sector,
+  type TriageResult,
 } from "../src/server/data/index.ts";
 import { sql } from "../src/server/data/client.ts";
 import { detailOf, evidenceArticles, factorsOf, fixtureOpportunities } from "../e2e/opportunity-fixtures.ts";
-import { fixtureArticles, fixtureSources } from "../e2e/news-fixtures.ts";
+import { fixtureArticles, fixtureSources, todayStats } from "../e2e/news-fixtures.ts";
+import { fixtureBriefLines } from "../e2e/radar-fixtures.ts";
 import { resetTestDatabase } from "./db-admin.ts";
 import { e2eDatabaseUrl } from "./e2e-env.ts";
 
@@ -57,23 +62,35 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /** Stores the articles the opportunities cite (on days before today); returns their ids by fixture key. */
 async function storeEvidence(sourceIds: Map<string, number>) {
   const ids = new Map<string, number>();
+  const triage: TriageResult[] = [];
   for (const e of evidenceArticles) {
+    const region = e.region ?? "indonesia";
+    const category = e.category ?? "business";
     const { article } = await insertArticle({
       sourceId: sourceIds.get(e.source)!,
       link: `https://example.com/e2e/evidence/${e.key}`,
-      region: "indonesia",
-      category: "business",
+      region,
+      category,
       headline: e.headline,
       snippet: e.snippet,
       publishedAt: new Date(Date.now() - e.ageDays * DAY_MS),
     });
     ids.set(e.key, article.id);
+    if (e.why) {
+      triage.push({
+        articleId: article.id, status: "ok", category, region, relevance: 70, impact: "opportunity",
+        whyEn: e.why.en, whyId: e.why.id, themes: ["food_security"],
+      });
+    }
   }
+  await saveTriage(triage);
   return ids;
 }
 
+/** Stores the opportunities; returns their ids by fixture key. */
 async function storeOpportunities(evidence: Map<string, number>) {
   const now = Date.now();
+  const stored = new Map<string, number>();
   const today = wibDay(new Date(now));
   for (const f of fixtureOpportunities) {
     const rows = f.history
@@ -109,11 +126,30 @@ async function storeOpportunities(evidence: Map<string, number>) {
       (f.cites ?? []).flatMap((key) => evidence.get(key) ?? []),
     );
     for (const next of rows.slice(1)) await recordOpportunityScore(row.id, next);
+    stored.set(f.key, row.id);
   }
+  return stored;
+}
+
+/** The daily brief (today's, unless --brief-day moves it): its lines cite the stored opportunities and evidence articles by id. */
+async function storeBrief(opportunityIds: Map<string, number>, evidence: Map<string, number>) {
+  const stats = todayStats();
+  await saveBrief({
+    day: addDays(wibDay(), Number(option("brief-day") ?? 0)),
+    lines: fixtureBriefLines.map((line) => ({
+      label: line.label,
+      en: line.en,
+      id: line.id,
+      opportunityIds: line.opportunities.flatMap((key) => opportunityIds.get(key) ?? []),
+      articleIds: line.articles.flatMap((key) => evidence.get(key) ?? []),
+    })),
+    articleCount: stats.articles,
+    sourceCount: stats.sources,
+  });
 }
 
 async function fixtures() {
-  await sql()`truncate articles, sources, job_runs, opportunities restart identity cascade`;
+  await sql()`truncate articles, sources, job_runs, opportunities, daily_briefs restart identity cascade`;
   const ids = await storeSources();
   const evidence = new Map<string, number>();
   if (!args.includes("--no-articles")) {
@@ -130,7 +166,8 @@ async function fixtures() {
     }
   }
   if (!args.includes("--no-articles")) for (const [key, id] of await storeEvidence(ids)) evidence.set(key, id);
-  if (!args.includes("--no-opportunities")) await storeOpportunities(evidence);
+  const opportunityIds = args.includes("--no-opportunities") ? new Map<string, number>() : await storeOpportunities(evidence);
+  if (!args.includes("--no-brief")) await storeBrief(opportunityIds, evidence);
   const lastRun = timeOption("last-run", "5");
   if (lastRun) await recordSuccessfulRun("ingest-news", lastRun);
   const scoresRun = timeOption("scores-run", "5");

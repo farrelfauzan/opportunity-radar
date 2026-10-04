@@ -44,16 +44,27 @@ export function factorsOf(overall: number) {
 }
 
 /** An article that opportunities cite. Stored with the News fixtures, on a day before today (so News counts are unchanged). */
-export type FixtureEvidence = { key: string; source: string; headline: string; snippet: string; ageDays: number };
+export type FixtureEvidence = {
+  key: string;
+  source: string;
+  headline: string;
+  snippet: string;
+  ageDays: number;
+  /** Stored as the article's category and region (default business, indonesia) and, with `why`, as its ok triage. */
+  category?: "business" | "politics" | "tech-ai" | "markets" | "commodities";
+  region?: "indonesia" | "global";
+  /** "Why it matters" of an ok triage (the Radar shows it); an article without one is untriaged. */
+  why?: { en: string; id: string };
+};
 
 export const longEvidenceHeadline = `Superpanjang${"Berita".repeat(16)}Rantai`; // 108 characters with no space
 
 export const evidenceArticles: FixtureEvidence[] = [
-  { key: "antara", source: "antara", headline: "Pemerintah dorong rantai dingin untuk perikanan", snippet: "Snippet one.", ageDays: 1 },
-  { key: "conversation", source: "conversation-id", headline: "Mengapa ikan segar cepat busuk di perjalanan", snippet: "Ringkasan yang dipakai apa adanya.", ageDays: 3 },
-  { key: "ecb", source: "ecb", headline: "ECB signals steady rates for the year", snippet: "The Governing Council kept the key rates unchanged.", ageDays: 6 },
+  { key: "antara", source: "antara", headline: "Pemerintah dorong rantai dingin untuk perikanan", snippet: "Snippet one.", ageDays: 1, why: { en: "Cold-chain demand grows for fish farmers.", id: "Permintaan rantai dingin tumbuh bagi pembudidaya ikan." } },
+  { key: "conversation", source: "conversation-id", headline: "Mengapa ikan segar cepat busuk di perjalanan", snippet: "Ringkasan yang dipakai apa adanya.", ageDays: 3, category: "politics", why: { en: "Spoilage losses open room for fresh-fish logistics.", id: "Kerugian pembusukan membuka peluang logistik ikan segar." } },
+  { key: "ecb", source: "ecb", headline: "ECB signals steady rates for the year", snippet: "The Governing Council kept the key rates unchanged.", ageDays: 6, category: "markets", region: "global", why: { en: "Steady rates keep financing costs predictable.", id: "Suku bunga stabil menjaga biaya pembiayaan tetap terduga." } },
   { key: "off", source: "katadata", headline: "Katadata: sewa panel surya naik", snippet: "Snippet of a source that is switched off.", ageDays: 4 },
-  { key: "markup", source: "bbc-business", headline: `<img src=x onerror="window.__pwned=1"> <b>Bold</b> & "quotes"`, snippet: "<script>window.__pwned=1</script>", ageDays: 8 },
+  { key: "markup", source: "bbc-business", headline: `<img src=x onerror="window.__pwned=1"> <b>Bold</b> & "quotes"`, snippet: "<script>window.__pwned=1</script>", ageDays: 8, category: "tech-ai", region: "global", why: { en: `<b>Bold</b> why & "quotes"`, id: `<b>Tebal</b> mengapa & "kutip"` } },
   { key: "long", source: "kemendag", headline: longEvidenceHeadline, snippet: "Snippet of the long one.", ageDays: 10 },
 ];
 
@@ -95,7 +106,7 @@ export const fixtureOpportunities: FixtureOpportunity[] = [
   }), // ▲ 12
   o("solar", "Rooftop solar leasing for factories", "Sewa panel surya atap untuk pabrik", "indonesia", ["renewables_climate"], "6-12m", "high", [[45, 90], [30, 85], [0, 78]], { cites: ["off", "antara", "markup"] }), // ▼ 7
   o("assistant", "AI assistant for online shops", "Asisten AI untuk toko online", "global", ["ai_software", "retail_ecommerce"], "0-6m", "low", [[45, 75], [30, 75], [0, 75]]), // — 0
-  o("tax", "Tax tool for online sellers", "Alat pajak untuk penjual online", "indonesia", ["retail_ecommerce", "fintech_finance"], "0-6m", "low", [[30, 62], [0, 71]]), // first scored 30 days ago: ▲ 9
+  o("tax", "Tax tool for online sellers", "Alat pajak untuk penjual online", "indonesia", ["retail_ecommerce", "fintech_finance"], "0-6m", "low", [[30, 62], [0, 71]], { cites: ["antara"] }), // first scored 30 days ago: ▲ 9
   o("climate", "Climate-resilient farming services", "Layanan pertanian tahan iklim", "indonesia", ["agri_food"], "6-12m", "medium", [[29, 58], [0, 66]]), // first scored 29 days ago: New
   o("bootcamp", "Digital skills bootcamps", "Bootcamp keterampilan digital", "indonesia", ["education"], "6-12m", "low", [[3, 60], [0, 66]]), // first scored 3 days ago: New
   o("last-mile", "Last-mile delivery for rural areas", "Pengiriman jarak terakhir untuk desa", "indonesia", ["logistics"], "6-12m", "medium", [[10, 50], [0, 60]]), // New

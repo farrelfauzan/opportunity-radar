@@ -37,6 +37,42 @@
     "hoursAgo": "{n}h ago",
     "daysAgo": "{n}d ago"
   },
+  "radar": {
+    "title": "Today's radar",
+    "updated": "{date} · updated {time} WIB",
+    "brief": {
+      "title": "Daily brief — what changed for business opportunities",
+      "source": "AI summary of {articles} from {sources}",
+      "articles": {
+        "one": "{n} article",
+        "other": "{n} articles"
+      },
+      "sources": {
+        "one": "{n} source",
+        "other": "{n} sources"
+      },
+      "affected": {
+        "one": "{n} opportunity affected",
+        "other": "{n} opportunities affected"
+      },
+      "none": "Not enough news yet today"
+    },
+    "top": {
+      "title": "Top opportunities",
+      "seeAll": "See all ({n})",
+      "score": "score",
+      "horizon": "Horizon {h}",
+      "basedOn": {
+        "one": "Based on {n} news item",
+        "other": "Based on {n} news items"
+      },
+      "empty": "No opportunities yet. The first morning run is at 07:00 WIB."
+    },
+    "news": {
+      "title": "News that moves opportunities",
+      "all": "All news"
+    }
+  },
   "news": {
     "summary": {
       "line": "{articles} · {sources} · refreshed every 30 minutes",

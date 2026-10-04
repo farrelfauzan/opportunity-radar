@@ -37,6 +37,42 @@
     "hoursAgo": "{n} jam lalu",
     "daysAgo": "{n} hari lalu"
   },
+  "radar": {
+    "title": "Radar hari ini",
+    "updated": "{date} · diperbarui {time} WIB",
+    "brief": {
+      "title": "Ringkasan harian — apa yang berubah bagi peluang bisnis",
+      "source": "Ringkasan AI dari {articles}, {sources}",
+      "articles": {
+        "one": "{n} artikel",
+        "other": "{n} artikel"
+      },
+      "sources": {
+        "one": "{n} sumber",
+        "other": "{n} sumber"
+      },
+      "affected": {
+        "one": "{n} peluang terdampak",
+        "other": "{n} peluang terdampak"
+      },
+      "none": "Belum cukup berita hari ini"
+    },
+    "top": {
+      "title": "Peluang teratas",
+      "seeAll": "Lihat semua ({n})",
+      "score": "skor",
+      "horizon": "Horizon {h}",
+      "basedOn": {
+        "one": "Berdasarkan {n} berita",
+        "other": "Berdasarkan {n} berita"
+      },
+      "empty": "Belum ada peluang. Proses pagi pertama berjalan pukul 07.00 WIB."
+    },
+    "news": {
+      "title": "Berita yang menggerakkan peluang",
+      "all": "Semua berita"
+    }
+  },
   "news": {
     "summary": {
       "line": "{articles} · {sources} · diperbarui setiap 30 menit",
