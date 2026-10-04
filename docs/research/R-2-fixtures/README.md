@@ -1,3 +1,5 @@
+> **Superseded by `docs/signals/fixtures/`.** That folder is the maintained copy. The 15 CSVs here are byte-identical to it (checked 2026-10-04); this folder's `expected.json` is the older version: the verdicts, indicator values and flip prices are the same, only the stale-input cases differ (here one `crypto_or_metal` limit of 3 days; the maintained file splits metal, limit 4, and crypto, limit 3). Do not edit or build on this copy. It is kept because R-2 and the scoring history refer to it.
+
 # R-2 fixtures for signal rules v1 (OR-10)
 
 Generated 2026-10-04 by `gen_fixtures.py` (exact integer/Fraction arithmetic, no floats in any comparison). `check.py` re-reads the CSVs with a separate float implementation and agrees on rows, SMA50, SMA200 and RSI14 to 0.01 for all 15 files (run from this folder: `python3 gen_fixtures.py . && python3 check.py`). QA should still recompute with their own script. Full expected values, including flip prices, are in `expected.json`.
