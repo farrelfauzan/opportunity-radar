@@ -6,6 +6,7 @@
 import { FACTOR_KEYS, opportunitiesToRescore, recordOpportunityScore, wibDay, type FactorScores } from "@/server/data";
 import type { JobOutcome } from "@/server/jobs/runner";
 import { BudgetExhaustedError, callLlm, InvalidOutputError, type LlmCall } from "@/server/llm/client";
+import { assertDescriptive } from "@/server/llm/wording";
 import { fenceUntrusted } from "@/server/llm/fence";
 import { overallScore } from "./generate.ts";
 
@@ -49,6 +50,7 @@ export function parseFactors(value: unknown): FactorScores {
       if (typeof reason !== "string" || !reason.trim() || Array.from(reason).length > 200) {
         throw new Error(`${key}: reason.${lang} must be 1-200 characters`);
       }
+      assertDescriptive({ [`${key}: reason.${lang}`]: reason }); // describe, never instruct (OR-63)
     }
     scores[key] = score;
   }

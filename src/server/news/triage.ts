@@ -18,6 +18,7 @@ import {
 import type { JobOutcome } from "@/server/jobs/runner";
 import { callLlm, InvalidOutputError, type LlmCall } from "@/server/llm/client";
 import { fenceUntrusted } from "@/server/llm/fence";
+import { adviceIn, bannedWording } from "@/server/llm/wording";
 
 export const BATCH_SIZE = 10;
 const MAX_WHY_WORDS = 30;
@@ -57,6 +58,8 @@ export function checkItem(raw: unknown): { id: number; result: Omit<Extract<Tria
   const whyEn = typeof why?.en === "string" ? why.en.trim() : "";
   const whyId = typeof why?.id === "string" ? why.id.trim() : "";
   if (!whyEn || !whyId) return "why must be given in EN and ID";
+  const advice = bannedWording(whyEn) ?? bannedWording(whyId); // describe, never instruct (OR-63)
+  if (advice) return `why has advice wording "${advice}"`;
   if (words(whyEn) > MAX_WHY_WORDS || words(whyId) > MAX_WHY_WORDS) return `why is longer than ${MAX_WHY_WORDS} words`;
   if (Array.from(whyEn).length > MAX_WHY_CHARS || Array.from(whyId).length > MAX_WHY_CHARS) {
     return `why is longer than ${MAX_WHY_CHARS} characters`;
@@ -71,11 +74,20 @@ export function checkItem(raw: unknown): { id: number; result: Omit<Extract<Tria
   };
 }
 
-/** The reply's shape: {"items": [...]}. Anything else is invalid output (retried once). */
-function parseEnvelope(value: unknown): unknown[] {
-  const items = (value as { items?: unknown } | null)?.items;
-  if (!Array.isArray(items)) throw new Error('expected {"items": [...]}');
-  return items;
+/**
+ * The reply's shape: {"items": [...]}. Anything else is invalid output (retried once).
+ * Advice wording in the first reply also asks for the retry; in the retry's reply only
+ * the items with it fail (checkItem), so one stubborn article never fails its whole batch.
+ */
+function envelopeParser(): (value: unknown) => unknown[] {
+  let attempt = 0;
+  return (value) => {
+    const items = (value as { items?: unknown } | null)?.items;
+    if (!Array.isArray(items)) throw new Error('expected {"items": [...]}');
+    const advice = attempt++ === 0 ? adviceIn(items) : null;
+    if (advice) throw new Error(`advice wording "${advice}" (describe, never instruct)`);
+    return items;
+  };
 }
 
 /** Triage of one batch. Never throws for bad output: those articles are returned as failed. */
@@ -93,7 +105,7 @@ export async function triageBatch(batch: TriageInput[], transport?: LlmCall<unkn
         { role: "system", content: `${SYSTEM}\n${fence.rule}` },
         { role: "user", content: `Triage these ${batch.length} articles.\n${fence.block}` },
       ],
-      parse: parseEnvelope,
+      parse: envelopeParser(),
       maxTokens: MAX_TOKENS,
       fetch: transport,
     });

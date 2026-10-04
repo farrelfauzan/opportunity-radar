@@ -17,6 +17,7 @@ import {
 import type { JobOutcome } from "@/server/jobs/runner";
 import { BudgetExhaustedError, callLlm, InvalidOutputError, type LlmCall } from "@/server/llm/client";
 import { fenceUntrusted } from "@/server/llm/fence";
+import { assertDescriptive } from "@/server/llm/wording";
 import { overallScore } from "@/server/opportunities/generate";
 import { keywordMatcher } from "./match.ts";
 
@@ -77,6 +78,7 @@ export function parseVentureReply(value: unknown, inputIds: ReadonlySet<number>)
       const t = w?.[lang];
       if (typeof t !== "string" || !t.trim()) throw new Error(`${name}.${lang} is empty`);
       if (words(t) > MAX_WORDS || Array.from(t).length > MAX_CHARS) throw new Error(`${name}.${lang} is too long`);
+      assertDescriptive({ [`${name}.${lang}`]: t }); // describe, never instruct (OR-63)
     }
     const ids = w?.articleIds;
     if (!Array.isArray(ids) || ids.length === 0) throw new Error(`${name} cites no article`);

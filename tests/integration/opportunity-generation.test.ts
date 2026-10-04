@@ -426,3 +426,57 @@ describe("text refresh on a match (Designer, OR-50)", () => {
     expect((await stored())[0].cited).toHaveLength(4);
   });
 });
+
+describe("wording guard (OR-63)", () => {
+  const thesis = { en: "A guaranteed winner: demand will rise all year.", id: "Pemenang yang dijamin: permintaan pasti naik sepanjang tahun." };
+  const sequence = (...replies: ((ids: string[]) => unknown)[]) => {
+    let n = 0;
+    return provider((ids) => replies[Math.min(n++, replies.length - 1)](ids));
+  };
+
+  test("an advice thesis twice: that opportunity is not stored (AC3)", async () => {
+    await triagedArticles(2);
+    const { transport, requests } = sequence((ids) => ({ opportunities: [opportunity(ids, { thesis })] }));
+
+    const outcome = await generateOpportunities({ transport, now: () => NOW });
+
+    expect(requests).toHaveLength(2);
+    expect(outcome.counts).toMatchObject({ created: 0, rejected: 1 });
+    expect(await stored()).toEqual([]);
+  });
+
+  test("an advice thesis on a matching theme twice: the open opportunity is not updated (AC3)", async () => {
+    const a = await triagedArticles(3);
+    await generateOpportunities({ transport: provider(() => ({ opportunities: [opportunity(a.slice(0, 2).map(String))] })).transport, now: () => NOW });
+    const before = await stored();
+
+    await generateOpportunities({
+      transport: sequence(() => ({ opportunities: [opportunity([a[0], a[2]].map(String), { thesis, title: { en: "Changed", id: "Diubah" } })] })).transport,
+      now: () => NOW,
+    });
+
+    expect(await stored()).toEqual(before);
+  });
+
+  test("an advice thesis, then clean items on the retry: the clean ones are stored (AC5)", async () => {
+    await triagedArticles(2);
+    const { transport } = sequence((ids) => ({ opportunities: [opportunity(ids, { thesis })] }), (ids) => ({ opportunities: [opportunity(ids)] }));
+
+    const outcome = await generateOpportunities({ transport, now: () => NOW });
+
+    expect(outcome.counts).toMatchObject({ created: 1, rejected: 0 });
+  });
+
+  test("the retry's reply still has one advice item: only that one is rejected, the other is stored", async () => {
+    const a = await triagedArticles(4);
+    const other = { theme: "ai_adoption", region: "global", sectors: ["ai_software"] };
+    const { transport } = sequence(() => ({
+      opportunities: [opportunity(a.slice(0, 2).map(String), { thesis }), opportunity(a.slice(2).map(String), other)],
+    }));
+
+    const outcome = await generateOpportunities({ transport, now: () => NOW });
+
+    expect(outcome.counts).toMatchObject({ created: 1, rejected: 1 });
+    expect(outcome.error).toMatch(/thesis\.en: has advice wording/);
+  });
+});

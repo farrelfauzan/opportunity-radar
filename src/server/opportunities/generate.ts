@@ -19,6 +19,7 @@ import {
 import type { JobOutcome } from "@/server/jobs/runner";
 import { callLlm, type LlmCall } from "@/server/llm/client";
 import { fenceUntrusted } from "@/server/llm/fence";
+import { adviceIn } from "@/server/llm/wording";
 import { checkOpportunity, type OpportunityOutput } from "./contract.ts";
 import { findMatch } from "./match.ts";
 
@@ -88,11 +89,20 @@ function toFields(o: OpportunityOutput): NewOpportunity {
   };
 }
 
-/** The reply's shape: {"opportunities": [...]}. Anything else is invalid output (retried once). */
-function parseEnvelope(value: unknown): unknown[] {
-  const items = (value as { opportunities?: unknown } | null)?.opportunities;
-  if (!Array.isArray(items)) throw new Error('expected {"opportunities": [...]}');
-  return items;
+/**
+ * The reply's shape: {"opportunities": [...]}. Anything else is invalid output (retried once).
+ * Advice wording in the first reply also asks for the retry; in the retry's reply only the
+ * items with it are rejected (the contract checks every text), the others are stored.
+ */
+function envelopeParser(): (value: unknown) => unknown[] {
+  let attempt = 0;
+  return (value) => {
+    const items = (value as { opportunities?: unknown } | null)?.opportunities;
+    if (!Array.isArray(items)) throw new Error('expected {"opportunities": [...]}');
+    const advice = attempt++ === 0 ? adviceIn(items) : null;
+    if (advice) throw new Error(`advice wording "${advice}" (describe, never instruct)`);
+    return items;
+  };
 }
 
 export async function generateOpportunities(
@@ -131,7 +141,7 @@ export async function generateOpportunities(
       { role: "system", content: `${SYSTEM}\n${fence.rule}` },
       { role: "user", content: `Find the opportunities in these ${candidates.length} articles.\n${fence.block}` },
     ],
-    parse: parseEnvelope,
+    parse: envelopeParser(),
     maxTokens: MAX_TOKENS,
     fetch: options.transport,
   });
