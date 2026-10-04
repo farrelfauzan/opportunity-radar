@@ -355,7 +355,9 @@ export async function opportunitiesToRescore(today: string, limit: number): Prom
         join articles a on a.id = oa.article_id
         join sources src on src.id = a.source_id and src.active
         where oa.opportunity_id = o.id
-          and oa.cited_at >= (s.last_day::timestamp at time zone 'Asia/Jakarta'))
+          and oa.cited_at >= (s.last_day::timestamp at time zone 'Asia/Jakarta')
+          -- The citations it was created with were scored at creation: not new evidence.
+          and oa.cited_at > o.created_at)
     order by o.id
     limit ${limit}`)) as unknown as {
     id: number; title_en: string; thesis_en: string; theme: string; region: string; sectors: string[];

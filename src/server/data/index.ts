@@ -30,6 +30,7 @@ export type {
   LlmCallStatus,
   Theme,
   Impact,
+  BriefLine,
   AssetKind,
 } from "./schema.ts";
 export * from "./articles.ts";
@@ -41,5 +42,6 @@ export type { Trend } from "./trend.ts";
 export * from "./ventures.ts";
 export * from "./llm-usage.ts";
 export * from "./triage.ts";
+export * from "./briefs.ts";
 export * from "./news.ts";
 export * from "./prices.ts";
