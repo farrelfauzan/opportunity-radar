@@ -10,6 +10,8 @@ import {
   insertOpportunity,
   lastScoringRun,
   listOpportunities,
+  listOpportunityEvidence,
+  MAX_CITATIONS,
   MAX_LISTED,
   openOpportunitiesQuery,
   recordOpportunityScore,
@@ -382,6 +384,128 @@ describe("citations and cascade", () => {
     const row = await make({}, [[0, 60]]);
     await citeArticles(row.id, [article.id]);
     await expect(db().execute(sql`delete from articles where id = ${article.id}`)).rejects.toThrow();
+  });
+});
+
+describe("evidence", () => {
+  let sourceCounter = 0;
+  const makeSource = (active = true) =>
+    upsertSource({
+      slug: `source-${++sourceCounter}`,
+      name: `Source ${sourceCounter}`,
+      feedUrl: `https://example.com/feed-${sourceCounter}.xml`,
+      region: "indonesia",
+      category: "business",
+      active,
+    });
+  let articleCounter = 0;
+  const makeArticle = async (sourceId: number, publishedAt: string) =>
+    (
+      await insertArticle({
+        sourceId,
+        link: `https://example.com/evidence-${++articleCounter}`,
+        region: "indonesia",
+        category: "business",
+        headline: `Evidence ${articleCounter}`,
+        publishedAt: new Date(publishedAt),
+      })
+    ).article;
+  const count = async () => Number((await db().execute(sql`select count(*) as n from opportunity_articles`))[0].n);
+
+  test("is newest first, ties by newest article id, with the source name and slug", async () => {
+    const source = await makeSource();
+    const old = await makeArticle(source.id, "2026-10-01T05:00:00Z");
+    const tieA = await makeArticle(source.id, "2026-10-03T05:00:00Z");
+    const tieB = await makeArticle(source.id, "2026-10-03T05:00:00Z");
+    const newest = await makeArticle(source.id, "2026-10-04T01:00:00Z");
+    const row = await make({}, [[0, 60]]);
+    await citeArticles(row.id, [tieA.id, old.id, newest.id, tieB.id]);
+    const list = await listOpportunityEvidence(row.id);
+    expect(list.map((a) => a.id)).toEqual([newest.id, tieB.id, tieA.id, old.id]);
+    expect(list[0]).toMatchObject({ headline: newest.headline, link: newest.link, sourceName: source.name, sourceSlug: source.slug });
+  });
+
+  test("an article of a switched-off source is stored as a citation but absent from the list and from its count", async () => {
+    const on = await makeSource();
+    const off = await makeSource(false);
+    const shown = await makeArticle(on.id, "2026-10-03T05:00:00Z");
+    const hidden = await makeArticle(off.id, "2026-10-04T01:00:00Z");
+    const row = await make({}, [[0, 60]]);
+    await citeArticles(row.id, [shown.id, hidden.id]);
+    expect(await count()).toBe(2); // stored
+    const list = await listOpportunityEvidence(row.id);
+    expect(list.map((a) => a.id)).toEqual([shown.id]);
+    expect(list.length).toBe(1); // the count of the list
+
+    // Switched on again, it shows again.
+    await db().execute(sql`update sources set active = true where id = ${off.id}`);
+    expect((await listOpportunityEvidence(row.id)).map((a) => a.id)).toEqual([hidden.id, shown.id]);
+  });
+
+  test("only this opportunity's citations are read; none cited is an empty list", async () => {
+    const source = await makeSource();
+    const a = await makeArticle(source.id, "2026-10-03T05:00:00Z");
+    const b = await makeArticle(source.id, "2026-10-03T06:00:00Z");
+    const first = await make({}, [[0, 60]]);
+    const second = await make({}, [[0, 61]]);
+    const third = await make({}, [[0, 62]]);
+    await citeArticles(first.id, [a.id]);
+    await citeArticles(second.id, [b.id]);
+    expect((await listOpportunityEvidence(first.id)).map((x) => x.id)).toEqual([a.id]);
+    expect((await listOpportunityEvidence(second.id)).map((x) => x.id)).toEqual([b.id]);
+    expect(await listOpportunityEvidence(third.id)).toEqual([]);
+    expect(await listOpportunityEvidence(999_999)).toEqual([]);
+  });
+
+  async function articlesOf(n: number) {
+    const source = await makeSource();
+    const ids: number[] = [];
+    for (let i = 0; i < n; i++) {
+      // One minute apart, the newest last.
+      ids.push((await makeArticle(source.id, new Date(Date.UTC(2026, 9, 3, 0, i)).toISOString())).id);
+    }
+    return ids;
+  }
+
+  test("the limit is 50 citations: insertOpportunity accepts 50 and rejects 51 (nothing stored)", async () => {
+    expect(MAX_CITATIONS).toBe(50);
+    const ids = await articlesOf(51);
+    await expect(insertOpportunity(base(), score(60), ids)).rejects.toThrow(/at most 50/);
+    expect(await count()).toBe(0);
+    expect(Number((await db().execute(sql`select count(*) as n from opportunities`))[0].n)).toBe(0);
+
+    // A repeated id is one citation: 51 ids with a repeat are 50 citations.
+    const ok = await insertOpportunity(base(), score(60), [...ids.slice(0, 50), ids[0]]);
+    expect(await count()).toBe(50);
+    const list = await listOpportunityEvidence(ok.id);
+    expect(list).toHaveLength(50);
+    expect(list[0].id).toBe(ids[49]); // newest first
+  });
+
+  test("citeArticles never lets one opportunity exceed 50 in total (nothing of the call is stored)", async () => {
+    const ids = await articlesOf(52);
+    const row = await make({}, [[0, 60]]);
+    await citeArticles(row.id, ids.slice(0, 49));
+    await citeArticles(row.id, [ids[0], ids[1], ids[49]]); // one new: 50 in total
+    expect(await count()).toBe(50);
+    await expect(citeArticles(row.id, [ids[50]])).rejects.toThrow(/at most 50/);
+    await expect(citeArticles(row.id, ids.slice(0, 51))).rejects.toThrow(/at most 50/);
+    expect(await count()).toBe(50);
+    // Another opportunity has its own 50.
+    const other = await make({}, [[0, 61]]);
+    await citeArticles(other.id, [ids[50]]);
+    expect(await count()).toBe(51);
+  });
+
+  test("concurrent citeArticles calls cannot pass the limit together", async () => {
+    const ids = await articlesOf(60);
+    const row = await make({}, [[0, 60]]);
+    const results = await Promise.allSettled([
+      citeArticles(row.id, ids.slice(0, 30)),
+      citeArticles(row.id, ids.slice(30, 60)),
+    ]);
+    expect(results.filter((r) => r.status === "rejected")).toHaveLength(1);
+    expect(await count()).toBe(30);
   });
 });
 
