@@ -34,6 +34,11 @@ export default defineConfig({
           globalSetup: ["./tests/integration/global-setup.ts"],
           setupFiles: ["./tests/integration/setup.ts"],
           fileParallelism: false,
+          // Many sessions share this machine and its load average can pass 20: a test that inserts
+          // a few dozen rows then takes more than Vitest's 5 s default. When one times out, its
+          // leftover work runs into the next test's truncate (a deadlock), so one slow test shows as two.
+          testTimeout: 60_000,
+          hookTimeout: 60_000,
           alias,
         },
       },
