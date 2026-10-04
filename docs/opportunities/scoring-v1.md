@@ -42,7 +42,7 @@ Interpolate between anchors. Each factor score comes with a one-sentence reason 
 |---|---|
 | Capital level | `low` < Rp 100 m · `medium` Rp 100 m up to but not including Rp 1 bn · `high` ≥ Rp 1 bn (plus a one-line reason, EN and ID) |
 | Horizon | `0-6m` · `6-12m` · `1-3y` (labels in `copy.md` §6) |
-| Region | `indonesia` · `worldwide` |
+| Region | `indonesia` · `global`. Same values as `articles.region` (OR-6/OR-8), so opportunities, ventures and articles join without a mapping. The UI label for `global` is "Global" in News and Opportunities and "Worldwide" / "Dunia" on venture cards (`copy.md`) |
 
 The calculator pre-fill amounts per capital level are in `docs/design/copy.md` §10.2.
 
@@ -64,7 +64,7 @@ Prompt safety: article headlines and snippets are untrusted data. They go to the
 |---|---|
 | `title` | `{en, id}`, each 1–90 chars |
 | `thesis` | `{en, id}`, each 1–400 chars |
-| `region` | `indonesia` \| `worldwide` |
+| `region` | `indonesia` \| `global` |
 | `theme` | one id from §8 (not `other`) |
 | `sectors` | 1–3 ids from §7 |
 | `horizon` | `0-6m` \| `6-12m` \| `1-3y` |
