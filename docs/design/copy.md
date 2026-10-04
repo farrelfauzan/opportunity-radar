@@ -305,7 +305,7 @@ Market snapshot (OR-28):
 - As-of: visible muted text under the price (no hover, so it works on phones): `radar.market.asOf` when today, `radar.market.asOfEarlier` otherwise; USD/IDR is a daily reference rate with no time, so it uses `radar.market.asOfDate`.
 - Stale (past the §2.3 threshold, inside market hours only): the row shows the word `radar.market.stale` after its as-of text, and the section shows `state.stale.today` / `.earlier` with `state.stale.what.prices` once above the rows when any row is stale. Outside market hours the row shows `state.marketClosed` in place of the as-of text, and is not stale.
 
- brief → My ventures → Top opportunities → News that moves opportunities → Investment alerts → Market snapshot. Investments never come before opportunities.
+Section order (desktop and phone): brief → My ventures → Top opportunities → News that moves opportunities → Investment alerts → Market snapshot. Investments never come before opportunities.
 
 ## 6. Opportunities (OR-17, OR-18, OR-41, OR-40)
 
