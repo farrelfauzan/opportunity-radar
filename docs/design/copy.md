@@ -19,6 +19,7 @@ Contents: 1 Shell · 2 States (all screens) · 3 News · 4 Calculators · 5 Rada
 | Key | EN | ID |
 |---|---|---|
 | app.name | Opportunity Radar | Opportunity Radar |
+| meta.description | Business opportunities and investment signals from the news. | Peluang bisnis dan sinyal investasi dari berita. |
 | nav.radar | Radar | Radar |
 | nav.opportunities | Opportunities | Peluang |
 | nav.news | News | Berita |
@@ -54,6 +55,10 @@ Contents: 1 Shell · 2 States (all screens) · 3 News · 4 Calculators · 5 Rada
 | Key | EN | ID |
 |---|---|---|
 | state.loading | Loading… | Memuat… |
+| time.justNow | just now | baru saja |
+| time.minutesAgo | {n}m ago | {n} mnt lalu |
+| time.hoursAgo | {n}h ago | {n} jam lalu |
+| time.daysAgo | {n}d ago | {n} hari lalu |
 | state.error.title | Can't load this right now | Tidak dapat memuat sekarang |
 | state.error.body | Try again in a moment. If it keeps happening, the local database may be stopped. | Coba lagi sebentar lagi. Jika terus terjadi, database lokal mungkin berhenti. |
 | state.error.retry | Try again | Coba lagi |
@@ -224,8 +229,9 @@ Region shown on an item uses `news.region.id` / `news.region.global`. Category a
 | calc.unit.million | million | juta |
 | calc.unit.billion | billion | miliar |
 | calc.unit.trillion | trillion | triliun |
+| calc.result.beyond | more than Rp 1,000 trillion | lebih dari Rp 1.000 triliun |
 
-`calc.inv.chartLabel`, `calc.inv.presetGroup` and `calc.biz.chartLabel` are accessible names (charts and the preset button group). Large amounts in results use compact form, with the unit words `calc.unit.*`: millions with one decimal, billions and trillions with two. EN `Rp 425.7 million`, `Rp 1.20 billion`, `Rp 2.00 trillion`; ID `Rp 425,7 juta`, `Rp 1,20 miliar`, `Rp 2,00 triliun`. Each result card also shows the exact rupiah amount below the compact form, except above 2^53 (about 9 × 10^15), where only the compact form is shown. Exact values for the defaults are in the AC of OR-24/25.
+`calc.inv.chartLabel`, `calc.inv.presetGroup` and `calc.biz.chartLabel` are accessible names (charts and the preset button group). Large amounts in results use compact form, with the unit words `calc.unit.*`: millions with one decimal, billions and trillions with two. EN `Rp 425.7 million`, `Rp 1.20 billion`, `Rp 2.00 trillion`; ID `Rp 425,7 juta`, `Rp 1,20 miliar`, `Rp 2,00 triliun`. Each result card also shows the exact rupiah amount below the compact form, except above 2^53 (about 9 × 10^15), where only the compact form is shown. From Rp 1.000 trillion (10^15) upwards, results and chart axis labels show `calc.result.beyond` instead of a number; never exponent notation ("3.5e+48") and never a 40-digit amount. Exact values for the defaults are in the AC of OR-24/25.
 
 ## 5. Radar (OR-23, OR-28, OR-34, OR-39)
 
