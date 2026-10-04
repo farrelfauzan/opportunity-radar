@@ -6,6 +6,8 @@
 //   fixtures [--last-run=<minutes ago | ISO time | never>] [--no-articles]
 //            [--scores-run=<minutes ago | ISO time | never>] [--brief-run=<minutes ago | ISO time | never>] [--no-opportunities] [--no-brief]
 //            [--brief-day=<days from today, e.g. -1>] [--no-market]
+//            [--no-ventures] [--no-venture-market] [--ventures-run=<minutes ago | ISO time | never>]
+//                                         (the ventures behind the Radar's "My ventures"; --no-venture-market stores them unscored)
 //            [--prices-run=<...>] [--metals-run=<...>] [--crypto-run=<...>]   (the jobs behind the market snapshot, default 5)
 //                                         empty the tables, then store the News fixtures, the
 //                                         Opportunities fixtures, today's daily brief and the market snapshot's prices
@@ -24,12 +26,14 @@ import {
   recordOpportunityScore,
   recordSuccessfulRun,
   saveBrief,
+  saveVentureView,
   saveTriage,
   SCORING_JOB,
   setQuote,
   upsertAsset,
   upsertCandles,
   upsertSource,
+  upsertVenture,
   wibDay,
   type Sector,
   type Theme,
@@ -40,6 +44,7 @@ import { detailOf, evidenceArticles, factorsOf, fixtureOpportunities } from "../
 import { fixtureArticles, fixtureSources, todayStats } from "../e2e/news-fixtures.ts";
 import { fixtureMarket } from "../e2e/market-fixtures.ts";
 import { fixtureBriefLines } from "../e2e/radar-fixtures.ts";
+import { fixtureVentures } from "../e2e/venture-fixtures.ts";
 import { dropTestDatabase, resetTestDatabase } from "./db-admin.ts";
 import { e2eDatabaseUrl } from "./e2e-env.ts";
 
@@ -181,8 +186,57 @@ async function storeMarket(): Promise<Date> {
   return timed;
 }
 
+/**
+ * The ventures with their progress, market rows (today and yesterday), winds and article matches (the first
+ * stored articles, in order). Progress and yesterday's market rows are inserted directly (progress has no writer yet, OR-37).
+ */
+async function storeVentures(withMarket: boolean) {
+  const today = wibDay();
+  const articleIds = (await sql()`select id from articles order by id`).map((r) => r.id as number);
+  for (const f of fixtureVentures) {
+    const venture = await upsertVenture({
+      slug: f.slug,
+      name: f.name,
+      descriptionEn: f.description.en,
+      descriptionId: f.description.id,
+      sectors: ["ai_software"],
+      keywords: [f.slug],
+      progressGoal: f.goal,
+      progressSource: f.progress ? "notion" : null,
+    });
+    if (f.progress) {
+      await sql()`insert into venture_progress (venture_id, day, percent, sprint_delivered, sprint_next, tickets_in_qa)
+        values (${venture.id}, ${today}, ${f.progress.percent}, ${f.progress.sprintDelivered}, ${f.progress.sprintNext}, ${f.progress.ticketsInQa})`;
+    }
+    for (const [index, relevance] of f.matches.entries()) {
+      if (articleIds[index] === undefined) continue; // --no-articles
+      await sql()`insert into venture_articles (venture_id, article_id, relevance) values (${venture.id}, ${articleIds[index]}, ${relevance})`;
+    }
+    if (!withMarket) continue;
+    const factors = (v: number) => ({ demand: v, timing: v, competition: v, capital: v, regulatory: v });
+    const rows = (["indonesia", "global"] as const).map((region) => ({ region, ...f.market[region] }));
+    // Yesterday's rows first, then today's through the same writer the morning step uses.
+    for (const row of rows) {
+      if (row.yesterday === null) continue;
+      await sql()`insert into venture_market (venture_id, day, region, score, factors, related_articles)
+        values (${venture.id}, ${addDays(today, -1)}, ${row.region}, ${row.yesterday}, ${JSON.stringify(factors(row.yesterday))}::jsonb, 0)`;
+    }
+    const wind = (pair: { en: string; id: string } | null) => (pair ? { ...pair, articleIds: [articleIds[0] ?? 1] } : null);
+    await saveVentureView(venture.id, today, {
+      candidateIds: [],
+      articles: [],
+      markets: {
+        indonesia: rows[0].today === null ? null : { score: rows[0].today, factors: factors(rows[0].today) },
+        global: rows[1].today === null ? null : { score: rows[1].today, factors: factors(rows[1].today) },
+      },
+      relatedArticles: 0,
+      winds: { tailwind: wind(f.winds.tailwind), headwind: wind(f.winds.headwind) },
+    });
+  }
+}
+
 async function fixtures() {
-  await sql()`truncate articles, sources, job_runs, opportunities, daily_briefs, assets restart identity cascade`;
+  await sql()`truncate articles, sources, job_runs, opportunities, daily_briefs, assets, ventures, venture_progress, venture_market, venture_winds, venture_articles restart identity cascade`;
   const ids = await storeSources();
   const evidence = new Map<string, number>();
   if (!args.includes("--no-articles")) {
@@ -219,12 +273,15 @@ async function fixtures() {
   if (!args.includes("--no-articles")) for (const [key, id] of await storeEvidence(ids)) evidence.set(key, id);
   const opportunityIds = args.includes("--no-opportunities") ? new Map<string, number>() : await storeOpportunities(evidence);
   if (!args.includes("--no-brief")) await storeBrief(opportunityIds, evidence);
+  if (!args.includes("--no-ventures")) await storeVentures(!args.includes("--no-venture-market"));
   const lastRun = timeOption("last-run", "5");
   if (lastRun) await recordSuccessfulRun("ingest-news", lastRun);
   const scoresRun = timeOption("scores-run", "5");
   if (scoresRun) await recordSuccessfulRun(SCORING_JOB, scoresRun);
   const briefRun = timeOption("brief-run", "5");
   if (briefRun) await recordSuccessfulRun("brief", briefRun);
+  const venturesRun = timeOption("ventures-run", "5");
+  if (venturesRun) await recordSuccessfulRun("ventures", venturesRun);
   const marketAsOf = args.includes("--no-market") ? null : await storeMarket();
   const pricesRun = timeOption("prices-run", "5");
   if (pricesRun) await recordSuccessfulRun("prices", pricesRun);
@@ -241,6 +298,7 @@ async function fixtures() {
       lastRun: lastRun?.toISOString() ?? null,
       scoresRun: scoresRun?.toISOString() ?? null,
       briefRun: briefRun?.toISOString() ?? null,
+      venturesRun: venturesRun?.toISOString() ?? null,
     }),
   );
 }

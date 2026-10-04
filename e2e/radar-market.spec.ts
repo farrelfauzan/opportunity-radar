@@ -100,7 +100,7 @@ for (const locale of ["en", "id"] as const) {
     }
     // Nothing is requested from outside the app, and the other investment sections are still not built.
     expect(outside).toEqual([]);
-    expect(await main(page).innerText()).not.toMatch(/investment alerts|peringatan investasi|my ventures|usaha saya|financial advice|nasihat/i);
+    expect(await main(page).innerText()).not.toMatch(/investment alerts|peringatan investasi|financial advice|nasihat/i);
   });
 
   test(`${locale}: each change shows an arrow (or a dash) and the unsigned percent, in colour and in words`, async ({ page }) => {

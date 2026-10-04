@@ -6,6 +6,7 @@ import { headlines, todayStats } from "./news-fixtures";
 import { evidenceArticles, fixtureOpportunities, listedFixtures, longEvidenceHeadline, openFixtures } from "./opportunity-fixtures";
 import { e2eDatabaseUrl } from "../scripts/e2e-env";
 import { expectSkeletonOnNavigation } from "./skeleton";
+import { fixtureVentures } from "./venture-fixtures";
 
 const listed = listedFixtures();
 const top = listed.slice(0, 5);
@@ -36,6 +37,7 @@ const copy = {
     source: (articles: number, sources: number) => `AI summary of ${articles} articles from ${sources} sources`,
     affected: (n: number) => `${n} ${n === 1 ? "opportunity" : "opportunities"} affected`,
     cat: { business: "Business", politics: "Politics & policy", "tech-ai": "Tech & AI", markets: "Markets", commodities: "Commodities" },
+    ventures: "My ventures",
     top: "Top opportunities",
     seeAll: (n: number) => `See all (${n})`,
     score: "score",
@@ -73,6 +75,7 @@ const copy = {
     source: (articles: number, sources: number) => `Ringkasan AI dari ${articles} artikel, ${sources} sumber`,
     affected: (n: number) => `${n} peluang terdampak`,
     cat: { business: "Bisnis", politics: "Politik & kebijakan", "tech-ai": "Teknologi & AI", markets: "Pasar", commodities: "Komoditas" },
+    ventures: "Usaha saya",
     top: "Peluang teratas",
     seeAll: (n: number) => `Lihat semua (${n})`,
     score: "skor",
@@ -136,8 +139,10 @@ const overflows = (page: Page) => page.evaluate(() => document.documentElement.s
 const headings = (page: Page) => main(page).getByRole("heading").allInnerTexts();
 const box = async (locator: Locator) => (await locator.boundingBox())!;
 
-/** The pattern of the sections that are not built yet (investment alerts, ventures). The market snapshot is built (OR-28). */
-const notBuilt = /investment|investasi|alert|peringatan|my ventures|usaha saya|financial advice|nasihat/i;
+/** The pattern of the sections that are not built yet (investment alerts). The market snapshot (OR-28) and My ventures (OR-39) are built. */
+const notBuilt = /investment|investasi|alert|peringatan|financial advice|nasihat/i;
+/** The headings of the venture cards: the section title, then each venture's name (an h3). */
+const ventureHeadings = (locale: Locale) => [copy[locale].ventures, ...fixtureVentures.map((v) => v.name)];
 
 // ---- A full day ------------------------------------------------------------------------------------
 
@@ -150,7 +155,7 @@ test.describe("a full day", () => {
   for (const locale of ["en", "id"] as const) {
     const c = copy[locale];
 
-    test(`${locale}: the header, then the brief, the top opportunities, the news and the market snapshot, in that order and nothing else`, async ({ page, baseURL }) => {
+    test(`${locale}: the header, then the brief, my ventures, the top opportunities, the news and the market snapshot, in that order and nothing else`, async ({ page, baseURL }) => {
       // Nothing is requested from outside the app.
       const outside: string[] = [];
       page.on("request", (request) => {
@@ -164,7 +169,7 @@ test.describe("a full day", () => {
       await expect(main(page).getByText(c.updated(longDate(new Date(), locale), clockOf(scoresRun, locale)), { exact: true })).toBeVisible();
       await expect(page.getByRole("status")).toHaveCount(0); // fresh: no banner
 
-      expect(await headings(page)).toEqual([c.title, c.brief, c.top, c.news, c.market]);
+      expect(await headings(page)).toEqual([c.title, c.brief, ...ventureHeadings(locale), c.top, c.news, c.market]);
       expect(await main(page).innerText()).not.toMatch(notBuilt);
       expect(outside).toEqual([]);
     });
@@ -276,6 +281,8 @@ test.describe("a full day", () => {
       await page.goto(`/${locale}`);
       // A click anywhere on the card, not only on the title, opens the detail.
       // (Playwright's click refuses a target covered by the stretched link, so the mouse is used.)
+      // (My ventures sits above, so the first card can be below the fold; the mouse needs it on screen.)
+      await topItems(page).first().scrollIntoViewIfNeeded();
       const thesis = await box(topItems(page).first().getByText(c.pick(top[0].thesis)));
       await page.mouse.click(thesis.x + thesis.width / 2, thesis.y + thesis.height / 2);
       await expect(page).toHaveURL(`/${locale}/opportunities/${idOf("cold-chain")}`);
@@ -291,14 +298,15 @@ test.describe("a full day", () => {
     });
   }
 
-  test("one column in the order brief, top opportunities, news, market snapshot; no sideways scroll even with very long texts; links are 44 px tall", async ({ page }) => {
+  test("one column in the order brief, my ventures, top opportunities, news, market snapshot; no sideways scroll even with very long texts; links are 44 px tall", async ({ page }) => {
     await page.goto("/en");
     const y = async (id: string) => (await box(section(page, id))).y;
-    expect(await y("radar-brief")).toBeLessThan(await y("radar-top"));
+    expect(await y("radar-brief")).toBeLessThan(await y("radar-ventures"));
+    expect(await y("radar-ventures")).toBeLessThan(await y("radar-top"));
     expect(await y("radar-top")).toBeLessThan(await y("radar-news"));
     expect(await y("radar-news")).toBeLessThan(await y("radar-market"));
     // One column: every section spans the same width.
-    const widths = await Promise.all(["radar-brief", "radar-top", "radar-news", "radar-market"].map(async (id) => (await box(section(page, id))).width));
+    const widths = await Promise.all(["radar-brief", "radar-ventures", "radar-top", "radar-news", "radar-market"].map(async (id) => (await box(section(page, id))).width));
     expect(new Set(widths.map(Math.round)).size).toBe(1);
     expect(await overflows(page)).toBe(false);
 
@@ -370,7 +378,7 @@ for (const locale of ["en", "id"] as const) {
       await expect(main(page).getByRole("link", { name: /See all|Lihat semua/ })).toHaveCount(0);
       // No linked news: the section is left out with no placeholder.
       await expect(section(page, "radar-news")).toHaveCount(0);
-      expect(await headings(page)).toEqual([c.title, c.brief, c.top, c.market]);
+      expect(await headings(page)).toEqual([c.title, c.brief, ...ventureHeadings(locale), c.top, c.market]);
       await expect(briefItems(page)).toHaveCount(3);
       await expect(briefItems(page).first()).not.toContainText(locale === "en" ? "affected" : "terdampak");
     } finally {
@@ -416,7 +424,7 @@ for (const locale of ["en", "id"] as const) {
 
   test(`${locale}: before anything has run one card replaces the brief; the other sections keep their own empty texts`, async ({ page }) => {
     try {
-      runDb("fixtures", "--last-run=never", "--scores-run=never", "--brief-run=never", "--no-opportunities", "--no-articles", "--no-brief", "--no-market");
+      runDb("fixtures", "--last-run=never", "--scores-run=never", "--brief-run=never", "--no-opportunities", "--no-articles", "--no-brief", "--no-market", "--no-ventures");
       await page.goto(`/${locale}`);
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(c.title);
       // The card, then Top opportunities with its empty text; no brief, no news, no banner, nothing about investments.
