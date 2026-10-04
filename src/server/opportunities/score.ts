@@ -5,7 +5,7 @@
 // and then yesterday's score simply stays current.
 import { FACTOR_KEYS, opportunitiesToRescore, recordOpportunityScore, wibDay, type FactorScores } from "@/server/data";
 import type { JobOutcome } from "@/server/jobs/runner";
-import { callLlm, InvalidOutputError, type LlmCall } from "@/server/llm/client";
+import { BudgetExhaustedError, callLlm, InvalidOutputError, type LlmCall } from "@/server/llm/client";
 import { fenceUntrusted } from "@/server/llm/fence";
 import { overallScore } from "./generate.ts";
 
@@ -29,8 +29,16 @@ export function parseFactors(value: unknown): FactorScores {
   if (keys.length !== FACTOR_KEYS.length || !FACTOR_KEYS.every((k) => keys.includes(k))) {
     throw new Error(`factors must be exactly ${FACTOR_KEYS.join(", ")}`);
   }
+  const exactly = (value: unknown, allowed: string[], path: string) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${path} must be an object`);
+    const extra = Object.keys(value).filter((k) => !allowed.includes(k));
+    if (extra.length) throw new Error(`${path}: unexpected ${extra.join(", ")}`);
+  };
+  exactly(value, ["factors"], "reply");
   const scores = {} as FactorScores;
   for (const key of FACTOR_KEYS) {
+    exactly(factors[key], ["score", "reason"], key);
+    exactly((factors[key] as { reason?: unknown }).reason, ["en", "id"], `${key}.reason`);
     const factor = factors[key] as { score?: unknown; reason?: { en?: unknown; id?: unknown } } | null;
     const score = factor?.score;
     if (typeof score !== "number" || !Number.isInteger(score) || score < 0 || score > 100) {
@@ -53,9 +61,15 @@ export async function scoreOpportunities(
   const now = options.now?.() ?? new Date();
   const today = wibDay(now);
   const due = await opportunitiesToRescore(today, MAX_PER_RUN);
-  const counts = { due: due.length, scored: 0, rejected: 0 };
+  const counts = { due: due.length, scored: 0, rejected: 0, skipped: 0 };
   const reasons: string[] = [];
   for (const o of due) {
+    // A score must rest on evidence: never ask without cited articles (all may be from switched-off sources).
+    if (o.articles.length === 0) {
+      counts.skipped++;
+      console.warn(`scores: #${o.id} not re-scored: no visible cited article`);
+      continue;
+    }
     const fence = fenceUntrusted("EVIDENCE", {
       opportunity: { title: o.titleEn, thesis: o.thesisEn, theme: o.theme, region: o.region, sectors: o.sectors, horizon: o.horizon, capital: o.capitalLevel },
       articles: o.articles.map((a) => ({ id: String(a.id), headline: a.headline, snippet: a.snippet, why: a.why })),
@@ -74,7 +88,11 @@ export async function scoreOpportunities(
         fetch: options.transport,
       });
     } catch (error) {
-      if (!(error instanceof InvalidOutputError)) throw error; // budget, settings, provider down: stop the run
+      if (error instanceof BudgetExhaustedError) {
+        // Stop, but keep what this run did: scored ones are stored, the rest waits for next month's budget.
+        return { status: "partial", counts, error: `${error.message}; ${counts.scored} scored before the cap` };
+      }
+      if (!(error instanceof InvalidOutputError)) throw error; // settings, provider down: stop the run
       counts.rejected++;
       reasons.push(`#${o.id}: ${error.message}`.slice(0, 200));
       console.warn(`scores: #${o.id} not re-scored, yesterday's score stays: ${error.message}`);

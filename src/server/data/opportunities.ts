@@ -245,7 +245,10 @@ export async function opportunitiesToRescore(today: string, limit: number): Prom
     where o.status = 'open'
       and s.last_day < ${today}::date
       and exists (
-        select 1 from opportunity_articles oa join articles a on a.id = oa.article_id
+        -- Only articles of active sources count (articleIsVisible), here as in the evidence list.
+        select 1 from opportunity_articles oa
+        join articles a on a.id = oa.article_id
+        join sources src on src.id = a.source_id and src.active
         where oa.opportunity_id = o.id
           and a.fetched_at >= (s.last_day::timestamp at time zone 'Asia/Jakarta'))
     order by o.id
