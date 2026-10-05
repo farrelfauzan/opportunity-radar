@@ -7,6 +7,8 @@
 import {
   FACTOR_KEYS,
   listVentures,
+  RELATED_NEWS_DAYS,
+  RELATED_NEWS_MIN_RELEVANCE,
   saveVentureView,
   ventureNewsCandidates,
   wibDay,
@@ -21,9 +23,7 @@ import { assertDescriptive, countingAdvice, WORDING_RULE } from "@/server/llm/wo
 import { overallScore } from "@/server/opportunities/generate";
 import { keywordMatcher } from "./match.ts";
 
-const WINDOW_DAYS = 30;
 const MAX_CANDIDATES = 60;
-const MIN_RELEVANCE = 50; // a match below this is not related news
 const MAX_WORDS = 30;
 const MAX_CHARS = 300;
 
@@ -32,7 +32,7 @@ For the venture and the articles in the data block:
 - "articles": for every article, {"id", "relevance": integer 0-100}: how much it matters to this venture's market
 - "markets": {"indonesia": {...}, "global": {...}}, each with integer scores 0-100 for "demand", "timing", "competition" (low competition), "capital" (capital efficiency) and "regulatory" (low regulatory risk); higher is always better
 - "tailwind" and "headwind": the strongest factor helping and hurting the venture, each {"en", "id", "articleIds"}: one sentence in English and Bahasa Indonesia (at most ${MAX_WORDS} words) and the ids of the relevant articles it rests on (at least 1)
-If no article is relevant (all below ${MIN_RELEVANCE}), give only "articles".
+If no article is relevant (all below ${RELATED_NEWS_MIN_RELEVANCE}), give only "articles".
 Answer with JSON only: {"articles": [...], "markets": {...}, "tailwind": {...}, "headwind": {...}}`;
 
 type Reply = {
@@ -59,7 +59,7 @@ export function parseVentureReply(value: unknown, inputIds: ReadonlySet<number>)
     if (!Number.isInteger(a.relevance) || (a.relevance as number) < 0 || (a.relevance as number) > 100) throw new Error(`article ${a.id}: relevance must be 0-100`);
     relevance.set(a.id as number, a.relevance as number);
   }
-  if (![...relevance.values()].some((r) => r >= MIN_RELEVANCE)) return { relevance, assessment: null };
+  if (![...relevance.values()].some((r) => r >= RELATED_NEWS_MIN_RELEVANCE)) return { relevance, assessment: null };
   const markets = {} as Record<"indonesia" | "global", FactorScores>;
   for (const region of ["indonesia", "global"] as const) {
     const m = (v.markets as Record<string, Record<string, unknown>> | undefined)?.[region];
@@ -84,7 +84,7 @@ export function parseVentureReply(value: unknown, inputIds: ReadonlySet<number>)
     if (!Array.isArray(ids) || ids.length === 0) throw new Error(`${name} cites no article`);
     for (const id of ids) {
       if (!inputIds.has(id as number)) throw new Error(`${name}: article ${id} was not in the input`);
-      if ((relevance.get(id as number) ?? 0) < MIN_RELEVANCE) throw new Error(`${name}: article ${id} is not rated relevant`);
+      if ((relevance.get(id as number) ?? 0) < RELATED_NEWS_MIN_RELEVANCE) throw new Error(`${name}: article ${id} is not rated relevant`);
     }
     return { en: (w!.en as string).trim(), id: (w!.id as string).trim(), articleIds: [...new Set(ids as number[])] };
   };
@@ -127,7 +127,7 @@ async function viewOf(
     maxTokens: 3000,
     fetch: transport,
   });
-  const articles = [...reply.relevance].map(([id, relevance]) => ({ id, relevance })).filter((a) => a.relevance >= MIN_RELEVANCE);
+  const articles = [...reply.relevance].map(([id, relevance]) => ({ id, relevance })).filter((a) => a.relevance >= RELATED_NEWS_MIN_RELEVANCE);
   // Matched by keyword, but none rated relevant: no score is invented, and old matches go.
   if (!reply.assessment) return NO_NEWS([...inputIds]);
   const { markets, tailwind, headwind } = reply.assessment;
@@ -147,7 +147,7 @@ async function viewOf(
 export async function assessVentures(options: { transport?: LlmCall<unknown>["fetch"]; now?: () => Date } = {}): Promise<JobOutcome> {
   const now = options.now?.() ?? new Date();
   const day = wibDay(now);
-  const news = await ventureNewsCandidates(new Date(now.getTime() - WINDOW_DAYS * 24 * 60 * 60 * 1000));
+  const news = await ventureNewsCandidates(new Date(now.getTime() - RELATED_NEWS_DAYS * 24 * 60 * 60 * 1000));
   const counts: Record<string, number> = { ventures: 0, scored: 0, no_news: 0, rejected: 0, wording_rejected: 0 };
   const reasons: string[] = [];
   for (const venture of await listVentures()) {

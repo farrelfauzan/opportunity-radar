@@ -134,3 +134,24 @@ export async function ventureMarketView(ventureId: number, day: string): Promise
   }
   return view;
 }
+
+export type MarketPoint = { day: string; score: number };
+
+/** The days of the series: the day and the 29 before it. */
+const SERIES_DAYS = 30;
+
+/**
+ * The scored market rows of the last 30 days (the WIB day `day` and the 29 before it) per region, oldest first.
+ * A day without a row, or a row without a score, is not in the series (no value is invented for a gap).
+ */
+export async function ventureMarketSeries(ventureId: number, day: string): Promise<Record<Region, MarketPoint[]>> {
+  const from = new Date(Date.parse(`${day}T00:00:00Z`) - (SERIES_DAYS - 1) * 86_400_000).toISOString().slice(0, 10);
+  const rows = await db()
+    .select({ day: ventureMarket.day, region: ventureMarket.region, score: ventureMarket.score })
+    .from(ventureMarket)
+    .where(and(eq(ventureMarket.ventureId, ventureId), gte(ventureMarket.day, from), lte(ventureMarket.day, day)))
+    .orderBy(asc(ventureMarket.day));
+  const series: Record<Region, MarketPoint[]> = { indonesia: [], global: [] };
+  for (const row of rows) if (row.score !== null) series[row.region].push({ day: row.day, score: row.score });
+  return series;
+}

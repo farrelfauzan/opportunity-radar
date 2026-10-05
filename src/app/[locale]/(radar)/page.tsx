@@ -3,6 +3,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { CreditLine } from "@/components/credit-line";
 import { SampleBadge } from "@/components/sample-badge";
+import { ScoreDelta } from "@/components/venture-score";
 import { WhyLabel } from "@/components/why-label";
 import { focusRing } from "@/components/focus-ring";
 import { buttonVariants } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { MARKET_JOB, marketView, type MarketRowView } from "@/lib/market/view";
 import { categoryLabel, safeHref } from "@/lib/news/view";
 import { horizonKey, inLocale, isNeverScored, trendText } from "@/lib/opportunities/view";
 import { affectedText, briefSourceText, firstRunTime, plural, sectionStale, updatedText } from "@/lib/radar/view";
-import { neverScored, progressPercent, scoreChange } from "@/lib/ventures/view";
+import { neverScored, progressPercent, scoreAsOf, ventureHref } from "@/lib/ventures/view";
 import { cn } from "@/lib/utils";
 import {
   citationCounts,
@@ -61,7 +62,7 @@ async function load(now: Date) {
     getMarketSnapshot(),
     // The last successful run of each job that feeds the snapshot (several rows share one).
     Promise.all([...new Set(Object.values(MARKET_JOB))].map(async (job) => [job, await lastSuccessfulRun(job)] as const)).then(Object.fromEntries),
-    listVentureCards(wibDay(now)),
+    listVentureCards(now),
     // The morning step that scores the ventures.
     lastSuccessfulRun("ventures"),
   ]);
@@ -131,7 +132,7 @@ export default async function RadarPage() {
         <BriefSection brief={brief} stale={sectionStale(briefRun, now, locale, m.state.stale, "brief")} locale={locale} m={m} />
       )}
       {ventures.length > 0 && (
-        <VenturesSection cards={ventures} stale={sectionStale(venturesRun, now, locale, m.state.stale, "ventures")} locale={locale} m={m} />
+        <VenturesSection cards={ventures} now={now} stale={sectionStale(venturesRun, now, locale, m.state.stale, "ventures")} locale={locale} m={m} />
       )}
       <TopSection
         items={top}
@@ -200,7 +201,7 @@ function BriefSection({
 
 const tile = "min-w-0 flex-1 basis-36 rounded-lg bg-black/20 px-3 py-2.5";
 
-function VenturesSection({ cards, stale, locale, m }: { cards: VentureCard[]; stale: string | null; locale: Locale; m: Messages }) {
+function VenturesSection({ cards, now, stale, locale, m }: { cards: VentureCard[]; now: Date; stale: string | null; locale: Locale; m: Messages }) {
   return (
     <section aria-labelledby="radar-ventures" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
@@ -217,7 +218,7 @@ function VenturesSection({ cards, stale, locale, m }: { cards: VentureCard[]; st
       <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(320px,100%),1fr))] gap-4">
         {cards.map((card) => (
           <li key={card.venture.id} data-venture={card.venture.slug} className="flex">
-            <VentureItem card={card} locale={locale} m={m} />
+            <VentureItem card={card} now={now} locale={locale} m={m} />
           </li>
         ))}
       </ul>
@@ -226,7 +227,7 @@ function VenturesSection({ cards, stale, locale, m }: { cards: VentureCard[]; st
 }
 
 // Everything from the store below (names, descriptions, winds) is rendered as text, never as markup.
-function VentureItem({ card, locale, m }: { card: VentureCard; locale: Locale; m: Messages }) {
+function VentureItem({ card, now, locale, m }: { card: VentureCard; now: Date; locale: Locale; m: Messages }) {
   const { venture, progress, market, winds, relatedNews } = card;
   const s = m.radar.ventures;
   const never = neverScored(market, winds);
@@ -270,8 +271,8 @@ function VentureItem({ card, locale, m }: { card: VentureCard; locale: Locale; m
           </div>
         ) : (
           <div className="flex flex-wrap gap-3">
-            <ScoreTile region="indonesia" label={s.oppId} view={market.indonesia} m={m} />
-            <ScoreTile region="global" label={s.oppWorld} view={market.global} m={m} />
+            <ScoreTile region="indonesia" label={s.oppId} view={market.indonesia} now={now} locale={locale} m={m} />
+            <ScoreTile region="global" label={s.oppWorld} view={market.global} now={now} locale={locale} m={m} />
           </div>
         )}
         {(tailwind || headwind) && (
@@ -288,19 +289,38 @@ function VentureItem({ card, locale, m }: { card: VentureCard; locale: Locale; m
             )}
           </ul>
         )}
-        {!never && (
-          <p data-venture-news className="text-xs text-muted-foreground">
-            {relatedNews > 0 ? plural(relatedNews, s.related) : s.noNews}
-          </p>
-        )}
+        {!never &&
+          (relatedNews > 0 ? (
+            <Link data-venture-news href={ventureHref(locale, venture.slug)} className={sectionLink}>
+              {plural(relatedNews, s.open)}
+            </Link>
+          ) : (
+            <p data-venture-news className="text-xs text-muted-foreground">
+              {s.noNews}
+            </p>
+          ))}
       </CardContent>
     </Card>
   );
 }
 
-function ScoreTile({ region, label, view, m }: { region: string; label: string; view: VentureCard["market"]["global"]; m: Messages }) {
+function ScoreTile({
+  region,
+  label,
+  view,
+  now,
+  locale,
+  m,
+}: {
+  region: string;
+  label: string;
+  view: VentureCard["market"]["global"];
+  now: Date;
+  locale: Locale;
+  m: Messages;
+}) {
   const score = view?.score ?? null;
-  const change = score === null ? null : scoreChange(view!.delta, m.opp.trend);
+  const asOf = view && score !== null ? scoreAsOf(view.day, now, locale, m.radar.ventures.scoreAsOf) : null;
   return (
     <div data-venture-score={region} className={tile}>
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -314,12 +334,10 @@ function ScoreTile({ region, label, view, m }: { region: string; label: string; 
             <span className="text-xs text-muted-foreground">/ 100</span>
           </span>
           <span className="sr-only">{fill(m.radar.ventures.scoreLabel, { score })}</span>
-          {change && (
-            <span
-              data-trend={change.direction}
-              className={cn("text-xs font-semibold", change.direction === "up" && "text-primary", change.direction === "down" && "text-destructive", change.direction === "flat" && "text-muted-foreground")}
-            >
-              {change.text}
+          <ScoreDelta delta={view!.delta} m={m} />
+          {asOf && (
+            <span data-score-asof className="font-sans text-xs text-muted-foreground">
+              {asOf}
             </span>
           )}
         </p>

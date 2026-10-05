@@ -116,7 +116,7 @@ export function fixtureArticles(now = new Date()): FixtureArticle[] {
   // The other pairs. Commodities + Global stays empty on purpose.
   add("kemendag", "indonesia", "business", headlines.long, 30, "Snippet with a very long headline and source name.");
   add("antara", "indonesia", "business", "UMKM digital tumbuh di luar Jawa", 80);
-  add("bbc-business", "global", "business", headlines.markup, 20, headlines.markupSnippet);
+  add("bbc-business", "global", "business", headlines.markup, 20, headlines.markupSnippet, { key: "markup-news" });
   add("bbc-business", "global", "business", "Shipping costs ease on Asia routes", 85);
   add("antara", "indonesia", "politics", "Aturan sertifikasi halal diperluas", 90);
   add("antara", "indonesia", "politics", headlines.twoHours, 120);
@@ -130,6 +130,7 @@ export function fixtureArticles(now = new Date()): FixtureArticle[] {
   add("antara", "indonesia", "commodities", "Harga emas Antam cetak rekor baru", 117);
   // Licensed sources: they carry a credit line (and The Conversation its licence link).
   add("conversation-id", "indonesia", "politics", headlines.conversation, 121, "Ringkasan yang dipakai apa adanya.", {
+    key: "licensed", // the venture fixtures (OR-51) match and cite it
     triage: {
       status: "ok",
       category: "politics",
@@ -192,7 +193,7 @@ export function fixtureArticles(now = new Date()): FixtureArticle[] {
   // Not triaged yet, but an open opportunity cites it.
   add("cnbc-indonesia", "indonesia", "tech-ai", headlines.coldChain, 10, undefined, { key: "coldchain" });
   // Triage failed: it keeps its feed category and shows no tag.
-  add("bbc-business", "global", "business", headlines.failed, 11, undefined, { triage: { status: "failed" } });
+  add("bbc-business", "global", "business", headlines.failed, 11, undefined, { key: "failed", triage: { status: "failed" } });
   // Triaged articles of the days before today: they only count in the themes panel (7 WIB days, today included).
   const earlier = (daysAgo: number, themes: string[]) =>
     list.push({

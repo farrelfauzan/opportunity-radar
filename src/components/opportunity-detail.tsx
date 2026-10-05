@@ -4,8 +4,8 @@ import { formatRelativeTime } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { fill, type Messages } from "@/i18n/t";
 import { safeHref } from "@/lib/news/view";
-import { barPercent, factorRows, inLocale, opportunityMeta, trendText } from "@/lib/opportunities/view";
-import type { ArticleWithSource, OpportunityDetail } from "@/server/data";
+import { barPercent, factorRows, inLocale, opportunityMeta, trendText, type Factor } from "@/lib/opportunities/view";
+import type { ArticleWithSource, OpportunityDetail, OpportunityScore } from "@/server/data";
 import { cn } from "@/lib/utils";
 
 // Every text below (the opportunity's and the articles') is rendered as text, never as markup.
@@ -42,29 +42,36 @@ export function TextList({ id, title, items, ordered }: { id: string; title: str
 }
 
 /** Five bars, each with its number printed beside it: the number, not the colour, carries the value. */
-export function ScoreBreakdown({ score, m }: { score: OpportunityDetail["latestScore"]; m: Messages }) {
+export function FactorBars({ score, m }: { score: Pick<OpportunityScore, Factor> | null; m: Messages }) {
   const rows = factorRows(score);
   if (rows.length === 0) return null;
   return (
+    <ul className="flex flex-col gap-2.5">
+      {rows.map(({ factor, value }) => (
+        <li key={factor} className="flex items-center gap-3">
+          <span className={cn("w-[132px] shrink-0 text-[#E2DDF0]", wrap)}>{m.opp.factor[factor]}</span>
+          <span
+            role="meter"
+            aria-label={m.opp.factor[factor]}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={value}
+            className="block h-2 min-w-0 flex-1 overflow-hidden rounded-sm bg-[#4B3E75]"
+          >
+            <span className="block h-2 bg-primary" style={{ width: `${barPercent(value)}%` }} />
+          </span>
+          <span className="w-7 shrink-0 text-right font-mono text-[13px]">{value}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function ScoreBreakdown({ score, m }: { score: OpportunityDetail["latestScore"]; m: Messages }) {
+  if (factorRows(score).length === 0) return null;
+  return (
     <Section id="opp-breakdown" title={m.opp.detail.breakdown} className="flex-[1_1_280px]">
-      <ul className="flex flex-col gap-2.5">
-        {rows.map(({ factor, value }) => (
-          <li key={factor} className="flex items-center gap-3">
-            <span className={cn("w-[132px] shrink-0 text-[#E2DDF0]", wrap)}>{m.opp.factor[factor]}</span>
-            <span
-              role="meter"
-              aria-label={m.opp.factor[factor]}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={value}
-              className="block h-2 min-w-0 flex-1 overflow-hidden rounded-sm bg-[#4B3E75]"
-            >
-              <span className="block h-2 bg-primary" style={{ width: `${barPercent(value)}%` }} />
-            </span>
-            <span className="w-7 shrink-0 text-right font-mono text-[13px]">{value}</span>
-          </li>
-        ))}
-      </ul>
+      <FactorBars score={score} m={m} />
       <p className="text-xs text-muted-foreground">{m.opp.detail.breakdownNote}</p>
       <p className="text-xs text-muted-foreground">{m.opp.detail.aiNote}</p>
     </Section>
@@ -106,15 +113,20 @@ export function Evidence({
   now,
   locale,
   m,
+  id = "opp-evidence",
+  title = m.opp.detail.evidence,
 }: {
   articles: ArticleWithSource[];
   now: Date;
   locale: Locale;
   m: Messages;
+  /** The section's id and title; the venture view uses several (one per wind) with its own title. */
+  id?: string;
+  title?: string;
 }) {
   if (articles.length === 0) return null;
   return (
-    <Section id="opp-evidence" title={m.opp.detail.evidence}>
+    <Section id={id} title={title}>
       <ul className="flex flex-col gap-2">
         {articles.map((article) => {
           const href = safeHref(article.link);

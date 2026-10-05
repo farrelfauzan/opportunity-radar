@@ -60,6 +60,16 @@
     "ventures": {
       "title": "Usaha saya",
       "scoreLabel": "{score} dari 100",
+      "scoreAsOf": "Per {date}",
+      "deltaUp": {
+        "one": "naik {n} poin dibanding kemarin",
+        "other": "naik {n} poin dibanding kemarin"
+      },
+      "deltaDown": {
+        "one": "turun {n} poin dibanding kemarin",
+        "other": "turun {n} poin dibanding kemarin"
+      },
+      "deltaFlat": "tidak berubah dibanding kemarin",
       "subtitle": "Progres dari papan tiap proyek · pandangan pasar dinilai ulang tiap hari dari berita",
       "progressMvp": "Progres menuju MVP",
       "progressRelease": "Progres menuju rilis berikutnya",
@@ -68,6 +78,10 @@
       "oppWorld": "Peluang · Dunia",
       "tailwind": "Pendorong",
       "headwind": "Penghambat",
+      "open": {
+        "one": "Buka tampilan usaha · {n} berita terkait",
+        "other": "Buka tampilan usaha · {n} berita terkait"
+      },
       "noNews": "Belum ada berita terkait bulan ini",
       "related": {
         "one": "{n} berita terkait",
@@ -323,8 +337,33 @@
     "partial": "{ok} dari {total} sumber diperbarui · belum diperbarui: {names}"
   },
   "venture": {
+    "back": "← Radar",
+    "progress": {
+      "title": "Progres pengembangan",
+      "source": "Dari {source} · diperbarui {time} WIB",
+      "notConnectedBody": "Hubungkan papan proyek usaha ini untuk menampilkan progres pengembangan.",
+      "delivered": "Sprint {n} selesai",
+      "next": "Berikutnya: sprint {n}",
+      "inQa": {
+        "one": "{n} tiket di QA",
+        "other": "{n} tiket di QA"
+      }
+    },
     "market": {
-      "noScore": "Belum ada skor: tidak ada berita terkait dalam 30 hari terakhir"
+      "title": "Pandangan pasar dari berita",
+      "subtitle": "Dinilai AI setiap pagi dari berita 30 hari terakhir",
+      "score": "skor / 100",
+      "vsYesterday": "{change} dibanding kemarin",
+      "noScore": "Belum ada skor: tidak ada berita terkait dalam 30 hari terakhir",
+      "trend": "{n} hari terakhir: dari {first} ke {last}"
+    },
+    "winds": {
+      "title": "Apa yang membantu dan menghambat",
+      "evidence": "Bukti"
+    },
+    "news": {
+      "title": "Berita terkait, 30 hari",
+      "empty": "Tidak ada berita terkait dalam 30 hari terakhir"
     }
   },
   "calc": {
